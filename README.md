@@ -25,9 +25,13 @@ Clique nas imagens para ampliar
 ✓ Cancela a nota fiscal quando a fatura é cancelada (opcional).
 ✓ Exibe nas configurações do módulo quando há uma versão mais recente disponível para download.
 ✓ Opcionalmente, salva o debug das chamadas à API NFE.io no log de Módulo do WHMCS para diagnóstico e aprendizado.
+
 ## REQUISITOS DO SISTEMA
 - WHMCS versão 7.2.1 ou superior;
 - PHP 5.6 ou superior
+- Tarefas cron do WHMCS devem estar funcionando a cada 5 minutos, conforme descrito na documentação oficial (https://docs.whmcs.com/Crons);
+- É necessário um portal de pagamento ativado e que a criação de faturas do WHMCS esteja funcional, sendo que as notas fiscais são emitidas no momento da criação ou após o pagamento das faturas geradas manual ou automaticamente pelo WHMCS.
+
 ## INSTALAÇÃO
 1. Faça download do módulo [neste link](https://github.com/nfe/plugin-whmcs/archive/master.zip "neste link");
 2. Descompacte o arquivo .zip;
@@ -35,11 +39,10 @@ Clique nas imagens para ampliar
 
 ## PRÉ CONFIGURAÇÃO E ATIVAÇÃO
 1. No painel administrativo do WHMCS, crie um campo personalizado de cliente para CPF e/ou CNPJ. Caso prefira, você pode criar dois campos distintos, sendo um campo apenas para CPF e outro campo apenas para CNPJ. O módulo identifica os campos do perfil do cliente automaticamente;
-
 2. Ative o addon no painel administrativo do WHMCS, em Opções > Módulos Addon > Gofas NFE.io > Ativar.
+
 ## CONFIGURAÇÕES DO MÓDULO
 1. API Key: (Obrigatório) Chave de acesso privada gerado na sua conta NFE.io, necessária para a autenticação das chamadas à API (Obter Api Key);
-
 2. ID da Empresa: (Obrigatório) Nesse campo você deve indicar o ID da empresa ao qual serão associadas as notas fiscais geradas pelo WHMCS. (Obter ID da empresa);
 3. Código de Serviço: (Obrigatório) O código de serviço varia de acordo com a categoria de tributação do negócio. Saiba mais sobre o código de serviço aqui;
 4. Quando emitir NFE: Selecione se deseja que as notas fiscais sejam geradas quando a fatura é publicada ou quando a fatura é paga;
