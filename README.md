@@ -57,4 +57,13 @@ Clique nas imagens para ampliar
 7. Debug: Marque essa opção para salvar informações de diagnóstico no Log de Módulo do WHMCS;
 8. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
 
+## CHANGELOG
+### v1.1.1
+- Obtém via API o rpsSerialNumber e rpsNumber da empresa antes de gerar cada nota fiscal;
+- O rpsNumber da nova NFE a ser gerada sempre é "último rpsNumber + 1".
+#### v1.0.1
+- Corrigido bug ao salvar NFE no banco de dados na criação da fatura.
+#### v1.0.0
+- Lançamento.
+
 © 2020 [Gofas Software](https://gofas.net/whmcs/modulo-nfe-io-para-whmcs/)
