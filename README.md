@@ -19,11 +19,17 @@ Clique nas imagens para ampliar
 
 ## PRINCIPAIS FUNCIONALIDADES
 ✓ Emite notas fiscais automaticamente, quando a fatura é publicada, ou quando a fatura é paga.
+
 ✓ Permite agendar a emissão de notas fiscais para um determinado número de dias após a confirmação dos pagamentos.
+
 ✓ Emite notas fiscais de forma sequencial, evitando sobrecargas nos sites das prefeituras.
+
 ✓ Exibe o status da NFE e adiciona botões de ações relacionadas às notas na página de edição das faturas.
+
 ✓ Cancela a nota fiscal quando a fatura é cancelada (opcional).
+
 ✓ Exibe nas configurações do módulo quando há uma versão mais recente disponível para download.
+
 ✓ Opcionalmente, salva o debug das chamadas à API NFE.io no log de Módulo do WHMCS para diagnóstico e aprendizado.
 
 ## REQUISITOS DO SISTEMA
@@ -50,3 +56,5 @@ Clique nas imagens para ampliar
 6. Cancelar NFE: Se essa opção está ativada, o módulo cancela a nota fiscal quando a fatura cancelada;
 7. Debug: Marque essa opção para salvar informações de diagnóstico no Log de Módulo do WHMCS;
 8. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
+
+© 2020 [Gofas Software](https://gofas.net/whmcs/modulo-nfe-io-para-whmcs/)
