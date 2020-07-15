@@ -39,7 +39,7 @@ Clique nas imagens para ampliar
 - É necessário um portal de pagamento ativado e que a criação de faturas do WHMCS esteja funcional, sendo que as notas fiscais são emitidas no momento da criação ou após o pagamento das faturas geradas manual ou automaticamente pelo WHMCS.
 
 ## INSTALAÇÃO
-1. Faça download do módulo [neste link](https://github.com/nfe/plugin-whmcs/archive/master.zip "neste link");
+1. Faça download do módulo [neste link](https://github.com/nfe/whmcs-addon/archive/master.zip "neste link");
 2. Descompacte o arquivo .zip;
 3. Copie o diretório `/gofasnfeio/`, localizados na pasta `/modules/addons/` do arquivo recém descompactado, para a pasta `/modules/addons/` da instalação do WHMCS;
 
