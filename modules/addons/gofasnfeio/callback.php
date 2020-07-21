@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.1.1
+ * @version		1.1.2
  */
 require_once __DIR__ . '/../../../init.php';
 use WHMCS\Database\Capsule;

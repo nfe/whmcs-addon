@@ -6,52 +6,15 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=
  * @support		https://gofas.net/?p=12313
- * @version		1.1.1
+ * @version		1.1.2
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 if( !function_exists('gofasnfeio_config') ) {
 function gofasnfeio_config() {
-	$module_version = '1.1.1';
+	$module_version = '1.1.2';
 	$module_version_int = (int)preg_replace('/[^0-9]/', '', $module_version);
-	// Verify available updates
-	if( !function_exists('gnfe_verify_module_updates') ) {
-		function gnfe_verify_module_updates() {
-   			$query = 'https://gofas.net/br/updates/?software=12529';
-    		$curl = curl_init();
-    		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
-    		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
-    		curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
-    		curl_setopt($curl, CURLOPT_URL, $query);
-			$result = curl_exec($curl);
-    		$http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-			curl_close($curl);
-			return array(
-				'http_status' => $http_status,
-				'result' => $result,
-			);
-		}
-	}
-	$available_update_ = gnfe_verify_module_updates();
-	if ( (int)$available_update_['http_status'] === 200 ) {
-		$available_update = $available_update_['result'];
-		$available_update_int = (int)preg_replace("/[^0-9]/", "", $available_update);
-	}
-	else {
-		$available_update_int = 000;
-	}
-	if( $available_update_int === $module_version_int ) {
-		$available_update_message = '<p style="font-size: 14px;color:green;"><i class="fas fa-check-square"></i> Você está executando a versão mais recente do módulo.</p>';
-	}
-	if( $available_update_int > $module_version_int ) {
-		$available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Atualização disponível, verifique a <a style="color:#CC0000;text-decoration:underline;" href="https://gofas.net/?p=12529" target="_blank">versão '.$available_update.'</a></p>';
-	}
-	if( $available_update_int < $module_version_int ) {
-		$available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Você está executando uma versão Beta desse módulo.<br>Não recomendamos o uso dessa versão em produção.<br>Baixar versão estável: <a style="color:#CC0000;text-decoration:underline;" href="https://gofas.net/?p=12529" target="_blank">v'.$available_update.'</a></p>';
-	}
-	if( $available_update_int === 000 ) {
-		$available_update_message = '<p style="font-size: 14px;color:green;"><i class="fas fa-check-square"></i> Você está executando a versão mais recente do módulo.</p>';
-	}
+	
 	// Get Config
 	$actual_link		= (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 	if ( stripos( $actual_link, '/configaddonmods.php') ) {
@@ -108,6 +71,44 @@ function gofasnfeio_config() {
 			try { Capsule::table('tblconfiguration')->where( 'setting', 'gnfewhmcsadminpath')->update(array('value' => $whmcs_admin_path, 'created_at' =>  $gnfewhmcsadminpath_created_at , 'updated_at' => date("Y-m-d H:i:s")));}
 			catch (\Exception $e) {$e->getMessage();}
 		}
+	}
+	// Verify available updates
+	if( !function_exists('gnfe_verify_module_updates') ) {
+		function gnfe_verify_module_updates($referer) {
+   			$query = 'https://gofas.net/br/updates/?software=12529&referer='.$referer;
+    		$curl = curl_init();
+    		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
+    		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
+    		curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
+    		curl_setopt($curl, CURLOPT_URL, $query);
+			$result = curl_exec($curl);
+    		$http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+			curl_close($curl);
+			return array(
+				'http_status' => $http_status,
+				'result' => $result,
+			);
+		}
+	}
+	$available_update_ = gnfe_verify_module_updates($whmcs_url);
+	if ( (int)$available_update_['http_status'] === 200 ) {
+		$available_update = $available_update_['result'];
+		$available_update_int = (int)preg_replace("/[^0-9]/", "", $available_update);
+	}
+	else {
+		$available_update_int = 000;
+	}
+	if( $available_update_int === $module_version_int ) {
+		$available_update_message = '<p style="font-size: 14px;color:green;"><i class="fas fa-check-square"></i> Você está executando a versão mais recente do módulo.</p>';
+	}
+	if( $available_update_int > $module_version_int ) {
+		$available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Atualização disponível, verifique a <a style="color:#CC0000;text-decoration:underline;" href="https://gofas.net/?p=12529" target="_blank">versão '.$available_update.'</a></p>';
+	}
+	if( $available_update_int < $module_version_int ) {
+		$available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Você está executando uma versão Beta desse módulo.<br>Não recomendamos o uso dessa versão em produção.<br>Baixar versão estável: <a style="color:#CC0000;text-decoration:underline;" href="https://gofas.net/?p=12529" target="_blank">v'.$available_update.'</a></p>';
+	}
+	if( $available_update_int === 000 ) {
+		$available_update_message = '<p style="font-size: 14px;color:green;"><i class="fas fa-check-square"></i> Você está executando a versão mais recente do módulo.</p>';
 	}
 	if( !function_exists('gnfe_verifyInstall') ) {
 		function gnfe_verifyInstall() {
