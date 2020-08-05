@@ -59,7 +59,9 @@ Clique nas imagens para ampliar
 8. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
 
 ## CHANGELOG
-### v1.1.1
+### v1.1.2
+- Melhoria na verificação de atualizações;
+#### v1.1.1
 - Obtém via API o rpsSerialNumber e rpsNumber da empresa antes de gerar cada nota fiscal;
 - O rpsNumber da nova NFE a ser gerada sempre é "último rpsNumber + 1".
 #### v1.0.1
