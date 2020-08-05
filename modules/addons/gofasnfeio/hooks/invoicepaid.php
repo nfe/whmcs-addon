@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.1.2
+ * @version		1.1.3
  */
 if (!defined("WHMCS")){die();}
 $params = gnfe_config();
@@ -31,5 +31,5 @@ if( stripos($params['issue_note'], 'Paga') and (string)$vars['status'] !== (stri
 	}
 }
 if($params['debug']) {
-	logModuleCall('gofas_nfeio', 'InvoicePaid', array('vars'=>$vars, 'gnfe_ibge'=> gnfe_ibge(preg_replace("/[^0-9]/", "", $client['postcode']))), 'post',  array( 'params'=>$params, 'invoice'=>$invoice, 'client'=> $client, 'queue'=>$queue, 'nfe_for_invoice'=> $nfe_for_invoice ), 'replaceVars');
+	logModuleCall('gofas_nfeio', 'InvoicePaid', array('vars'=>$vars, 'gnfe_ibge'=> gnfe_ibge(preg_replace("/[^0-9]/", "", $client['postcode']))), 'post',  array( 'params'=>$params, 'invoice'=>$invoice, 'client'=> $client, 'queue'=>$queue, 'nfe_for_invoice'=> $nfe_for_invoice, ), 'replaceVars');
 }

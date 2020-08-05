@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.1.2
+ * @version		1.1.3
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
@@ -251,6 +251,18 @@ if( !function_exists('gnfe_get_nfe') ) {
 		return json_decode($response);
 	}
 }
+if( !function_exists('gnfe_get_nfes') ) {
+	function gnfe_get_nfes(){
+		$curl = curl_init();
+		curl_setopt($curl, CURLOPT_URL, "https://api.nfe.io/v1/companies/".gnfe_config('company_id')."/serviceinvoices?pageCount=1&pageIndex=1");
+		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: text/json', 'Accept: application/json', 'Authorization: '.gnfe_config('api_key')));
+		curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
+		$response = curl_exec ($curl);
+		curl_close ($curl);
+		return json_decode($response, true);
+	}
+}
 
 if( !function_exists('gnfe_delete_nfe') ) {
 	function gnfe_delete_nfe($nf){
@@ -335,6 +347,7 @@ if( !function_exists('gnfe_save_nfe') ) {
 				'created_at'=>$created_at,
 				'updated_at'=>$updated_at,
 				'rpsSerialNumber'=>$nfe->rpsSerialNumber,
+				'rpsNumber'=>$nfe->rpsNumber,
 			);
 	try {
 		$save_nfe = Capsule::table('gofasnfeio')->insert($data);
@@ -358,6 +371,7 @@ if( !function_exists('gnfe_update_nfe') ) {
 				'created_at'=>$created_at,
 				'updated_at'=>$updated_at,
 				'rpsSerialNumber'=>$nfe->rpsSerialNumber,
+				'rpsNumber'=>$nfe->rpsNumber,
 			);
 	try {
 		$save_nfe = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->update($data);

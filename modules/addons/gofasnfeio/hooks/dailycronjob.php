@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.1.2
+ * @version		1.1.3
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
@@ -57,7 +57,7 @@ if( $params['issue_note_after'] and (int)$params['issue_note_after'] > 0 ) {
 							)
 						),
 						'rpsSerialNumber' => $company['companies']['rpsSerialNumber'],
-						'rpsNumber' => (int)(($company['companies']['rpsNumber'])+1),
+						'rpsNumber' => (int)$company['companies']['rpsNumber'] +1,
 					);
 				
 				$waiting = array();
@@ -73,6 +73,6 @@ if( $params['issue_note_after'] and (int)$params['issue_note_after'] > 0 ) {
 		}
 	}
 	if($params['debug']) {
-		logModuleCall('gofas_nfeio', 'dailycronjob', array('$params'=>$params, '$datepaid'=>$datepaid, '$datepaid_to_issue'=>$datepaid_to_issue), 'post',  array('$processed_invoices'=>$processed_invoices, 'queue'=>$queue,'error'=>$error ), 'replaceVars');
+		logModuleCall('gofas_nfeio', 'dailycronjob', array('$params'=>$params, '$datepaid'=>$datepaid, '$datepaid_to_issue'=>$datepaid_to_issue,'gnfe_get_nfes'=> gnfe_get_nfes() ), 'post',  array('processed_invoices'=>$processed_invoices, 'queue'=>$queue,'error'=>$error ), 'replaceVars');
 	}
 }

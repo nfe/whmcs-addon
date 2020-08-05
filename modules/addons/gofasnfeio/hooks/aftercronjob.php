@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.1.2
+ * @version		1.1.3
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
@@ -21,7 +21,9 @@ foreach( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=
 			$line_items[]	= $value['description'];	
 		}
 		$customer = gnfe_customer($invoices->userid,$client);
-		$company = gnfe_get_company();
+		$gnfe_get_nfes = gnfe_get_nfes();
+		$rps_serial_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber'];
+		$rps_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'];
 		$postfields = array(
 			'cityServiceCode' => $params['service_code'],
 			'description'     => substr( implode("\n",$line_items),  0, 600),
@@ -44,8 +46,8 @@ foreach( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=
 					'state' => $client['state'],
 					)
 				),
-				'rpsSerialNumber' => $company['companies']['rpsSerialNumber'],
-				'rpsNumber' => (int)(($company['companies']['rpsNumber'])+1),
+				'rpsSerialNumber' => $rps_serial_number,
+				'rpsNumber' => (int)$rps_number+1,
 			);
 			$nfe = gnfe_issue_nfe($postfields);
 			if($nfe->message) {

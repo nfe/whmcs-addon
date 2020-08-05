@@ -6,13 +6,13 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=
  * @support		https://gofas.net/?p=12313
- * @version		1.1.2
+ * @version		1.1.3
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 if( !function_exists('gofasnfeio_config') ) {
 function gofasnfeio_config() {
-	$module_version = '1.1.2';
+	$module_version = '1.1.3';
 	$module_version_int = (int)preg_replace('/[^0-9]/', '', $module_version);
 	
 	// Get Config
@@ -126,15 +126,27 @@ function gofasnfeio_config() {
 						$table->string('environment');
 						$table->string('flow_status');
 						$table->string('pdf');
+						$table->string('rpsSerialNumber');
+						$table->string('rpsNumber');
 						$table->string('created_at');
 						$table->string('updated_at');
-						$table->string('rpsSerialNumber');
     				});
 				}
 				catch (\Exception $e) {
     				$error .= "Não foi possível criar a tabela do módulo no banco de dados: {$e->getMessage()}";
 				}
 			}
+			
+			// Added in v1dot1dot3 
+			if(!Capsule::schema()->hasColumn('gofasnfeio', 'rpsNumber')){
+				try {
+ 					Capsule::schema()->table('gofasnfeio', function($table){$table->string('rpsNumber');});
+				}
+				catch (\Exception $e) {
+    				$error .= "Não foi possível atualizar a tabela do módulo no banco de dados: {$e->getMessage()}";
+				}
+			}
+			
 			if(!$error) {
 				return array('sucess'=>1);
 			}
@@ -163,7 +175,8 @@ function gofasnfeio_config() {
 				'FriendlyName' => 'Código de Serviço',
 				'Type' => 'text',
 				'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/#o-que-e-codigo-de-servico" target="_blank">O que é Código de Serviço?</a>',
-	));	
+	));
+
 	$issue_note = array('issue_note' => array(
 				'FriendlyName' => 'Quando emitir NFE',
 				'Type' => 'radio',
