@@ -59,7 +59,13 @@ Clique nas imagens para ampliar
 8. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
 
 ## CHANGELOG
-### v1.1.2
+#### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
+### v1.2.0
+- Novo campo nas configurações para informar a Série do RPS (RPS Serial Number). Será preenchido automaticamente na próxima emissão, caso não preenchido;
+- Novo campo nas configurações para informar o número RPS (RPS Number). Caso não preenchido, será preenchido automaticamente na próxima emissão, após consultar a NFE mais recente gerada. Não sendo gerado ou configurado nenhum número RPS, o módulo irá configurar automaticamente com "1" o valor desse campo;
+#### v1.1.3
+- Agora o número RPS é obtido consultando a NFE mais recente gerada;
+#### v1.1.2
 - Melhoria na verificação de atualizações;
 #### v1.1.1
 - Obtém via API o rpsSerialNumber e rpsNumber da empresa antes de gerar cada nota fiscal;

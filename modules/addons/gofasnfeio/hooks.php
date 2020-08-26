@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.1.3
+ * @version		1.2.0
  */
 if (!defined("WHMCS")){die();}
 

@@ -6,13 +6,13 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=
  * @support		https://gofas.net/?p=12313
- * @version		1.1.3
+ * @version		1.2.0
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 if( !function_exists('gofasnfeio_config') ) {
 function gofasnfeio_config() {
-	$module_version = '1.1.3';
+	$module_version = '1.2.0';
 	$module_version_int = (int)preg_replace('/[^0-9]/', '', $module_version);
 	
 	// Get Config
@@ -137,7 +137,7 @@ function gofasnfeio_config() {
 				}
 			}
 			
-			// Added in v1dot1dot3 
+			// Added in v 1 dot 1 dot 3 
 			if(!Capsule::schema()->hasColumn('gofasnfeio', 'rpsNumber')){
 				try {
  					Capsule::schema()->table('gofasnfeio', function($table){$table->string('rpsNumber');});
@@ -176,13 +176,24 @@ function gofasnfeio_config() {
 				'Type' => 'text',
 				'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/#o-que-e-codigo-de-servico" target="_blank">O que é Código de Serviço?</a>',
 	));
+	$rps_serial_number = array('rps_serial_number' => array(
+				'FriendlyName' => 'Série do RPS',
+				'Type' => 'text',
+				'Default' => 'IO',
+				'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/" target="_blank">Saiba mais</a>',
+	));
+	$rps_number = array('rps_number' => array(
+				'FriendlyName' => 'Número do RPS',
+				'Type' => 'text',
+				'Default' => 'zero',
+				'Description' => 'O número RPS da NFE mais recente gerada.<br>Deixe em branco e o módulo irá preencher esse campo após a primeira emissão. Não altere o valor a menos que tenha certeza de como funciona essa opção. <a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/" target="_blank">Saiba mais.</a>',
+	));
 
 	$issue_note = array('issue_note' => array(
 				'FriendlyName' => 'Quando emitir NFE',
 				'Type' => 'radio',
                 'Options' => 'Quando a Fatura é Gerada,Quando a Fatura é Paga',
                 'Default' => 'Quando a Fatura é Paga',
-                //'Description' => 'Escolha o momento em que as nots fiscais serão geradas.',
 	));
 	$issue_note_after = array('issue_note_after' => array(
 				'FriendlyName' => 'Agendar Emissão',
@@ -206,7 +217,7 @@ function gofasnfeio_config() {
 				'FriendlyName' => '',
 				'Description' => '&copy; '.date('Y').' <a target="_blank" title="↗ Gofas Software" href="https://gofas.net">Gofas Software</a>',
 	));
-	$fields = array_merge($intro,$api_key,$company_id,$service_code,$issue_note,$issue_note_after,$cancel_invoice_cancel_nfe,$debug,$footer);
+	$fields = array_merge($intro,$api_key,$company_id,$service_code,$rps_serial_number,$rps_number,$issue_note,$issue_note_after,$cancel_invoice_cancel_nfe,$debug,$footer);
     $configarray = array(
     "name" => "Gofas NFE.io",
     "description" => "Módulo Gofas NFE.io para WHMCS",

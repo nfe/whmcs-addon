@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.1.3
+ * @version		1.2.0
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
@@ -22,8 +22,28 @@ foreach( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=
 		}
 		$customer = gnfe_customer($invoices->userid,$client);
 		$gnfe_get_nfes = gnfe_get_nfes();
-		$rps_serial_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber'];
-		$rps_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'];
+		if( $params['rps_serial_number'] ){
+			$rps_serial_number = $params['rps_serial_number'];
+			$rps_serial_number_ = 'IO';
+		}
+		elseif (!$params['rps_serial_number'] and $gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber']){
+			$rps_serial_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber'];
+			$rps_serial_number_ = $rps_serial_number;
+		}
+		elseif (!$params['rps_serial_number'] and !$gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber']){
+			$rps_serial_number = 'IO';
+			$rps_serial_number_ = $rps_serial_number;
+		}
+		///
+		if($params['rps_number'] and (string)$params['rps_number'] !== (string)'zero'){
+			$rps_number = $params['rps_number'];
+		}
+		elseif((!$params['rps_number'] or (string)$params['rps_number'] === (string)'zero' ) and $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']){
+			$rps_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'];
+		}
+		elseif(((string)$params['rps_number'] === (string)'zero' and !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']) or (!$params['rps_number'] and !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'])){
+			$rps_number = 0;
+		}
 		$postfields = array(
 			'cityServiceCode' => $params['service_code'],
 			'description'     => substr( implode("\n",$line_items),  0, 600),
@@ -53,11 +73,14 @@ foreach( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=
 			if($nfe->message) {
 				$error .= $nfe->message;				
 			}
-				
 			if(!$nfe->message) {
 				$gnfe_update_nfe = gnfe_update_nfe($nfe,$invoices->userid,$invoices->id,'n/a',date("Y-m-d H:i:s"),date("Y-m-d H:i:s"));
 				if($gnfe_update_nfe and $gnfe_update_nfe !== 'success') {
 					$error = $gnfe_update_nfe;
+				}
+				$update_rps = gnfe_update_rps($rps_serial_number_, $rps_number);
+				if($update_rps and $update_rps !== 'success') {
+					$error = $update_rps;
 				}
 			}
 		}

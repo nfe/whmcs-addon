@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.1.3
+ * @version		1.2.0
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
@@ -381,6 +381,24 @@ if( !function_exists('gnfe_update_nfe') ) {
 		return $e->getMessage();
 	}
 }}
+if( !function_exists('gnfe_update_rps') ) {
+	function gnfe_update_rps($rps_serial_number, $rps_number) {
+		$setting = array();
+		foreach( Capsule::table('tbladdonmodules') -> where( 'module', '=', 'gofasnfeio' ) -> get( array( 'setting', 'value') ) as $settings ) {
+			$setting[$settings->setting] = $settings->value;
+		}
+	try {
+		if($rps_serial_number !== $setting['rps_serial_number']){
+			$update_rps_serial_number = Capsule::table('tbladdonmodules')-> where( 'module', '=', 'gofasnfeio' )->where( 'setting', '=', 'rps_serial_number' )->update(array('value'=>$rps_serial_number));
+		}
+		$update_serial_number = Capsule::table('tbladdonmodules')-> where( 'module', '=', 'gofasnfeio' )->where( 'setting', '=', 'rps_number' )->update(array('value'=>$rps_number+1));
+		return 'success';
+	}
+	catch (\Exception $e) {
+		return $e->getMessage();
+	}
+}}
+
 if( !function_exists('gnfe_get_local_nfe') ) {
 	function gnfe_get_local_nfe($invoice_id, $values ) {
 		foreach( Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->get($values) as $key => $value ) {
