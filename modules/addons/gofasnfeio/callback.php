@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.2.0
+ * @version		1.2.1
  */
 require_once __DIR__ . '/../../../init.php';
 use WHMCS\Database\Capsule;
@@ -56,7 +56,7 @@ if($post){
 		$gnfe_get_nfes = gnfe_get_nfes();
 		if( $params['rps_serial_number'] ){
 			$rps_serial_number = $params['rps_serial_number'];
-			$rps_serial_number_ = 'IO';
+			$rps_serial_number_ = false;
 		}
 		elseif (!$params['rps_serial_number'] and $gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber']){
 			$rps_serial_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber'];

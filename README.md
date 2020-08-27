@@ -9,7 +9,7 @@ A [NFE.io](https://nfe.io "NFE.io") é um sistema de emissão de notas fiscais q
 ## CAPTURAS DE TELA
 Clique nas imagens para ampliar
 
-[![](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/05/config_screenshot-1.png)](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/05/config_screenshot-1.png)
+[![](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/08/26153535/config_screenshot.png)](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/08/26153535/config_screenshot.png)
 *Configurações*
 
 [![Listagem de notas fiscais](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/05/nfe_list_screenshot.png "Listagem de notas fiscais")](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/05/nfe_list_screenshot.png "Listagem de notas fiscais")
@@ -52,15 +52,19 @@ Clique nas imagens para ampliar
 1. API Key: (Obrigatório) Chave de acesso privada gerado na sua conta NFE.io, necessária para a autenticação das chamadas à API (Obter Api Key);
 2. ID da Empresa: (Obrigatório) Nesse campo você deve indicar o ID da empresa ao qual serão associadas as notas fiscais geradas pelo WHMCS. (Obter ID da empresa);
 3. Código de Serviço: (Obrigatório) O código de serviço varia de acordo com a categoria de tributação do negócio. Saiba mais sobre o código de serviço aqui;
-4. Quando emitir NFE: Selecione se deseja que as notas fiscais sejam geradas quando a fatura é publicada ou quando a fatura é paga;
-5. Agendar Emissão: Número de dias após o pagamento da fatura que as notas devem ser emitidas. Preencher essa opção desativa a opção anterior;
-6. Cancelar NFE: Se essa opção está ativada, o módulo cancela a nota fiscal quando a fatura cancelada;
-7. Debug: Marque essa opção para salvar informações de diagnóstico no Log de Módulo do WHMCS;
-8. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
+4. Série do RPS: Valor padrão `IO`. Saiba mais em https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/;
+5. Número do RPS: O número RPS da NFE mais recente gerada. Deixe em branco e o módulo irá preencher esse campo após a primeira emissão. Não altere o valor a menos que tenha certeza de como funciona essa opção. Saiba mais em https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/;
+6. Quando emitir NFE: Selecione se deseja que as notas fiscais sejam geradas quando a fatura é publicada ou quando a fatura é paga;
+7. Agendar Emissão: Número de dias após o pagamento da fatura que as notas devem ser emitidas. Preencher essa opção desativa a opção anterior;
+8. Cancelar NFE: Se essa opção está ativada, o módulo cancela a nota fiscal quando a fatura cancelada;
+9. Debug: Marque essa opção para salvar informações de diagnóstico no Log de Módulo do WHMCS;
+10. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
 
 ## CHANGELOG
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
-### v1.2.0
+### v1.2.-
+- Corrigido erro que alterava a série do RPS nas configurações de acordo com a série RPS das NFEs já geradas.
+#### v1.2.0
 - Novo campo nas configurações para informar a Série do RPS (RPS Serial Number). Será preenchido automaticamente na próxima emissão, caso não preenchido;
 - Novo campo nas configurações para informar o número RPS (RPS Number). Caso não preenchido, será preenchido automaticamente na próxima emissão, após consultar a NFE mais recente gerada. Não sendo gerado ou configurado nenhum número RPS, o módulo irá configurar automaticamente com "1" o valor desse campo;
 #### v1.1.3

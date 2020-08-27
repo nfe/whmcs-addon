@@ -6,13 +6,13 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=
  * @support		https://gofas.net/?p=12313
- * @version		1.2.0
+ * @version		1.2.1
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 if( !function_exists('gofasnfeio_config') ) {
 function gofasnfeio_config() {
-	$module_version = '1.2.0';
+	$module_version = '1.2.1';
 	$module_version_int = (int)preg_replace('/[^0-9]/', '', $module_version);
 	
 	// Get Config
