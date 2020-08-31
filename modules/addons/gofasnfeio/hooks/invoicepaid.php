@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.2.1
+ * @version		1.2.2
  */
 if (!defined("WHMCS")){die();}
 $params = gnfe_config();

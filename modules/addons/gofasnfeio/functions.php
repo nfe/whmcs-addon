@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.2.1
+ * @version		1.2.2
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
@@ -388,10 +388,12 @@ if( !function_exists('gnfe_update_rps') ) {
 			$setting[$settings->setting] = $settings->value;
 		}
 	try {
-		if($rps_serial_number !== $setting['rps_serial_number']){
+		if($rps_serial_number){
 			$update_rps_serial_number = Capsule::table('tbladdonmodules')-> where( 'module', '=', 'gofasnfeio' )->where( 'setting', '=', 'rps_serial_number' )->update(array('value'=>$rps_serial_number));
 		}
-		$update_serial_number = Capsule::table('tbladdonmodules')-> where( 'module', '=', 'gofasnfeio' )->where( 'setting', '=', 'rps_number' )->update(array('value'=>$rps_number+1));
+		if($rps_number){
+			$update_serial_number = Capsule::table('tbladdonmodules')-> where( 'module', '=', 'gofasnfeio' )->where( 'setting', '=', 'rps_number' )->update(array('value'=>$rps_number+1));
+		}
 		return 'success';
 	}
 	catch (\Exception $e) {

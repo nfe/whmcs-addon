@@ -62,7 +62,9 @@ Clique nas imagens para ampliar
 
 ## CHANGELOG
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
-### v1.2.1
+### v1.2.2
+- Garante que o rpsSeraiNumber não seja alterado quando já configurado manualmente.
+#### v1.2.1
 - Corrigido erro que alterava a série do RPS nas configurações de acordo com a série RPS das NFEs já geradas.
 #### v1.2.0
 - Novo campo nas configurações para informar a Série do RPS (RPS Serial Number). Será preenchido automaticamente na próxima emissão, caso não preenchido;
