@@ -12,7 +12,7 @@ if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 if( !function_exists('gofasnfeio_config') ) {
 function gofasnfeio_config() {
-	$module_version = '1.2.2';
+	$module_version = '1.2.3';
 	$module_version_int = (int)preg_replace('/[^0-9]/', '', $module_version);
 	
 	// Get Config
