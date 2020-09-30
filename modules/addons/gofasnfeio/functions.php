@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.2.2
+ * @version		1.2.3
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
@@ -23,8 +23,6 @@ if( !function_exists('gnfe_config') ) {
 		return $setting;
 	}
 }
-
-
 if( !function_exists('gnfe_customer') ) {
 	function gnfe_customer($user_id,$client) {
 		//Determine custom fields id
@@ -32,7 +30,13 @@ if( !function_exists('gnfe_customer') ) {
 		foreach( Capsule::table('tblcustomfields') -> where( 'type', '=', 'client' )  -> get( array( 'fieldname', 'id' ) ) as $customfield ) {
 			$customfield_id					= $customfield->id;
 			$customfield_name				= ' '.strtolower( $customfield->fieldname );
-	
+            $insc_customfield_value = 'NF';
+			// insc_municipal
+			if ($customfield_id == gnfe_config('insc_municipal')) {
+                foreach( Capsule::table('tblcustomfieldsvalues') -> where( 'fieldid', '=', $customfield_id ) -> where( 'relid', '=', $user_id ) -> get( array( 'value' ) ) as $customfieldvalue ) {
+                    $insc_customfield_value = $customfieldvalue->value;
+                }
+            }
 			// cpf
 			if ( strpos( $customfield_name, 'cpf') and !strpos( $customfield_name, 'cnpj') ) {
 				foreach( Capsule::table('tblcustomfieldsvalues') -> where( 'fieldid', '=', $customfield_id ) -> where( 'relid', '=', $user_id ) -> get( array( 'value' ) ) as $customfieldvalue ) {
@@ -53,7 +57,6 @@ if( !function_exists('gnfe_customer') ) {
 				}
 			}
 		}
-
 		// Cliente possui CPF e CNPJ
 		// CPF com 1 nº a menos, adiciona 0 antes do documento
 		if ( strlen( $cpf_customfield_value ) === 10 ) {
@@ -104,11 +107,11 @@ if( !function_exists('gnfe_customer') ) {
 			$custumer['document']	= $cpf;
 			$custumer['name']	= $client['firstname'].' '.$client['lastname'];
 		}
-
+		if($insc_customfield_value != 'NF')
+        $custumer['insc_municipal']	= $insc_customfield_value;
 		if (!$cpf and !$cnpj ) {
 			$error = 'CPF e/ou CNPJ ausente.';
 		}
-		
 		if(!$error) {
 			return $custumer;
 		}
@@ -116,6 +119,43 @@ if( !function_exists('gnfe_customer') ) {
 			return $custumer['error'] = $error;
 		}
 	}
+}
+if( !function_exists('gnfe_customfields') ) {
+    function gnfe_customfields()
+    {
+        //Determine custom fields id
+        $customfields = array();
+        foreach (Capsule::table('tblcustomfields')->where('type', '=', 'client')->get(array('fieldname', 'id')) as $customfield) {
+            $customfields[] = $customfield;
+            $customfield_id = $customfield->id;
+            $customfield_name = ' ' . strtolower($customfield->fieldname);
+
+        }
+        return $customfields;
+    }
+}
+if( !function_exists('gnfe_customfields_dropdow') ) {
+    function gnfe_customfields_dropdow()
+    {
+        //Determine custom fields id
+        $customfields_array = array();
+        foreach (Capsule::table('tblcustomfields')->where('type', '=', 'client')->get(array('fieldname', 'id')) as $customfield) {
+            $customfields_array[] = $customfield;
+        }
+        $customfields = json_decode(json_encode($customfields_array), true);
+        if (!$customfields) {
+            $dropFieldArray = array('0' => 'database error');
+        }elseif (count($customfields) >= 1) {
+            $dropFieldArray = array('0' => 'selecione um campo');
+            foreach ($customfields as $key => $value){
+
+                $dropFieldArray[$value['id']] = $value['fieldname'];
+            }
+        } else {
+            $dropFieldArray = array('0' => 'nothing to show');
+        }
+        return $dropFieldArray;
+    }
 }
 if( !function_exists('gnfe_country_code') ) {
 	function gnfe_country_code($country){
@@ -136,7 +176,6 @@ if( !function_exists('gnfe_ibge') ) {
 		return $city->city->code;
 	}
 }
-
 if( !function_exists('gnfe_queue_nfe') ) {
 	function gnfe_queue_nfe($invoice_id){
 		$invoice = localAPI('GetInvoice',  array('invoiceid' => $invoice_id), false);
@@ -153,7 +192,7 @@ if( !function_exists('gnfe_queue_nfe') ) {
 				'updated_at'=>'waiting',
 				'rpsSerialNumber'=>'waiting',
 			);
-		$nfe_for_invoice = gnfe_get_local_nfe($invoice_id,array('status'));
+		$nfe_for_invoice = gnfe_get_local_nfe($invoice_id, array('status'));
 		if(!$nfe_for_invoice['status']) {
 			try {
 				$save_nfe = Capsule::table('gofasnfeio')->insert($data);
@@ -175,15 +214,12 @@ if( !function_exists('gnfe_queue_nfe') ) {
 		}
 	}
 }
-
 if( !function_exists('gnfe_issue_nfe') ) {
 	function gnfe_issue_nfe($postfields){
-		
 		$webhook_url = gnfe_whmcs_url().'modules/addons/gofasnfeio/callback.php';
 		foreach( Capsule::table('tblconfiguration') -> where('setting', '=', 'gnfe_webhook_id') -> get( array( 'value' ) ) as $gnfe_webhook_id_ ) {
-			$gnfe_webhook_id				= $gnfe_webhook_id_->value;
+		    $gnfe_webhook_id = $gnfe_webhook_id_->value;
 		}
-
 		if($gnfe_webhook_id){
 			$check_webhook = gnfe_check_webhook($gnfe_webhook_id);
 			if($check_webhook['message']) {
@@ -225,8 +261,7 @@ if( !function_exists('gnfe_issue_nfe') ) {
 		if(gnfe_config('debug')) {
 			logModuleCall('gofas_nfeio', 'check_webhook', array('gnfe_webhook_id'=> $gnfe_webhook_id, 'check_webhook'=>$check_webhook,'check_webhook_url'=>$check_webhook['hooks']['url']), 'post',  array('create_webhook'=>$create_webhook, 'delete_webhook'=>$delete_webhook, 'error'=>$error), 'replaceVars');
 		}
-		
-		$curl = curl_init();
+        $curl = curl_init();
 		curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/'.gnfe_config('company_id').'/serviceinvoices');
 		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: text/json', 'Accept: application/json', 'Authorization: '.gnfe_config('api_key')));
 		curl_setopt($curl, CURLOPT_TIMEOUT, 30);
@@ -238,7 +273,6 @@ if( !function_exists('gnfe_issue_nfe') ) {
 		return json_decode(json_encode(json_decode($response)));
 	}
 }
-
 if( !function_exists('gnfe_get_nfe') ) {
 	function gnfe_get_nfe($nf){
 		$curl = curl_init();
@@ -262,6 +296,28 @@ if( !function_exists('gnfe_get_nfes') ) {
 		curl_close ($curl);
 		return json_decode($response, true);
 	}
+}
+
+if( !function_exists('gnfe_get_invoice_nfes') ) {
+    function gnfe_get_invoice_nfes($invoice_id) {
+        $nfes = array();
+        // foreach( Capsule::table('tbladdonmodules') -> where( 'module', '=', 'gofasnfeio' ) -> get( array( 'setting', 'value') ) as $settings ) {
+        foreach( Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->get(array('invoice_id','user_id','nfe_id','status','services_amount','environment','flow_status','pdf','created_at','updated_at','rpsSerialNumber','rpsNumber') ) as $nfe ) {
+            $nfes = $nfe;
+        }
+
+        $checkfields = json_decode(json_encode($nfes), true);
+
+        if (!$checkfields) {
+            $fieldArray = array('status' => 'error', 'message' => 'database error');
+        }elseif (count($checkfields) >= 1) {
+            $fieldArray = array('status' => 'success', 'result' => $checkfields);;
+        } else {
+            $fieldArray = array('status' => 'error', 'message' => 'nothing to show');
+        }
+
+        return $fieldArray;
+    }
 }
 
 if( !function_exists('gnfe_delete_nfe') ) {
@@ -297,12 +353,16 @@ if( !function_exists('gnfe_pdf_nfe') ) {
 		$curl = curl_init();
 		curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/'.gnfe_config('company_id').'/serviceinvoices/'.$nf.'/pdf');
 		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-type: application/pdf', 'Authorization: '.gnfe_config('api_key')));
-		curl_setopt($curl, CURLOPT_TIMEOUT, 30);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
 		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
-		$response = curl_exec ($curl);
-		curl_close ($curl);
-		return json_decode($response);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER,true);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+        header('Content-type: application/pdf');
+        $result = curl_exec($curl);
+        curl_close($curl);
+		return $result;
 	}
 }
 if( !function_exists('gnfe_xml_nfe') ) {
@@ -400,16 +460,14 @@ if( !function_exists('gnfe_update_rps') ) {
 		return $e->getMessage();
 	}
 }}
-
 if( !function_exists('gnfe_get_local_nfe') ) {
 	function gnfe_get_local_nfe($invoice_id, $values ) {
 		foreach( Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->get($values) as $key => $value ) {
-			$nfe_for_invoice[$key]					= json_decode(json_encode($value), true);
+			$nfe_for_invoice[$key] = json_decode(json_encode($value), true);
 		}
 		return $nfe_for_invoice['0'];
 	}
 }
-
 if( !function_exists('gnfe_check_webhook') ) {
 	function gnfe_check_webhook($id) {
 		$curl = curl_init();
@@ -422,7 +480,6 @@ if( !function_exists('gnfe_check_webhook') ) {
 		return json_decode(json_encode(json_decode($response)), true);
 	}
 }
-
 if( !function_exists('gnfe_create_webhook') ) {
 	function gnfe_create_webhook($url) {
 		$curl = curl_init();

@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.2.2
+ * @version		1.2.3
  */
 
 use WHMCS\Database\Capsule;
@@ -41,7 +41,6 @@ if( !function_exists('gofasnfeio_output') ) {
 		$nfes_to	= $nfs_keys[$nfes_to_+1];
 		
 		$nfess = array_slice($nfes, $nfes_from_, $nfes_to);
-		
 		
 		if ((int)$nfes_page === (int)$nfes_pages) {
 			$nfes_to = $nfes_total;
