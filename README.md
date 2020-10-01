@@ -33,6 +33,8 @@ Clique nas imagens para ampliar
 
 ✓ Opcionalmente, salva o debug das chamadas à API NFE.io no log de Módulo do WHMCS para diagnóstico e aprendizado.
 
+✓ Opcionalmente, seleciona nas configurações do módulo a opção de enviar o número inscrição municipal para a nota fiscal.
+
 ## REQUISITOS DO SISTEMA
 - WHMCS versão 7.2.1 ou superior;
 - PHP 5.6 ou superior
@@ -60,8 +62,16 @@ Clique nas imagens para ampliar
 9. Debug: Marque essa opção para salvar informações de diagnóstico no Log de Módulo do WHMCS;
 10. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
 
+## LINK DA NOTA EM PDF
+Para inserir um link da nota fiscal direto na fatura do template do WHMCS, utilize o exemplo abaixo:
+```
+<a href="/modules/addons/gofasnfeio/pdf.php?invoice_id={$invoiceid}" target="_blank" class="btn btn-link"><i class="fal fa-file-invoice" aria-hidden="true"></i> NOTA FISCAL</a>
+```
+
 ## CHANGELOG
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
+### v1.2.3
+- Ajustes Garante que a nota não sera duplicada, criação de link da nota fiscal, opção de inscrição municipal
 ### v1.2.2
 - Garante que o rpsSeraiNumber não seja alterado quando já configurado manualmente.
 #### v1.2.1
