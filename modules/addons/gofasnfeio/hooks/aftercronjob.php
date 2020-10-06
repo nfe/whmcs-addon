@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.2.2
+ * @version		1.2.3
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
@@ -18,7 +18,7 @@ foreach( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=
 		$invoice = localAPI('GetInvoice',  array('invoiceid' => $waiting->invoice_id), false);
 		$client = localAPI('GetClientsDetails',array( 'clientid' => $invoice['userid'], 'stats' => false, ), false);
 		foreach( $invoice['items']['item'] as $value){
-			$line_items[]	= $value['description'];	
+			$line_items[]	= $value['description'];
 		}
 		$customer = gnfe_customer($invoices->userid,$client);
 		$gnfe_get_nfes = gnfe_get_nfes();
@@ -44,46 +44,75 @@ foreach( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=
 		elseif(((string)$params['rps_number'] === (string)'zero' and !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']) or (!$params['rps_number'] and !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'])){
 			$rps_number = 0;
 		}
-		$postfields = array(
-			'cityServiceCode' => $params['service_code'],
-			'description'     => substr( implode("\n",$line_items),  0, 600),
-			'servicesAmount'  => $invoice['total'],
-			'borrower' => array(
-				'federalTaxNumber' => $customer['document'],
-				'name'             => $customer['name'],
-				'email'            => $client_email,
-				'address'          => array(
-					'country'               => gnfe_country_code($client['countrycode']),
-					'postalCode'            => preg_replace('/[^0-9]/', '', $client['postcode']),
-					'street'                => str_replace(',', '', preg_replace('/[0-9]+/i', '', $client['address1'])),
-					'number'                => preg_replace('/[^0-9]/', '', $client['address1']),
-					'additionalInformation' => '',
-					'district'              => $client['address2'],
-					'city' => array(
-						'code' => gnfe_ibge(preg_replace("/[^0-9]/", "", $client['postcode'])),
-						'name' => $client['city']
-					),
-					'state' => $client['state'],
-					)
-				),
-				'rpsSerialNumber' => $rps_serial_number,
-				'rpsNumber' => (int)$rps_number+1,
-			);
-			$nfe = gnfe_issue_nfe($postfields);
-			if($nfe->message) {
-				$error .= $nfe->message;				
-			}
-			if(!$nfe->message) {
-				$gnfe_update_nfe = gnfe_update_nfe($nfe,$invoices->userid,$invoices->id,'n/a',date("Y-m-d H:i:s"),date("Y-m-d H:i:s"));
-				if($gnfe_update_nfe and $gnfe_update_nfe !== 'success') {
-					$error = $gnfe_update_nfe;
-				}
-				$update_rps = gnfe_update_rps($rps_serial_number_, $rps_number);
-				if($update_rps and $update_rps !== 'success') {
-					$error = $update_rps;
-				}
-			}
-		}
+        if(!strlen($customer['insc_municipal']) == 0) {
+            $postfields = array(
+                'cityServiceCode' => $params['service_code'],
+                'description' => substr(implode("\n", $line_items), 0, 600),
+                'servicesAmount' => $invoice['total'],
+                'borrower' => array(
+                    'federalTaxNumber' => $customer['document'],
+                    'municipalTaxNumber' => $customer['insc_municipal'],
+                    'name' => $customer['name'],
+                    'email' => $client_email,
+                    'address' => array(
+                        'country' => gnfe_country_code($client['countrycode']),
+                        'postalCode' => preg_replace('/[^0-9]/', '', $client['postcode']),
+                        'street' => str_replace(',', '', preg_replace('/[0-9]+/i', '', $client['address1'])),
+                        'number' => preg_replace('/[^0-9]/', '', $client['address1']),
+                        'additionalInformation' => '',
+                        'district' => $client['address2'],
+                        'city' => array(
+                            'code' => gnfe_ibge(preg_replace("/[^0-9]/", "", $client['postcode'])),
+                            'name' => $client['city']
+                        ),
+                        'state' => $client['state'],
+                    )
+                ),
+                'rpsSerialNumber' => $rps_serial_number,
+                'rpsNumber' => (int)$rps_number + 1,
+            );
+        }else{
+            $postfields = array(
+                'cityServiceCode' => $params['service_code'],
+                'description' => substr(implode("\n", $line_items), 0, 600),
+                'servicesAmount' => $invoice['total'],
+                'borrower' => array(
+                    'federalTaxNumber' => $customer['document'],
+                    'name' => $customer['name'],
+                    'email' => $client_email,
+                    'address' => array(
+                        'country' => gnfe_country_code($client['countrycode']),
+                        'postalCode' => preg_replace('/[^0-9]/', '', $client['postcode']),
+                        'street' => str_replace(',', '', preg_replace('/[0-9]+/i', '', $client['address1'])),
+                        'number' => preg_replace('/[^0-9]/', '', $client['address1']),
+                        'additionalInformation' => '',
+                        'district' => $client['address2'],
+                        'city' => array(
+                            'code' => gnfe_ibge(preg_replace("/[^0-9]/", "", $client['postcode'])),
+                            'name' => $client['city']
+                        ),
+                        'state' => $client['state'],
+                    )
+                ),
+                'rpsSerialNumber' => $rps_serial_number,
+                'rpsNumber' => (int)$rps_number + 1,
+            );
+        }
+        $nfe = gnfe_issue_nfe($postfields);
+        if($nfe->message) {
+            $error .= $nfe->message;
+        }
+        if(!$nfe->message) {
+            $gnfe_update_nfe = gnfe_update_nfe($nfe,$invoices->userid,$invoices->id,'n/a',date("Y-m-d H:i:s"),date("Y-m-d H:i:s"));
+            if($gnfe_update_nfe and $gnfe_update_nfe !== 'success') {
+                $error = $gnfe_update_nfe;
+            }
+            $update_rps = gnfe_update_rps($rps_serial_number_, $rps_number);
+            if($update_rps and $update_rps !== 'success') {
+                $error = $update_rps;
+            }
+        }
+    }
 	if($params['debug']) {
 		logModuleCall('gofas_nfeio', 'aftercronjob', array('$params'=>$params, '$datepaid'=>$datepaid, '$datepaid_to_issue'=>$datepaid_to_issue), 'post',  array('$processed_invoices'=>$processed_invoices, '$nfe'=>$nfe,'error'=>$error ), 'replaceVars');
 	}

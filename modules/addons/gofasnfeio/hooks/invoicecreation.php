@@ -6,7 +6,7 @@
  * @copyright	2020 https://gofas.net
  * @license		https://gofas.net?p=9340
  * @support		https://gofas.net/?p=12313
- * @version		1.2.2
+ * @version		1.2.3
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
@@ -18,7 +18,7 @@ if( stripos($params['issue_note'], 'Gerada') and (string)$vars['status'] !== (st
 		if($nfe_for_invoice['status'] !== (string)'Created' or $nfe_for_invoice['status'] !== (string)'Issued') {
 			$client = localAPI('GetClientsDetails',array( 'clientid' => $invoice['userid'], 'stats' => false, ), false);
 			foreach( $invoice['items']['item'] as $value){
-				$line_items[]	= $value['description'];//substr( $value['description'],  0, 100);	
+				$line_items[]	= $value['description'];//substr( $value['description'],  0, 100);
 			}
 			if($params['email_nfe']) {
 				$client_email = $client['email'];
