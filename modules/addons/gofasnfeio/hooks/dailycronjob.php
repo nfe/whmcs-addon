@@ -43,7 +43,7 @@ if( $params['issue_note_after'] and (int)$params['issue_note_after'] > 0 ) {
                             'federalTaxNumber' => $customer['document'],
                             'municipalTaxNumber' => $customer['insc_municipal'],
                             'name' => $customer['name'],
-                            'email' => $client_email,
+                            'email' => $client['email'],
                             'address' => array(
                                 'country' => gnfe_country_code($client['countrycode']),
                                 'postalCode' => preg_replace('/[^0-9]/', '', $client['postcode']),
@@ -69,7 +69,7 @@ if( $params['issue_note_after'] and (int)$params['issue_note_after'] > 0 ) {
                         'borrower' => array(
                             'federalTaxNumber' => $customer['document'],
                             'name' => $customer['name'],
-                            'email' => $client_email,
+                            'email' => $client['email'],
                             'address' => array(
                                 'country' => gnfe_country_code($client['countrycode']),
                                 'postalCode' => preg_replace('/[^0-9]/', '', $client['postcode']),
