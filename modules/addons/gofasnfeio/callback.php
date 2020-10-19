@@ -86,7 +86,7 @@ if($post){
                         'federalTaxNumber' => $customer['document'],
                         'municipalTaxNumber' => $customer['insc_municipal'],
                         'name' => $customer['name'],
-                        'email' => $client_email,
+                        'email' => $client['email'],
                         'address' => array(
                             'country' => gnfe_country_code($client['countrycode']),
                             'postalCode' => preg_replace('/[^0-9]/', '', $client['postcode']),
@@ -112,7 +112,7 @@ if($post){
                     'borrower' => array(
                         'federalTaxNumber' => $customer['document'],
                         'name' => $customer['name'],
-                        'email' => $client_email,
+                        'email' => $client['email'],
                         'address' => array(
                             'country' => gnfe_country_code($client['countrycode']),
                             'postalCode' => preg_replace('/[^0-9]/', '', $client['postcode']),
