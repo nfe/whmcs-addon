@@ -35,6 +35,8 @@ Clique nas imagens para ampliar
 
 ✓ Opcionalmente, seleciona nas configurações do módulo a opção de enviar o número inscrição municipal para a nota fiscal.
 
+✓ Opcionalmente, seleciona nas configurações do módulo a opção de enviar a nota fiscal por e-mail automaticamente.
+
 ## REQUISITOS DO SISTEMA
 - WHMCS versão 7.2.1 ou superior;
 - PHP 5.6 ou superior
@@ -70,8 +72,11 @@ Para inserir um link da nota fiscal direto na fatura do template do WHMCS, utili
 
 ## CHANGELOG
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
+### v1.2.4
+- Nova opção de configuração no disparo de nota fiscal automatica por e-mail.
+- Ajustes com informações e links de suporte.
 ### v1.2.3
-- Ajustes Garante que a nota não sera duplicada, criação de link da nota fiscal, opção de inscrição municipal
+- Ajustes Garante que a nota não sera duplicada, criação de link da nota fiscal, opção de inscrição municipal.
 ### v1.2.2
 - Garante que o rpsSeraiNumber não seja alterado quando já configurado manualmente.
 #### v1.2.1
