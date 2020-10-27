@@ -1,12 +1,13 @@
 <?php
 /**
- * Módulo Gofas NFE.io para WHMCS
- * @author		Mauricio Gofas | gofas.net
- * @see			https://gofas.net/?p=12529
- * @copyright	2020 https://gofas.net
+ * Módulo Nota Fiscal NFE.io para WHMCS
+ * @author		Original Author Mauricio Gofas | gofas.net
+ * @author		Updated by Link Nacional
+ * @see			https://github.com/nfe/whmcs-addon/
+ * @copyright	2020 https://github.com/nfe/whmcs-addon/
  * @license		https://gofas.net?p=9340
- * @support		https://gofas.net/?p=12313
- * @version		1.2.3
+ * @support		https://github.com/nfe/whmcs-addon/issues
+ * @version		1.2.4
  */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
@@ -336,15 +337,17 @@ if( !function_exists('gnfe_delete_nfe') ) {
 
 if( !function_exists('gnfe_email_nfe') ) {
 	function gnfe_email_nfe($nf){
-		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/'.gnfe_config('company_id').'/serviceinvoices/'.$nf.'/sendemail');
-		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: text/json', 'Accept: application/json', 'Authorization: '.gnfe_config('api_key')));
-		curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
-		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
-		$response = curl_exec ($curl);
-		curl_close ($curl);
-		return json_decode($response);
+		if(gnfe_config('gnfe_email_nfe_config') == "on"){
+			$curl = curl_init();
+			curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/'.gnfe_config('company_id').'/serviceinvoices/'.$nf.'/sendemail');
+			curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: text/json', 'Accept: application/json', 'Authorization: '.gnfe_config('api_key')));
+			curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+			curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
+			curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
+			$response = curl_exec ($curl);
+			curl_close ($curl);
+			return json_decode($response);
+		}
 	}
 }
 
