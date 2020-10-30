@@ -1,7 +1,5 @@
-[![](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/07/14192856/Captura-de-Tela-2020-07-14-a%CC%80s-19.28.30.png)](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/07/14192856/Captura-de-Tela-2020-07-14-a%CC%80s-19.28.30.png)
-
-# Módulo Gofas NFE.io para WHMCS
-Automatize a emissão de notas fiscais com [WHMCS](https://goo.gl/gDXngY "WHMCS") e [NFE.io](https://nfe.io "NFE.io")!
+# Módulo Nota Fiscal para WHMCS via NFE.io
+Automatize a emissão de notas fiscais no WHMCS com a [NFE.io](https://nfe.io "NFE.io")!
 
 A [NFE.io](https://nfe.io "NFE.io") é um sistema de emissão de notas fiscais que automatiza a comunicação com as prefeituras. Com a [NFE.io](https://nfe.io "NFE.io") você se livra de diversas tarefas chatas, melhorando o desempenho do seu negócio. E melhor, você economiza tempo e dinheiro.
 
