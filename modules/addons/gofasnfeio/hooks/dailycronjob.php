@@ -43,7 +43,7 @@ if( $params['issue_note_after'] and (int)$params['issue_note_after'] > 0 ) {
                         'borrower' => array(
                             'federalTaxNumber' => $customer['document'],
                             'municipalTaxNumber' => $customer['insc_municipal'],
-                            'name' => $customer['name'],
+                            'name' => utf8_encode($customer['name']),
                             'email' => $client['email'],
                             'address' => array(
                                 'country' => gnfe_country_code($client['countrycode']),
@@ -69,7 +69,7 @@ if( $params['issue_note_after'] and (int)$params['issue_note_after'] > 0 ) {
                         'servicesAmount' => $invoices->total,
                         'borrower' => array(
                             'federalTaxNumber' => $customer['document'],
-                            'name' => $customer['name'],
+                            'name' => utf8_encode($customer['name']),
                             'email' => $client['email'],
                             'address' => array(
                                 'country' => gnfe_country_code($client['countrycode']),

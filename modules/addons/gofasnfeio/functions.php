@@ -370,16 +370,33 @@ if( !function_exists('gnfe_pdf_nfe') ) {
 }
 if( !function_exists('gnfe_xml_nfe') ) {
 	function gnfe_xml_nfe($nf){
+
 		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/'.gnfe_config('company_id').'/serviceinvoices/'.$nf.'/xml');
-		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: text/json', 'Accept: application/json', 'Authorization: '.gnfe_config('api_key')));
-		curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
-		$response = curl_exec ($curl);
-		curl_close ($curl);
-		return json_decode($response);
+
+		curl_setopt_array($curl, array(
+		  CURLOPT_URL => "https://api.nfe.io/v1/companies/".gnfe_config('company_id')."/serviceinvoices/".$nf."/xml",
+		  CURLOPT_RETURNTRANSFER => true,
+		  CURLOPT_ENCODING => "",
+		  CURLOPT_MAXREDIRS => 10,
+		  CURLOPT_TIMEOUT => 0,
+		  CURLOPT_FOLLOWLOCATION => true,
+		  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		  CURLOPT_CUSTOMREQUEST => "GET",
+		  CURLOPT_HTTPHEADER => array(
+			"Content-Type: text/json",
+			"Accept: application/json",
+			"Authorization:".gnfe_config('api_key')
+		  ),
+		));
+		
+		$response = curl_exec($curl);
+		
+		curl_close($curl);
+		return $response;
+
 	}
 }
+
 if( !function_exists('gnfe_whmcs_url') ) {
 	function gnfe_whmcs_url(){
 		foreach( Capsule::table('tblconfiguration') -> where('setting', '=', 'gnfewhmcsurl') -> get( array('value') ) as $gnfewhmcsurl_ ) {

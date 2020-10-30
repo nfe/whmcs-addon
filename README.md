@@ -62,10 +62,10 @@ Clique nas imagens para ampliar
 9. Debug: Marque essa opção para salvar informações de diagnóstico no Log de Módulo do WHMCS;
 10. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
 
-## LINK DA NOTA EM PDF
-Para inserir um link da nota fiscal direto na fatura do template do WHMCS, utilize o exemplo abaixo:
+## LINK DA NOTA EM PDF E XML
+Para inserir um link da nota fiscal do PDF e XML direto na fatura do template do WHMCS, utilize o exemplo abaixo:
 ```
-<a href="/modules/addons/gofasnfeio/pdf.php?invoice_id={$invoiceid}" target="_blank" class="btn btn-link"><i class="fal fa-file-invoice" aria-hidden="true"></i> NOTA FISCAL</a>
+{if $status eq "Paid" || $clientsdetails.userid eq "6429"}<i class="fal fa-file-invoice" aria-hidden="true"></i> NOTA FISCAL  <a href="/modules/addons/gofasnfeio/pdf.php?invoice_id={$invoiceid}" target="_blank" class="btn btn-link" tite="Nota Fiscal disponível 24 horas após confirmação de pagamento.">PDF</a> | <a href="/modules/addons/gofasnfeio/xml.php?invoice_id={$invoiceid}" target="_blank" class="btn btn-link" tite="Nota Fiscal disponível 24 horas após confirmação de pagamento.">XML</a>{/if}
 ```
 
 ## CHANGELOG
