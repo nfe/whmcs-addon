@@ -70,6 +70,8 @@ Para inserir um link da nota fiscal do PDF e XML direto na fatura do template do
 
 ## CHANGELOG
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
+### v1.2.5
+- criação de link na fatura para o XML da nota fiscal.
 ### v1.2.4
 - Nova opção de configuração no disparo de nota fiscal automatica por e-mail.
 - Ajustes com informações e links de suporte.
