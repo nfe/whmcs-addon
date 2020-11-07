@@ -1,21 +1,10 @@
 <?php
-/**
- * Módulo Nota Fiscal NFE.io para WHMCS
- * @author		Original Author Mauricio Gofas | gofas.net
- * @author		Updated by Link Nacional
- * @see			https://github.com/nfe/whmcs-addon/
- * @copyright	2020 https://github.com/nfe/whmcs-addon/
- * @license		https://gofas.net?p=9340
- * @support		https://github.com/nfe/whmcs-addon/issues
- * @version		1.2.4
- */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 if( !function_exists('gofasnfeio_config') ) {
     if( !function_exists('gnfe_customfields_dropdow') ) {
         function gnfe_customfields_dropdow()
         {
-            //Determine custom fields id
             $customfields_array = array();
             foreach (Capsule::table('tblcustomfields')->where('type', '=', 'client')->get(array('fieldname', 'id')) as $customfield) {
                 $customfields_array[] = $customfield;
@@ -50,10 +39,8 @@ if( !function_exists('gofasnfeio_config') ) {
             }
        }////// FIM VERIFICAÇÃO
 
-        // Get Config
-        $actual_link		= (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+        $actual_link = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
         if ( stripos( $actual_link, '/configaddonmods.php') ) {
-            // Local V URL
             $whmcs_url__ = str_replace("\\",'/',(isset($_SERVER['HTTPS']) ? "https://" : "http://").$_SERVER['HTTP_HOST'].substr(getcwd(),strlen($_SERVER['DOCUMENT_ROOT'])));
             $admin_url = $whmcs_url__.'/';
             $vtokens = explode('/', $actual_link);
@@ -109,44 +96,7 @@ if( !function_exists('gofasnfeio_config') ) {
         }
         // Verify available updates
         $available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Nova versão disponível no <a style="color:#CC0000;text-decoration:underline;" href="https://github.com/nfe/whmcs-addon/releases" target="_blank">Github</a></p>';
-        /*
-        if( !function_exists('gnfe_verify_module_updates') ) {
-            function gnfe_verify_module_updates($referer) {
-                $query = 'https://gofas.net/br/updates/?software=12529&referer='.$referer;
-                $curl = curl_init();
-                curl_setopt($curl, CURLOPT_SSL_VERIFYHOST,0);
-                curl_setopt($curl, CURLOPT_SSL_VERIFYPEER,0);
-                curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
-                curl_setopt($curl, CURLOPT_URL, $query);
-                $result = curl_exec($curl);
-                $http_status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-                curl_close($curl);
-                return array(
-                    'http_status' => $http_status,
-                    'result' => $result,
-                );
-            }
-        }
-        $available_update_ = gnfe_verify_module_updates($whmcs_url);
-        if ( (int)$available_update_['http_status'] === 200 ) {
-            $available_update = $available_update_['result'];
-            $available_update_int = (int)preg_replace("/[^0-9]/", "", $available_update);
-        }
-        else {
-            $available_update_int = 000;
-        }
-        if( $available_update_int === $module_version_int ) {
-            $available_update_message = '<p style="font-size: 14px;color:green;"><i class="fas fa-check-square"></i> Você está executando a versão mais recente do módulo.</p>';
-        }
-        if( $available_update_int > $module_version_int ) {
-            $available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Atualização disponível, verifique a <a style="color:#CC0000;text-decoration:underline;" href="https://github.com/nfe/whmcs-addon/releases" target="_blank">versão '.$available_update.'</a></p>';
-        }
-        if( $available_update_int < $module_version_int ) {
-            $available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Você está executando uma versão Beta desse módulo.<br>Não recomendamos o uso dessa versão em produção.<br>Baixar versão estável: <a style="color:#CC0000;text-decoration:underline;" href="https://github.com/nfe/whmcs-addon/releases" target="_blank">v'.$available_update.'</a></p>';
-        }
-        if( $available_update_int === 000 ) {
-            $available_update_message = '<p style="font-size: 14px;color:green;"><i class="fas fa-check-square"></i> Você está executando a versão mais recente do módulo.</p>';
-        }
+
         if( !function_exists('gnfe_verifyInstall') ) {
             function gnfe_verifyInstall() {
                 if ( !Capsule::schema()->hasTable('gofasnfeio') ) {
@@ -173,7 +123,6 @@ if( !function_exists('gofasnfeio_config') ) {
                         $error .= "Não foi possível criar a tabela do módulo no banco de dados: {$e->getMessage()}";
                     }
                 }
-
                 // Added in v 1 dot 1 dot 3
                 if(!Capsule::schema()->hasColumn('gofasnfeio', 'rpsNumber')){
                     try {
@@ -193,8 +142,7 @@ if( !function_exists('gofasnfeio_config') ) {
             }
         }
         gnfe_verifyInstall();
-        */
-        
+
         $intro = array('intro' => array(
             'FriendlyName' => '',
             'Description' => '<h4 style="padding-top: 5px;">Módulo Nota Fiscal NFE.io para WHMCS v'.$module_version.'</h4>
@@ -227,7 +175,6 @@ if( !function_exists('gofasnfeio_config') ) {
             'Default' => 'zero',
             'Description' => 'O número RPS da NFE mais recente gerada.<br>Deixe em branco e o módulo irá preencher esse campo após a primeira emissão. Não altere o valor a menos que tenha certeza de como funciona essa opção. <a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/" target="_blank">Saiba mais.</a>',
         ));
-
         $issue_note = array('issue_note' => array(
             'FriendlyName' => 'Quando emitir NFE',
             'Type' => 'radio',
@@ -240,14 +187,12 @@ if( !function_exists('gofasnfeio_config') ) {
             'Default' => '',
             'Description' => '<br>Número de dias após o pagamento da fatura que as notas devem ser emitidas. <span style="color:#c00">Preencher essa opção desativa a opção anterior.</span>',
         ));
-
         $gnfe_email_nfe_config = array('gnfe_email_nfe_config' => array(
             'FriendlyName' => 'Disparar e-mail com a nota',
             'Type' => 'yesno',
             'Default' => 'yes',
             'Description' => 'Permitir o disparo da nota fiscal via NFE.io para o e-mail do usuário.',
         ));
-
         $cancel_invoice_cancel_nfe = array('cancel_invoice_cancel_nfe' => array(
             'FriendlyName' => 'Cancelar NFE',
             'Type' => 'yesno',
@@ -260,7 +205,6 @@ if( !function_exists('gofasnfeio_config') ) {
             'Default' => 'yes',
             'Description' => 'Marque essa opção para salvar informações de diagnóstico no <a target="_blank" style="text-decoration:underline;" href="'.$admin_url.'systemmodulelog.php">Log de Módulo</a>',
         ));
-        
         $insc_municipal = array('insc_municipal' => array(
             'FriendlyName' => 'Inscrição Municipal',
             'Type' => 'dropdown',
@@ -271,7 +215,6 @@ if( !function_exists('gofasnfeio_config') ) {
                 'FriendlyName' => '',
                 'Description' => '&copy; '.date('Y').' <a target="_blank" title="Para suporte utilize o github" href="https://github.com/nfe/whmcs-addon/issues">Suporte módulo</a>',
         ));
-        
         $fields = array_merge($intro,$api_key,$company_id,$service_code,$rps_serial_number,$rps_number,$issue_note,$issue_note_after,$gnfe_email_nfe_config,$cancel_invoice_cancel_nfe,$debug,$insc_municipal,$footer);
         $configarray = array(
             "name" => "NFE.io",

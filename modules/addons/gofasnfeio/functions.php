@@ -1,14 +1,4 @@
 <?php
-/**
- * Módulo Nota Fiscal NFE.io para WHMCS
- * @author		Original Author Mauricio Gofas | gofas.net
- * @author		Updated by Link Nacional
- * @see			https://github.com/nfe/whmcs-addon/
- * @copyright	2020 https://github.com/nfe/whmcs-addon/
- * @license		https://gofas.net?p=9340
- * @support		https://github.com/nfe/whmcs-addon/issues
- * @version		1.2.4
- */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 // Get config
@@ -164,7 +154,6 @@ if( !function_exists('gnfe_country_code') ) {
 		return $array[$country];
 	}
 }
-
 if( !function_exists('gnfe_ibge') ) {
 	function gnfe_ibge($zip) {
 		$curl = curl_init();
@@ -298,7 +287,6 @@ if( !function_exists('gnfe_get_nfes') ) {
 		return json_decode($response, true);
 	}
 }
-
 if( !function_exists('gnfe_get_invoice_nfes') ) {
     function gnfe_get_invoice_nfes($invoice_id) {
         $nfes = array();
@@ -320,7 +308,6 @@ if( !function_exists('gnfe_get_invoice_nfes') ) {
         return $fieldArray;
     }
 }
-
 if( !function_exists('gnfe_delete_nfe') ) {
 	function gnfe_delete_nfe($nf){
 		$curl = curl_init();
@@ -334,7 +321,6 @@ if( !function_exists('gnfe_delete_nfe') ) {
 		return json_decode($response);
 	}
 }
-
 if( !function_exists('gnfe_email_nfe') ) {
 	function gnfe_email_nfe($nf){
 		if(gnfe_config('gnfe_email_nfe_config') == "on"){
@@ -350,7 +336,6 @@ if( !function_exists('gnfe_email_nfe') ) {
 		}
 	}
 }
-
 if( !function_exists('gnfe_pdf_nfe') ) {
 	function gnfe_pdf_nfe($nf){
 		$curl = curl_init();
@@ -370,14 +355,30 @@ if( !function_exists('gnfe_pdf_nfe') ) {
 }
 if( !function_exists('gnfe_xml_nfe') ) {
 	function gnfe_xml_nfe($nf){
+
 		$curl = curl_init();
-		curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/'.gnfe_config('company_id').'/serviceinvoices/'.$nf.'/xml');
-		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: text/json', 'Accept: application/json', 'Authorization: '.gnfe_config('api_key')));
-		curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
-		$response = curl_exec ($curl);
-		curl_close ($curl);
-		return json_decode($response);
+
+		curl_setopt_array($curl, array(
+		  CURLOPT_URL => "https://api.nfe.io/v1/companies/".gnfe_config('company_id')."/serviceinvoices/".$nf."/xml",
+		  CURLOPT_RETURNTRANSFER => true,
+		  CURLOPT_ENCODING => "",
+		  CURLOPT_MAXREDIRS => 10,
+		  CURLOPT_TIMEOUT => 0,
+		  CURLOPT_FOLLOWLOCATION => true,
+		  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		  CURLOPT_CUSTOMREQUEST => "GET",
+		  CURLOPT_HTTPHEADER => array(
+			"Content-Type: text/json",
+			"Accept: application/json",
+			"Authorization:".gnfe_config('api_key')
+		  ),
+		));
+		
+		$response = curl_exec($curl);
+		
+		curl_close($curl);
+		return $response;
+
 	}
 }
 if( !function_exists('gnfe_whmcs_url') ) {
@@ -510,12 +511,11 @@ if( !function_exists('gnfe_delete_webhook') ) {
 		return json_decode(json_encode(json_decode($response)), true);
 	}
 }
-/**
+/*
  * @gnfe_nfe_flowStatus string
  * Possible values:
  * CancelFailed, IssueFailed, Issued, Cancelled, PullFromCityHall, WaitingCalculateTaxes,
  * WaitingDefineRpsNumber, WaitingSend, WaitingSendCancel, WaitingReturn, WaitingDownload
- *
  */
 if( !function_exists('gnfe_nfe_flowStatus') ) {
 	function gnfe_nfe_flowStatus($flowStatus) {
@@ -556,7 +556,6 @@ if( !function_exists('gnfe_nfe_flowStatus') ) {
 		return $status;
 	}
 }
-
 if( !function_exists('gnfe_get_company') ) {
 	function gnfe_get_company(){
 		$curl = curl_init();
