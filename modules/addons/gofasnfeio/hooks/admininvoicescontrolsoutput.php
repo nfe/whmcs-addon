@@ -1,14 +1,4 @@
 <?php
-/**
- * Módulo Nota Fiscal NFE.io para WHMCS
- * @author		Original Author Mauricio Gofas | gofas.net
- * @author		Updated by Link Nacional
- * @see			https://github.com/nfe/whmcs-addon/
- * @copyright	2020 https://github.com/nfe/whmcs-addon/
- * @license		https://gofas.net?p=9340
- * @support		https://github.com/nfe/whmcs-addon/issues
- * @version		1.2.4
- */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
@@ -54,7 +44,6 @@ if($_REQUEST['gnfe_cancel']){
         header('Location: '.$gnfewhmcsadminurl.'invoices.php?action=edit&id='.$vars['invoiceid'].'&gnfe_message='.base64_encode(urlencode($message)));
         exit;
     }
-
 }
 if($_REQUEST['gnfe_email']){
     $gnfe_email = gnfe_email_nfe($_REQUEST['gnfe_email']);
@@ -105,15 +94,10 @@ if((string)$invoice['status'] === (string)'Draft' ) {
 }
 echo '<div style="text-align: left; padding: 8px 0px; max-width: 445px; border-top: 1px solid #ccc; margin: 8px 0px;">';
 echo '<div style="margin: 0px 0px 5px 0px;"><strong>Nota Fiscal:</strong>'.$invoice_nfe.'</div>';
-
 echo '<a '.$disabled['a'].' style="margin-right: 4px;" href="'.$gnfewhmcsadminurl.'invoices.php?action=edit&id='.$vars['invoiceid'].'&gnfe_create=yes" class="btn btn-primary" id="gnfe_generate" title="Emitir Nota Fiscal">Emitir NFE</a>';
-
 echo '<a '.$disabled['b'].' style="margin-right: 4px;"target="_blank" href="https://app.nfe.io/companies/'.$params['company_id'].'/service-invoices/'.$nfe_for_invoice['nfe_id'].'" class="btn btn-success" id="gnfe_view" title="Ver Nota Fiscal">Visualizar NFE</a>';
-
 echo '<a '.$disabled['c'].' style="margin-right: 4px;" href="'.$gnfewhmcsadminurl.'invoices.php?action=edit&id='.$vars['invoiceid'].'&gnfe_cancel='.$nfe_for_invoice['nfe_id'].'" class="btn btn-danger" id="gnfe_cancel" title="Cancelar Nota Fiscal">Cancelar NFE</a>';
-
 echo '<a '.$disabled['d'].' href="'.$gnfewhmcsadminurl.'invoices.php?action=edit&id='.$vars['invoiceid'].'&gnfe_email='.$nfe_for_invoice['nfe_id'].'" class="btn btn-primary" id="gnfe_cancel" title="Enviar Nota Fiscal por Email">Enviar Email</a>';
-
 echo '<div>';
 
 if($_REQUEST['gnfe_error']){

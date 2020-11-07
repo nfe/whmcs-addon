@@ -1,20 +1,9 @@
 <?php
-/**
- * Módulo Nota Fiscal NFE.io para WHMCS
- * @author		Original Author Mauricio Gofas | gofas.net
- * @author		Updated by Link Nacional
- * @see			https://github.com/nfe/whmcs-addon/
- * @copyright	2020 https://github.com/nfe/whmcs-addon/
- * @license		https://gofas.net?p=9340
- * @support		https://github.com/nfe/whmcs-addon/issues
- * @version		1.2.4
- */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
 
 foreach( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( array( 'invoice_id' )) as $waiting ) {
-	//$invoices[]				= $Waiting->invoice_id;
 	foreach( Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get( array( 'id', 'userid', 'total' ) ) as $invoices ) {
 		$invoice = localAPI('GetInvoice',  array('invoiceid' => $waiting->invoice_id), false);
 		$client = localAPI('GetClientsDetails',array( 'clientid' => $invoice['userid'], 'stats' => false, ), false);
@@ -35,7 +24,6 @@ foreach( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=
 			$rps_serial_number = 'IO';
 			$rps_serial_number_ = $rps_serial_number;
 		}
-		///
 		if($params['rps_number'] and (string)$params['rps_number'] !== (string)'zero'){
 			$rps_number = $params['rps_number'];
 		}

@@ -1,18 +1,7 @@
 <?php
-/**
- * Módulo Nota Fiscal NFE.io para WHMCS
- * @author		Original Author Mauricio Gofas | gofas.net
- * @author		Updated by Link Nacional
- * @see			https://github.com/nfe/whmcs-addon/
- * @copyright	2020 https://github.com/nfe/whmcs-addon/
- * @license		https://gofas.net?p=9340
- * @support		https://github.com/nfe/whmcs-addon/issues
- * @version		1.2.4
- */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
-
 if( $params['issue_note_after'] and (int)$params['issue_note_after'] > 0 ) {
     foreach( Capsule::table('tblinvoices')->where('status', '=', 'Paid')->get( array( 'id', 'userid', 'datepaid','total' ) ) as $invoices ) {
         $datepaid			= date('Ymd', strtotime($invoices->datepaid));
@@ -89,7 +78,6 @@ if( $params['issue_note_after'] and (int)$params['issue_note_after'] > 0 ) {
                         'rpsNumber' => (int)$company['companies']['rpsNumber'] + 1,
                     );
                 }
-
                 $waiting = array();
                 foreach( Capsule::table('gofasnfeio') -> where( 'status', '=', 'Waiting' ) -> get( array( 'invoice_id', 'status') ) as $Waiting ) {
                     $waiting[] = $Waiting->invoice_id;
