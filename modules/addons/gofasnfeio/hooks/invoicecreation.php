@@ -11,12 +11,12 @@ if( stripos($params['issue_note'], 'Gerada') and (string)$vars['status'] !== (st
 			foreach( $invoice['items']['item'] as $value){
 				$line_items[]	= $value['description'];//substr( $value['description'],  0, 100);
 			}
-			if($params['email_nfe']) {
+			/*if($params['email_nfe']) {
 				$client_email = $client['email'];
 			}
 			elseif(!$params['email_nfe']) {
 				$client_email = $client['email'];
-			}
+			}*/
 			$queue = gnfe_queue_nfe($vars['invoiceid']);
 			if($queue !== 'success') {
 				if($vars['source'] === 'adminarea'){

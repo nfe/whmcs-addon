@@ -17,12 +17,12 @@ if( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (i
                     $line_items[]	= $value['description'];
                 }
 				$customer = gnfe_customer($invoices->userid,$client);
-				if($params['email_nfe']) {
+				/*if($params['email_nfe']) {
 					$client_email = $client['email'];
 				}
 				elseif(!$params['email_nfe']) {
 					$client_email = $client['email'];
-				}
+				}*/
 				$company = gnfe_get_company();
                 if(!strlen($customer['insc_municipal']) == 0) {
                     $postfields = array(

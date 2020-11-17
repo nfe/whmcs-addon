@@ -31,7 +31,7 @@ if( !function_exists('gofasnfeio_config') ) {
        /// REMOVER VERIFICAÇÃO APÓS VERSÃO 2.0
        $verificarEmail = Capsule::table('tbladdonmodules')->where( 'module', '=', 'gofasnfeio' )->where( 'setting', '=', 'gnfe_email_nfe_config' )->count();
        if(empty($verificarEmail)){
-           echo "vazio";
+           // echo "vazio";
            try {
                 Capsule::table('tbladdonmodules')->insert(array('module' => 'gofasnfeio', 'setting' => 'gnfe_email_nfe_config', 'value' => 'on'));
             }catch (\Exception $e) {
