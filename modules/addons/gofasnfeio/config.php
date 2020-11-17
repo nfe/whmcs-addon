@@ -178,7 +178,7 @@ if( !function_exists('gofasnfeio_config') ) {
         $issue_note = array('issue_note' => array(
             'FriendlyName' => 'Quando emitir NFE',
             'Type' => 'radio',
-            'Options' => 'Quando a Fatura é Gerada,Quando a Fatura é Paga',
+            'Options' => 'Manualmente, Quando a Fatura é Gerada,Quando a Fatura é Paga',
             'Default' => 'Quando a Fatura é Paga',
         ));
         $issue_note_after = array('issue_note_after' => array(

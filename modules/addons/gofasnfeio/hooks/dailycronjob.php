@@ -2,7 +2,7 @@
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
-if( $params['issue_note_after'] and (int)$params['issue_note_after'] > 0 ) {
+if( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (int)$params['issue_note_after'] > 0 ) {
     foreach( Capsule::table('tblinvoices')->where('status', '=', 'Paid')->get( array( 'id', 'userid', 'datepaid','total' ) ) as $invoices ) {
         $datepaid			= date('Ymd', strtotime($invoices->datepaid));
         $datepaid_to_issue_	= '-'.$params['issue_note_after'].' days';
