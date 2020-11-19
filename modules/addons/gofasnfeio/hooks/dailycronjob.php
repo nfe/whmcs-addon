@@ -2,7 +2,7 @@
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
-if( $params['issue_note_after'] and (int)$params['issue_note_after'] > 0 ) {
+if( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (int)$params['issue_note_after'] > 0 ) {
     foreach( Capsule::table('tblinvoices')->where('status', '=', 'Paid')->get( array( 'id', 'userid', 'datepaid','total' ) ) as $invoices ) {
         $datepaid			= date('Ymd', strtotime($invoices->datepaid));
         $datepaid_to_issue_	= '-'.$params['issue_note_after'].' days';
@@ -17,12 +17,12 @@ if( $params['issue_note_after'] and (int)$params['issue_note_after'] > 0 ) {
                     $line_items[]	= $value['description'];
                 }
 				$customer = gnfe_customer($invoices->userid,$client);
-				if($params['email_nfe']) {
+				/*if($params['email_nfe']) {
 					$client_email = $client['email'];
 				}
 				elseif(!$params['email_nfe']) {
 					$client_email = $client['email'];
-				}
+				}*/
 				$company = gnfe_get_company();
                 if(!strlen($customer['insc_municipal']) == 0) {
                     $postfields = array(
