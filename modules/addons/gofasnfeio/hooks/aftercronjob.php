@@ -44,16 +44,8 @@ foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '
             $rps_number = 0;
         }
 
-        $cnpj = $client['customfields2'];
-        $cpf = $client['customfields1'];
         $namePF = $client['fullname'];
-
-        $numberId = $cnpj ? $cnpj : $cpf;
-        $name = $cnpj ? $client['companyname'] : $name;
-
-        $numberId = str_replace('.', '', $numberId);
-        $numberId = str_replace('/', '', $numberId);
-        $numberId = str_replace('-', '', $numberId);
+        $name = $customer['doc_type'] == 2 ? $client['companyname'] : $namePF;
 
         if (!strlen($customer['insc_municipal']) == 0) {
             $postfields = [
@@ -62,7 +54,7 @@ foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '
                 'servicesAmount' => $invoice['total'],
                 'borrower' => [
                     'federalTaxNumber' => $customer['document'],
-                    'municipalTaxNumber' => $numberId,
+                    'municipalTaxNumber' => $customer['insc_municipal'],
                     'name' => $name,
                     'email' => $client['email'],
                     'address' => [
@@ -88,7 +80,7 @@ foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '
                 'description' => substr(implode("\n", $line_items), 0, 600),
                 'servicesAmount' => $invoice['total'],
                 'borrower' => [
-                    'federalTaxNumber' => $numberId,
+                    'federalTaxNumber' => $customer['document'],
                     'name' => $name,
                     'email' => $client['email'],
                     'address' => [
