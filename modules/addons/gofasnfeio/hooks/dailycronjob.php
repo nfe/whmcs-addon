@@ -39,6 +39,7 @@ if ( $params['issue_note_after'] and (int)$params['issue_note_after'] > 0 ) {
 
                 $namePF = $client['fullname'];
                 $name = $customer['doc_type'] == 2 ? $client['companyname'] : $namePF;
+                $name = htmlspecialchars_decode($name);
 
                 if (!strlen($customer['insc_municipal']) == 0) {
                     $postfields = [

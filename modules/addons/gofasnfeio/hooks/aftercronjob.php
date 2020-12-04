@@ -46,6 +46,7 @@ foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '
 
         $namePF = $client['fullname'];
         $name = $customer['doc_type'] == 2 ? $client['companyname'] : $namePF;
+        $name = htmlspecialchars_decode($name);
 
         if (!strlen($customer['insc_municipal']) == 0) {
             $postfields = [
