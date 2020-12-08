@@ -1,7 +1,5 @@
-[![](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/07/14192856/Captura-de-Tela-2020-07-14-a%CC%80s-19.28.30.png)](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/07/14192856/Captura-de-Tela-2020-07-14-a%CC%80s-19.28.30.png)
-
-# Módulo Gofas NFE.io para WHMCS
-Automatize a emissão de notas fiscais com [WHMCS](https://goo.gl/gDXngY "WHMCS") e [NFE.io](https://nfe.io "NFE.io")!
+# Módulo Nota Fiscal para WHMCS via NFE.io
+Automatize a emissão de notas fiscais no WHMCS com a [NFE.io](https://nfe.io "NFE.io")!
 
 A [NFE.io](https://nfe.io "NFE.io") é um sistema de emissão de notas fiscais que automatiza a comunicação com as prefeituras. Com a [NFE.io](https://nfe.io "NFE.io") você se livra de diversas tarefas chatas, melhorando o desempenho do seu negócio. E melhor, você economiza tempo e dinheiro.
 
@@ -20,6 +18,8 @@ Clique nas imagens para ampliar
 
 ## PRINCIPAIS FUNCIONALIDADES
 ✓ Emite notas fiscais automaticamente, quando a fatura é publicada, ou quando a fatura é paga.
+
+✓ Emite notas fiscais manualmente.
 
 ✓ Permite agendar a emissão de notas fiscais para um determinado número de dias após a confirmação dos pagamentos.
 
@@ -64,14 +64,19 @@ Clique nas imagens para ampliar
 9. Debug: Marque essa opção para salvar informações de diagnóstico no Log de Módulo do WHMCS;
 10. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
 
-## LINK DA NOTA EM PDF
-Para inserir um link da nota fiscal direto na fatura do template do WHMCS, utilize o exemplo abaixo:
+## LINK DA NOTA EM PDF E XML
+Para inserir um link da nota fiscal do PDF e XML direto na fatura do template do WHMCS, utilize o exemplo abaixo:
 ```
-<a href="/modules/addons/gofasnfeio/pdf.php?invoice_id={$invoiceid}" target="_blank" class="btn btn-link"><i class="fal fa-file-invoice" aria-hidden="true"></i> NOTA FISCAL</a>
+{if $status eq "Paid" || $clientsdetails.userid eq "6429"}<i class="fal fa-file-invoice" aria-hidden="true"></i> NOTA FISCAL  <a href="/modules/addons/gofasnfeio/pdf.php?invoice_id={$invoiceid}" target="_blank" class="btn btn-link" tite="Nota Fiscal disponível 24 horas após confirmação de pagamento.">PDF</a> | <a href="/modules/addons/gofasnfeio/xml.php?invoice_id={$invoiceid}" target="_blank" class="btn btn-link" tite="Nota Fiscal disponível 24 horas após confirmação de pagamento.">XML</a>{/if}
 ```
 
 ## CHANGELOG
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
+
+### v1.2.6
+- opção manual para criação de notas fiscais.
+### v1.2.5
+- criação de link na fatura para o XML da nota fiscal.
 ### v1.2.4
 - Nova opção de configuração no disparo de nota fiscal automatica por e-mail.
 - Ajustes com informações e links de suporte.

@@ -1,15 +1,4 @@
 <?php
-/**
- * Módulo Nota Fiscal NFE.io para WHMCS
- * @author		Original Author Mauricio Gofas | gofas.net
- * @author		Updated by Link Nacional
- * @see			https://github.com/nfe/whmcs-addon/
- * @copyright	2020 https://github.com/nfe/whmcs-addon/
- * @license		https://gofas.net?p=9340
- * @support		https://github.com/nfe/whmcs-addon/issues
- * @version		1.2.4
- */
-
 use WHMCS\Database\Capsule;
 if ( !function_exists('gofasnfeio_output') ) {
     function gofasnfeio_output($vars) {
@@ -19,11 +8,9 @@ if ( !function_exists('gofasnfeio_output') ) {
             $gnfewhmcsadminurl = $gnfewhmcsadminurl_->value;
         }
         $nfes = [];
-
         foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->get( ['id'] ) as $nfes_ ) {
             $nfes[] = $nfes_->id;
         }
-
         if ($_REQUEST['page']) {
             $nfes_page = (int)$_REQUEST['page'];
         } else {
@@ -42,25 +29,20 @@ if ( !function_exists('gofasnfeio_output') ) {
         }
 
         $nfes_pages = ceil($nfes_total / $take);
-
         $nfes_from_ = ( $nfes_page * $take ) - $take;
         $nfes_from = $nfs_keys[$nfes_from_ + 1];
-
         $nfes_to_ = ( $nfes_from + $take ) - 2;
         $nfes_to = $nfs_keys[$nfes_to_ + 1];
-
         $nfess = array_slice($nfes, $nfes_from_, $nfes_to);
 
         if ((int)$nfes_page === (int)$nfes_pages) {
             $nfes_to = $nfes_total;
             $nfess = array_slice($nfes, $nfes_from_, $nfes_to_);
         }
-
         if ((int)$take >= (int)$nfes_total) {
             $nfes_from = 1;
             $nfess = array_slice($nfes, $nfes_from_, $nfes_to);
         }
-
         // Pagination
         $i = 1;
         while ($i <= $nfes_pages ) {
@@ -142,7 +124,6 @@ if ( !function_exists('gofasnfeio_output') ) {
 								<a ' . $disabled['c'] . ' href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&invoice_id=' . $value->invoice_id . '&gnfe_cancel=' . $value->nfe_id . '&services_amount=' . $value->services_amount . '&environment=' . $value->environment . '&flow_status=' . $value->flow_status . '&user_id=' . $value->user_id . '&created_at=' . $value->created_at . '" class="btn btn-danger" id="gnfe_cancel" title="Cancelar Nota Fiscal">Cancelar</a>
 								<a ' . $disabled['d'] . ' href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&gnfe_email=' . $value->nfe_id . '" class="btn btn-primary" id="gnfe_cancel" title="Enviar Nota Fiscal por Email">Enviar por Email</a></td></tr>';
         }
-
         if ((int)$nfes_total > 0) {
             echo '
 		<div><h3>Listagem de notas fiscais</h3>' . $nfes_total . ' Itens encontrados.<br>Exibindo de ' . $nfes_from . ' a ' . $nfes_to . '. Página ' . $nfes_page . ' de ' . $nfes_pages . '</div>
@@ -176,13 +157,11 @@ if ( !function_exists('gofasnfeio_output') ) {
 			<h3>Nenhuma nota fiscal gerada até o momento</h3>
 		</div>';
         }
-
         if ($_REQUEST['gnfe_create']) {
             $invoice = localAPI('GetInvoice',  ['invoiceid' => $_REQUEST['invoice_id']], false);
             $client = localAPI('GetClientsDetails',['clientid' => $invoice['userid'], 'stats' => false, ], false);
             $nfe_for_invoice = gnfe_get_local_nfe($_REQUEST['invoice_id'],['invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'pdf', 'created_at', 'rpsSerialNumber']);
-            //if($nfe_for_invoice['status'] !== (string)'Created' or $nfe_for_invoice['status'] !== (string)'Issued') {
-            $queue = gnfe_queue_nfe($_REQUEST['invoice_id'],'t');
+            $queue = gnfe_queue_nfe($_REQUEST['invoice_id'],'true');
             if ($queue !== 'success') {
                 $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">Erro ao salvar nota fiscal no DB: ' . $queue . '</div>';
                 header_remove();
@@ -195,10 +174,7 @@ if ( !function_exists('gofasnfeio_output') ) {
                 header('Location: ' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&gnfe_message=' . base64_encode(urlencode($message)));
                 exit;
             }
-
-            //}
         }
-
         if ($_REQUEST['gnfe_cancel']) {
             $delete_nfe = gnfe_delete_nfe($_REQUEST['gnfe_cancel']);
             if (!$delete_nfe->message) {
@@ -215,7 +191,6 @@ if ( !function_exists('gofasnfeio_output') ) {
                 exit;
             }
         }
-
         if ($_REQUEST['gnfe_email']) {
             $gnfe_email = gnfe_email_nfe($_REQUEST['gnfe_email']);
             if (!$gnfe_email->message) {
@@ -231,7 +206,6 @@ if ( !function_exists('gofasnfeio_output') ) {
                 exit;
             }
         }
-
         if ($_REQUEST['gnfe_message']) {
             echo urldecode(base64_decode( $_REQUEST['gnfe_message'] ));
         }

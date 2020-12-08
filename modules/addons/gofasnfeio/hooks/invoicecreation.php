@@ -1,14 +1,4 @@
 <?php
-/**
- * Módulo Nota Fiscal NFE.io para WHMCS
- * @author		Original Author Mauricio Gofas | gofas.net
- * @author		Updated by Link Nacional
- * @see			https://github.com/nfe/whmcs-addon/
- * @copyright	2020 https://github.com/nfe/whmcs-addon/
- * @license		https://gofas.net?p=9340
- * @support		https://github.com/nfe/whmcs-addon/issues
- * @version		1.2.4
- */
 if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
@@ -21,12 +11,12 @@ if( stripos($params['issue_note'], 'Gerada') and (string)$vars['status'] !== (st
 			foreach( $invoice['items']['item'] as $value){
 				$line_items[]	= $value['description'];//substr( $value['description'],  0, 100);
 			}
-			if($params['email_nfe']) {
+			/*if($params['email_nfe']) {
 				$client_email = $client['email'];
 			}
 			elseif(!$params['email_nfe']) {
 				$client_email = $client['email'];
-			}
+			}*/
 			$queue = gnfe_queue_nfe($vars['invoiceid']);
 			if($queue !== 'success') {
 				if($vars['source'] === 'adminarea'){
