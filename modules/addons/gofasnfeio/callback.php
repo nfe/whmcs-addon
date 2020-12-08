@@ -14,6 +14,7 @@ use WHMCS\Database\Capsule;
 $post = json_decode(file_get_contents('php://input'), true);
 if ($post) {
     require_once __DIR__ . '/functions.php';
+    altersFromUpdate();
     $params = [];
     foreach ( Capsule::table('tbladdonmodules')->where( 'module', '=', 'gofasnfeio' )->get( ['setting', 'value'] ) as $settings ) {
         $params[$settings->setting] = $settings->value;
@@ -45,8 +46,20 @@ if ($post) {
     if ($params['debug']) {
         logModuleCall('gofas_nfeio', 'receive_callback', ['post' => $post], 'post',  ['nfe_local' => $nfe], 'replaceVars');
     }
-    foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['invoice_id']) as $waiting ) {
-        foreach ( Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get( ['id', 'userid', 'total'] ) as $invoices ) {
+
+    foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['invoice_id', 'created_manually']) as $waiting ) {
+        //$invoices[]				= $Waiting->invoice_id;
+        $data = getTodaysDate(false);
+        $dataAtual = toMySQLDate($data);
+        $created_manually = $waiting->created_manually;
+
+        if ($created_manually == 'false') {
+            $getQuery = Capsule::table('tblinvoices')->whereBetween('date', [$params['initial_date'], $dataAtual])->where('id', '=', $waiting->invoice_id)->get( ['id', 'userid', 'total']);
+        } else {
+            $getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get( ['id', 'userid', 'total']);
+        }
+
+        foreach ( $getQuery as $invoices ) {
             $invoice = localAPI('GetInvoice',  ['invoiceid' => $waiting->invoice_id], false);
             $client = localAPI('GetClientsDetails',['clientid' => $invoice['userid'], 'stats' => false, ], false);
             foreach ( $invoice['items']['item'] as $value) {

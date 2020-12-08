@@ -15,9 +15,20 @@ if (!defined('WHMCS')) {
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
 
-foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['invoice_id']) as $waiting ) {
+//;
+altersFromUpdate();
+foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['invoice_id', 'created_manually']) as $waiting ) {
     //$invoices[]				= $Waiting->invoice_id;
-    foreach ( Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get( ['id', 'userid', 'total'] ) as $invoices ) {
+    $data = getTodaysDate(false);
+    $dataAtual = toMySQLDate($data);
+    $created_manually = $waiting->created_manually;
+    if ($created_manually == 'false') {
+        $getQuery = Capsule::table('tblinvoices')->whereBetween('date', [$params['initial_date'], $dataAtual])->where('id', '=', $waiting->invoice_id)->get( ['id', 'userid', 'total']);
+    } else {
+        $getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get( ['id', 'userid', 'total']);
+    }
+
+    foreach ($getQuery as $invoices ) {
         $invoice = localAPI('GetInvoice',  ['invoiceid' => $waiting->invoice_id], false);
         $client = localAPI('GetClientsDetails',['clientid' => $invoice['userid'], 'stats' => false, ], false);
         foreach ( $invoice['items']['item'] as $value) {

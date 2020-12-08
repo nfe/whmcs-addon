@@ -13,6 +13,7 @@ if (!defined('WHMCS')) {
     die();
 }
 use WHMCS\Database\Capsule;
+//
 $params = gnfe_config();
 
 if ( $params['issue_note_after'] and (int)$params['issue_note_after'] > 0 ) {
