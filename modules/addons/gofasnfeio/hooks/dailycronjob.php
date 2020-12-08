@@ -3,8 +3,11 @@ if (!defined("WHMCS")){die();}
 use WHMCS\Database\Capsule;
 //
 $params = gnfe_config();
+$data = getTodaysDate(false);
+$dataAtual = toMySQLDate($data);
+
 if( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (int)$params['issue_note_after'] > 0 ) {
-    foreach( Capsule::table('tblinvoices')->where('status', '=', 'Paid')->get( array( 'id', 'userid', 'datepaid','total' ) ) as $invoices ) {
+    foreach( Capsule::table('tblinvoices')->whereBetween('date', [$params['initial_date'], $dataAtual])->where('status', '=', 'Paid')->get( array( 'id', 'userid', 'datepaid','total' ) ) as $invoices ) {
         $datepaid			= date('Ymd', strtotime($invoices->datepaid));
         $datepaid_to_issue_	= '-'.$params['issue_note_after'].' days';
         $datepaid_to_issue	= date('Ymd', strtotime($datepaid_to_issue_));
@@ -83,16 +86,11 @@ if( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (i
                         'rpsNumber' => (int)$company['companies']['rpsNumber'] + 1,
                     ];
                 }
-<<<<<<< HEAD
                 if ($params['debug']) {
                     logModuleCall('gofas_nfeio', 'dailycronjob',$postfields , '',  '', 'replaceVars');
                 }
-                $waiting = [];
-                foreach ( Capsule::table('gofasnfeio')->where( 'status', '=', 'Waiting' )->get( ['invoice_id', 'status'] ) as $Waiting ) {
-=======
                 $waiting = array();
                 foreach( Capsule::table('gofasnfeio') -> where( 'status', '=', 'Waiting' ) -> get( array( 'invoice_id', 'status') ) as $Waiting ) {
->>>>>>> upstream/master
                     $waiting[] = $Waiting->invoice_id;
                 }
                 $queue = gnfe_queue_nfe($invoices->id);

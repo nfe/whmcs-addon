@@ -37,13 +37,12 @@ if ($post) {
         logModuleCall('gofas_nfeio', 'receive_callback', ['post' => $post], 'post',  ['nfe_local' => $nfe], 'replaceVars');
     }
 
-    foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['invoice_id', 'created_manually']) as $waiting ) {
+    foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['invoice_id']) as $waiting ) {
         //$invoices[]				= $Waiting->invoice_id;
         $data = getTodaysDate(false);
         $dataAtual = toMySQLDate($data);
-        $created_manually = $waiting->created_manually;
 
-        if ($created_manually == 'false') {
+        if ($params['issue_note'] !== 'Manualmente') {
             $getQuery = Capsule::table('tblinvoices')->whereBetween('date', [$params['initial_date'], $dataAtual])->where('id', '=', $waiting->invoice_id)->get( ['id', 'userid', 'total']);
         } else {
             $getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get( ['id', 'userid', 'total']);

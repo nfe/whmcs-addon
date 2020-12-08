@@ -630,7 +630,7 @@ if ( !function_exists('setAddedManually') ) {
     }
 }
     function altersFromUpdate() {
-        setAddedManually();
+        // setAddedManually();
         setInitalDate();
     }
 
