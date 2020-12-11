@@ -17,7 +17,7 @@ if ($_REQUEST['gnfe_create']) {
             $line_items[] = $value['description'];//substr( $value['description'],  0, 100);
         }
         $customer = gnfe_customer($invoice['userid'],$client);
-        $queue = gnfe_queue_nfe($vars['invoiceid'],'true');
+        $queue = gnfe_queue_nfe($vars['invoiceid']);
         if ($queue !== 'success') {
             header_remove();
             header('Location: ' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_error=Erro ao criar nota fiscal: ' . $queue);

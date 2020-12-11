@@ -164,37 +164,41 @@ if ( !function_exists('gnfe_ibge') ) {
     }
 }
 if ( !function_exists('gnfe_queue_nfe') ) {
-    function gnfe_queue_nfe($invoice_id,$addManually = 'false') {
-        if (!setAddedManually()) {
-            return '';
-        }
-
+    function gnfe_queue_nfe($invoice_id,$item,$create_all = false) {
         $invoice = localAPI('GetInvoice',  ['invoiceid' => $invoice_id], false);
         $data = [
             'invoice_id' => $invoice_id,
             'user_id' => $invoice['userid'],
             'nfe_id' => 'waiting',
             'status' => 'Waiting',
-            'services_amount' => $invoice['total'],
+            //
+            'services_amount' => $item['monthly'],
             'environment' => 'waiting',
             'flow_status' => 'waiting',
             'pdf' => 'waiting',
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => 'waiting',
             'rpsSerialNumber' => 'waiting',
-            'created_manually' => (boolval($addManually) ? 'true' : 'false')
+            'service_code' => $item['value'],
+            'monthly' => $item['monthly']
         ];
-        logModuleCall('gofas_nfeio', 'gnfe_queue_nfe', $data,'','','');
+
         $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
-        if (!$nfe_for_invoice['status']) {
+        logModuleCall('gofas_nfeio', 'nfe_for_invoice',$nfe_for_invoice , '',  '', 'replaceVars');
+
+        if (!$nfe_for_invoice['status'] || $create_all) {
             try {
                 $save_nfe = Capsule::table('gofasnfeio')->insert($data);
+                logModuleCall('gofas_nfeio', 'data gnfe_queue_nfe create',$data , '',  '', 'replaceVars');
+
                 return 'success';
             } catch (\Exception $e) {
                 return $e->getMessage();
             }
         } elseif ((string)$nfe_for_invoice['status'] === (string)'Cancelled' or (string)$nfe_for_invoice['status'] === (string)'Error') {
             try {
+                logModuleCall('gofas_nfeio', 'data gnfe_queue_nfe update',$data , '',  '', 'replaceVars');
+
                 $update_nfe = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->update($data);
                 return 'success';
             } catch (\Exception $e) {
@@ -581,57 +585,25 @@ if ( !function_exists('gnfe_get_company') ) {
     }
 }
 
-if ( !function_exists('setInitalDate') ) {
-    function setInitalDate() {
-        $params = gnfe_config();
+if ( !function_exists('set_custom_field_ini_date') ) {
+    function set_custom_field_ini_date() {
         $data = getTodaysDate(false);
         $dataAtual = toMySQLDate($data);
         try {
             if (Capsule::table('tbladdonmodules')->where( 'module', '=', 'gofasnfeio' )->where( 'setting', '=', 'initial_date' )->count() < 1) {
                 Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'initial_date', 'value' => $dataAtual]);
-                if ($params['debug']) {
-                    logModuleCall('setInitalDate', 'dataAtual', 'create','','','');
-                }
-            } else {
-                if ($params['debug']) {
-                    logModuleCall('setInitalDate', 'dataAtual', 'exist','','','');
-                }
             }
         } catch (\Exception $e) {
             $e->getMessage();
-            if ($params['debug']) {
-                logModuleCall('setInitalDate', 'dataAtual', $e->getMessage(),'','','');
-            }
         }
     }
 }
-if ( !function_exists('setAddedManually') ) {
-    function setAddedManually() {
-        $params = gnfe_config();
-        $pdo = Capsule::connection()->getPdo();
-        $pdo->beginTransaction();
-        try {
-            $statement = $pdo->prepare(
-                    'ALTER TABLE gofasnfeio ADD COLUMN IF NOT EXISTS created_manually Varchar(5) NOT NULL DEFAULT "false";'
-                );
 
-            $statement->execute();
-            $commit = $pdo->commit();
-            if ($params['debug']) {
-                logModuleCall('gofas_nfeio', 'setAddedManually', $commit,'','','');
-            }
-            return $commit;
-        } catch (\Exception $e) {
-            if ($params['debug']) {
-                logModuleCall('gofas_nfeio', 'setAddedManually', $e->getMessage(),'','','');
-            }
-            $pdo->rollBack();
+    function set_camp_custom_code() {
+        $num = Capsule::table('tblcustomfields')->where('fieldname', '=', 'Código de Serviço')->where('type', '=', 'product')->count();
+        if ($num == 0) {
+            Capsule::table('tblcustomfields')->insert(['type' => 'product', 'relid' => '0', 'fieldname' => 'Código de Serviço', 'fieldtype' => 'text', 'adminonly' => 'on', 'showorder' => 'on', 'showinvoice' => 'on']);
         }
-    }
-}
-    function altersFromUpdate() {
-        // setAddedManually();
-        setInitalDate();
     }
 
 if ( !function_exists('gnfe_get_company') ) {
@@ -647,3 +619,73 @@ if ( !function_exists('gnfe_get_company') ) {
     }
 }
 
+if ( !function_exists('gnfe_customer_service_code') ) {
+    function gnfe_customer_service_code($item_id) {
+        $customfields = [];
+        foreach ( Capsule::table('tblcustomfields')->where( 'type', '=', 'product' )->where( 'fieldname', '=', 'Código de Serviço' )->get( ['fieldname', 'id'] ) as $customfield ) {
+            $customfield_id = $customfield->id;
+            $insc_customfield_value = 'NF';
+            foreach ( Capsule::table('tblcustomfieldsvalues')->where( 'fieldid', '=', $customfield_id )->where( 'relid', '=', $item_id )->get( ['value'] ) as $customfieldvalue ) {
+                $insc_customfield_value = $customfieldvalue->value;
+                return $insc_customfield_value;
+            }
+        }
+    }
+}
+
+function get_prodict_invoice($invoice_id) {
+    $query = "SELECT DISTINCT tblhosting.packageid,tblpricing.monthly from  tblhosting
+    INNER JOIN tblinvoiceitems ON tblinvoiceitems.relid = tblhosting.id 
+    JOIN tblpricing ON tblpricing.relid = tblhosting.packageid
+    WHERE tblpricing.type = 'product' AND tblinvoiceitems.invoiceid = :id";
+    $pdo = Capsule::connection()->getPdo();
+    $pdo->beginTransaction();
+    $row = null;
+    $list = [];
+    try {
+        $statement = $pdo->prepare($query);
+        $statement->execute([':id' => $invoice_id]);
+        $row = $statement->fetchAll();
+        $pdo->commit();
+    } catch (\Throwable $th) {
+        $pdo->rollBack();
+        logModuleCall('gofas_nfeio', 'erroGetProdictInvoice',$th , '',  '', 'replaceVars');
+    }
+    foreach ($row as $item) {
+        $pdo->beginTransaction();
+        try {
+            $list2 = [];
+            $stmt = $pdo->prepare("SELECT val.value FROM tblcustomfields
+            INNER JOIN tblcustomfieldsvalues val ON val.fieldid = tblcustomfields.id
+            WHERE tblcustomfields.fieldname='Código de Serviço' AND tblcustomfields.type = 'product'
+            AND val.relid = :PROD");
+            $stmt->execute([':PROD' => $item[0]]);
+            $row = $stmt->fetchAll();
+            $pdo->commit();
+            logModuleCall('gofas_nfeio', 'row itens',$row , '',  '', 'replaceVars');
+            $list2['item'] = $item['packageid'];
+            $list2['value'] = $row[0]['value'];
+            $list2['monthly'] = $item['monthly'];
+            $list[] = $list2;
+        } catch (\Throwable $th) {
+            $pdo->rollBack();
+            logModuleCall('gofas_nfeio', 'erroForeach',$th , '',  '', 'replaceVars');
+        }
+    }
+    return $list;
+}
+
+if ( !function_exists('set_code_service_camp_gofasnfeio') ) {
+    function set_code_service_camp_gofasnfeio() {
+        $pdo = Capsule::connection()->getPdo();
+        $pdo->beginTransaction();
+        try {
+            $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD service_code TEXT;
+            ALTER TABLE gofasnfeio ADD monthly DECIMAL(16,2)');
+            $statement->execute();
+            $pdo->commit();
+        } catch (\Exception $e) {
+            $pdo->rollBack();
+        }
+    }
+}

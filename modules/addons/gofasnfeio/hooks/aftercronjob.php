@@ -1,11 +1,12 @@
 <?php
 
-
-if (!defined("WHMCS")){die();}
+if (!defined('WHMCS')) {
+    die();
+}
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
 
-foreach( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( array( 'invoice_id' )) as $waiting ) {
+foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['invoice_id', 'service_code', 'monthly']) as $waiting ) {
     $data = getTodaysDate(false);
     $dataAtual = toMySQLDate($data);
 
@@ -15,44 +16,40 @@ foreach( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=
         $getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get( ['id', 'userid', 'total']);
     }
 
-    foreach( $getQuery as $invoices ) {
-		$invoice = localAPI('GetInvoice',  array('invoiceid' => $waiting->invoice_id), false);
-		$client = localAPI('GetClientsDetails',array( 'clientid' => $invoice['userid'], 'stats' => false, ), false);
-		foreach( $invoice['items']['item'] as $value){
-			$line_items[]	= $value['description'];
-		}
-		$customer = gnfe_customer($invoices->userid,$client);
-		$gnfe_get_nfes = gnfe_get_nfes();
-		if( $params['rps_serial_number'] ){
-			$rps_serial_number = $params['rps_serial_number'];
-			$rps_serial_number_ = false;
-		}
-		elseif (!$params['rps_serial_number'] and $gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber']){
-			$rps_serial_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber'];
-			$rps_serial_number_ = $rps_serial_number;
-		}
-		elseif (!$params['rps_serial_number'] and !$gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber']){
-			$rps_serial_number = 'IO';
-			$rps_serial_number_ = $rps_serial_number;
-		}
-		if($params['rps_number'] and (string)$params['rps_number'] !== (string)'zero'){
-			$rps_number = $params['rps_number'];
-		}
-		elseif((!$params['rps_number'] or (string)$params['rps_number'] === (string)'zero' ) and $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']){
-			$rps_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'];
-		}
-		elseif(((string)$params['rps_number'] === (string)'zero' and !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']) or (!$params['rps_number'] and !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'])){
-			$rps_number = 0;
+    foreach ( $getQuery as $invoices ) {
+        $invoice = localAPI('GetInvoice',  ['invoiceid' => $waiting->invoice_id], false);
+        $client = localAPI('GetClientsDetails',['clientid' => $invoice['userid'], 'stats' => false, ], false);
+        foreach ( $invoice['items']['item'] as $value) {
+            $line_items[] = $value['description'];
+        }
+        $customer = gnfe_customer($invoices->userid,$client);
+        $gnfe_get_nfes = gnfe_get_nfes();
+        if ( $params['rps_serial_number'] ) {
+            $rps_serial_number = $params['rps_serial_number'];
+            $rps_serial_number_ = false;
+        } elseif (!$params['rps_serial_number'] and $gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber']) {
+            $rps_serial_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber'];
+            $rps_serial_number_ = $rps_serial_number;
+        } elseif (!$params['rps_serial_number'] and !$gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber']) {
+            $rps_serial_number = 'IO';
+            $rps_serial_number_ = $rps_serial_number;
+        }
+        if ($params['rps_number'] and (string)$params['rps_number'] !== (string)'zero') {
+            $rps_number = $params['rps_number'];
+        } elseif ((!$params['rps_number'] or (string)$params['rps_number'] === (string)'zero' ) and $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']) {
+            $rps_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'];
+        } elseif (((string)$params['rps_number'] === (string)'zero' and !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']) or (!$params['rps_number'] and !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'])) {
+            $rps_number = 0;
         }
         $namePF = $client['fullname'];
         $name = $customer['doc_type'] == 2 ? $client['companyname'] : $namePF;
         $name = htmlspecialchars_decode($name);
-        
-        if(!strlen($customer['insc_municipal']) == 0) {
-            $postfields = array(
-                'cityServiceCode' => $params['service_code'],
+
+        if (!strlen($customer['insc_municipal']) == 0) {
+            $postfields = [
+                'cityServiceCode' => $waiting['service_code'],
                 'description' => substr(implode("\n", $line_items), 0, 600),
-                'servicesAmount' => $invoice['total'],
+                'servicesAmount' => $waiting['monthly'],
                 'borrower' => [
                     'federalTaxNumber' => $customer['document'],
                     'municipalTaxNumber' => $customer['insc_municipal'],
@@ -77,7 +74,7 @@ foreach( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=
             ];
         } else {
             $postfields = [
-                'cityServiceCode' => $params['service_code'],
+                'cityServiceCode' => $waiting['service_code'],
                 'description' => substr(implode("\n", $line_items), 0, 600),
                 'servicesAmount' => $invoice['total'],
                 'borrower' => [
@@ -104,6 +101,7 @@ foreach( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=
         }
         if ($params['debug']) {
             logModuleCall('gofas_nfeio', 'aftercronjob',$postfields , '',  '', 'replaceVars');
+            logModuleCall('gofas_nfeio', 'waiting',$waiting , '',  '', 'replaceVars');
         }
         $nfe = gnfe_issue_nfe($postfields);
         if ($nfe->message) {
