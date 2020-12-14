@@ -10,7 +10,7 @@ $dataAtual = toMySQLDate($data);
 
 if ( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (int)$params['issue_note_after'] > 0 ) {
     foreach ( Capsule::table('tblinvoices')->whereBetween('date', [$params['initial_date'], $dataAtual])->where('status', '=', 'Paid')->get( ['id', 'userid', 'datepaid', 'total'] ) as $invoices ) {
-        foreach ( Capsule::table('gofasnfeio')->where('status', '=', 'Waiting')->get( ['invoice_id', 'service_code', 'monthly']) as $nfeio ) {
+        foreach ( Capsule::table('gofasnfeio')->where('status', '=', 'Waiting')->get( ['id', 'invoice_id', 'service_code', 'monthly', 'services_amount']) as $nfeio ) {
             $datepaid = date('Ymd', strtotime($invoices->datepaid));
             $datepaid_to_issue_ = '-' . $params['issue_note_after'] . ' days';
             $datepaid_to_issue = date('Ymd', strtotime($datepaid_to_issue_));
@@ -32,14 +32,20 @@ if ( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (
                     }*/
                     $company = gnfe_get_company();
 
-                    $namePF = $client['fullname'];
-                    $name = $customer['doc_type'] == 2 ? $client['companyname'] : $namePF;
+                    if ($customer['doc_type'] == 2) {
+                        $name = $client['companyname'];
+                    } elseif ($customer['doc_type'] == 1 || $customer == 'CPF e/ou CNPJ ausente.' || !$customer['doc_type']) {
+                        $name = $client['fullname'];
+                    }
                     $name = htmlspecialchars_decode($name);
+
+                    $service_code = $waiting->service_code ? $waiting->service_code : $params['service_code'];
+
                     if (!strlen($customer['insc_municipal']) == 0) {
                         $postfields = [
-                            'cityServiceCode' => $nfeio['service_code'],
+                            'cityServiceCode' => $service_code,
                             'description' => substr(implode("\n", $line_items), 0, 600),
-                            'servicesAmount' => $nfeio['monthly'],
+                            'servicesAmount' => $waiting->services_amount,
                             'borrower' => [
                                 'federalTaxNumber' => $customer['document'],
                                 'municipalTaxNumber' => $customer['insc_municipal'],
@@ -64,9 +70,9 @@ if ( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (
                         ];
                     } else {
                         $postfields = [
-                            'cityServiceCode' => $nfeio['service_code'],
+                            'cityServiceCode' => $service_code,
                             'description' => substr(implode("\n", $line_items), 0, 600),
-                            'servicesAmount' => $nfeio['monthly'],
+                            'servicesAmount' => $waiting->services_amount,
                             'borrower' => [
                                 'federalTaxNumber' => $customer['document'],
                                 'name' => $name,

@@ -435,7 +435,7 @@ if ( !function_exists('gnfe_save_nfe') ) {
     }
 }
 if ( !function_exists('gnfe_update_nfe') ) {
-    function gnfe_update_nfe($nfe,$user_id,$invoice_id,$pdf,$created_at,$updated_at,$id_gofasnfeio) {
+    function gnfe_update_nfe($nfe,$user_id,$invoice_id,$pdf,$created_at,$updated_at,$id_gofasnfeio = false) {
         $data = [
             'invoice_id' => $invoice_id,
             'user_id' => $user_id,
@@ -452,7 +452,15 @@ if ( !function_exists('gnfe_update_nfe') ) {
         ];
         logModuleCall('gofas_nfeio', '$data',$data , '',  '', 'replaceVars');
         try {
-            $save_nfe = Capsule::table('gofasnfeio')->where('id', '=', $id_gofasnfeio)->update($data);
+            if (!$id_gofasnfeio) {
+                $id = $invoice_id;
+                $camp = 'invoice_id';
+            } else {
+                $id = $id_gofasnfeio;
+                $camp = 'id';
+            }
+
+            $save_nfe = Capsule::table('gofasnfeio')->where($camp, '=',$id)->update($data);
             logModuleCall('gofas_nfeio', 'save_nfe',$save_nfe , '',  '', 'replaceVars');
 
             return 'success';

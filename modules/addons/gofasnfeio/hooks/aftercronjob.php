@@ -6,7 +6,7 @@ if (!defined('WHMCS')) {
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
 
-foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->where('invoice_id', '=', '302')->get( ['id', 'invoice_id', 'service_code', 'services_amount']) as $waiting ) {
+foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['id', 'invoice_id', 'service_code', 'services_amount']) as $waiting ) {
     $data = getTodaysDate(false);
     $dataAtual = toMySQLDate($data);
 
@@ -104,14 +104,10 @@ foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '
                 'rpsNumber' => (int)$rps_number + 1,
             ];
         }
-        logModuleCall('gofas_nfeio', 'rps_number', $rps_number, '',  '', 'replaceVars');
-
         if ($params['debug']) {
             logModuleCall('gofas_nfeio', 'aftercronjob',$postfields , '',  '', 'replaceVars');
         }
         $nfe = gnfe_issue_nfe($postfields);
-        logModuleCall('gofas_nfeio', 'nfe resp',$nfe , '',  '', 'replaceVars');
-
         if ($nfe->message) {
             $error .= $nfe->message;
         }
@@ -128,6 +124,6 @@ foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '
         }
     }
     if ($params['debug']) {
-        // logModuleCall('gofas_nfeio', 'aftercronjob', ['$params' => $params, '$datepaid' => $datepaid, '$datepaid_to_issue' => $datepaid_to_issue], 'post',  ['$processed_invoices' => $processed_invoices, '$nfe' => $nfe, 'error' => $error], 'replaceVars');
+        logModuleCall('gofas_nfeio', 'aftercronjob', ['$params' => $params, '$datepaid' => $datepaid, '$datepaid_to_issue' => $datepaid_to_issue], 'post',  ['$processed_invoices' => $processed_invoices, '$nfe' => $nfe, 'error' => $error], 'replaceVars');
     }
 }

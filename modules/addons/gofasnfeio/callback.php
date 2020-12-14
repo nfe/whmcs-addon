@@ -9,7 +9,7 @@ if ($post) {
         $params[$settings->setting] = $settings->value;
     }
     foreach ( Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->
-    get(['invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'flow_status', 'pdf', 'created_at', 'updated_at']) as $key => $value ) {
+    get(['id', 'invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'flow_status', 'pdf', 'created_at', 'updated_at']) as $key => $value ) {
         $nfe_for_invoice[$key] = json_decode(json_encode($value), true);
     }
     $nfe = $nfe_for_invoice['0'];
@@ -36,7 +36,7 @@ if ($post) {
         logModuleCall('gofas_nfeio', 'receive_callback', ['post' => $post], 'post',  ['nfe_local' => $nfe], 'replaceVars');
     }
 
-    foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['invoice_id']) as $waiting ) {
+    foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['id', 'invoice_id']) as $waiting ) {
         //$invoices[]				= $Waiting->invoice_id;
         $data = getTodaysDate(false);
         $dataAtual = toMySQLDate($data);
@@ -142,7 +142,7 @@ if ($post) {
                 $error .= $nfe->message;
             }
             if (!$nfe->message) {
-                $gnfe_update_nfe = gnfe_update_nfe($nfe,$invoices->userid,$invoices->id,'n/a',date('Y-m-d H:i:s'),date('Y-m-d H:i:s'));
+                $gnfe_update_nfe = gnfe_update_nfe($nfe,$invoices->userid,$invoices->id,'n/a',date('Y-m-d H:i:s'),date('Y-m-d H:i:s'),$waiting->id);
                 if ($gnfe_update_nfe and $gnfe_update_nfe !== 'success') {
                     $error = $gnfe_update_nfe;
                 }
