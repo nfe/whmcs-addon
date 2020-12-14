@@ -4,7 +4,7 @@ if (!defined('WHMCS')) {
 }
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
-$itens = get_prodict_invoice(241);
+$itens = get_prodict_invoice($vars['invoiceid']);
 
 if ( stripos($params['issue_note'], 'Gerada') and (string)$vars['status'] !== (string)'Draft' and (!$params['issue_note_after'] or $params['issue_note_after'] === 0 )) {
     $invoice = localAPI('GetInvoice',  ['invoiceid' => $vars['invoiceid']], false);

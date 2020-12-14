@@ -4,7 +4,6 @@ use WHMCS\Database\Capsule;
 $post = json_decode(file_get_contents('php://input'), true);
 if ($post) {
     require_once __DIR__ . '/functions.php';
-    altersFromUpdate();
     $params = [];
     foreach ( Capsule::table('tbladdonmodules')->where( 'module', '=', 'gofasnfeio' )->get( ['setting', 'value'] ) as $settings ) {
         $params[$settings->setting] = $settings->value;

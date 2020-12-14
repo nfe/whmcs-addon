@@ -6,7 +6,7 @@ if (!defined('WHMCS')) {
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
 
-foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['invoice_id', 'service_code', 'monthly']) as $waiting ) {
+foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->where('invoice_id', '=', '302')->get( ['id', 'invoice_id', 'service_code', 'services_amount']) as $waiting ) {
     $data = getTodaysDate(false);
     $dataAtual = toMySQLDate($data);
 
@@ -15,7 +15,6 @@ foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '
     } else {
         $getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get( ['id', 'userid', 'total']);
     }
-
     foreach ( $getQuery as $invoices ) {
         $invoice = localAPI('GetInvoice',  ['invoiceid' => $waiting->invoice_id], false);
         $client = localAPI('GetClientsDetails',['clientid' => $invoice['userid'], 'stats' => false, ], false);
@@ -41,15 +40,21 @@ foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '
         } elseif (((string)$params['rps_number'] === (string)'zero' and !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']) or (!$params['rps_number'] and !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'])) {
             $rps_number = 0;
         }
-        $namePF = $client['fullname'];
-        $name = $customer['doc_type'] == 2 ? $client['companyname'] : $namePF;
+
+        if ($customer['doc_type'] == 2) {
+            $name = $client['companyname'];
+        } elseif ($customer['doc_type'] == 1 || $customer == 'CPF e/ou CNPJ ausente.' || !$customer['doc_type']) {
+            $name = $client['fullname'];
+        }
         $name = htmlspecialchars_decode($name);
+
+        $service_code = $waiting->service_code ? $waiting->service_code : $params['service_code'];
 
         if (!strlen($customer['insc_municipal']) == 0) {
             $postfields = [
-                'cityServiceCode' => $waiting['service_code'],
+                'cityServiceCode' => $service_code,
                 'description' => substr(implode("\n", $line_items), 0, 600),
-                'servicesAmount' => $waiting['monthly'],
+                'servicesAmount' => $waiting->services_amount,
                 'borrower' => [
                     'federalTaxNumber' => $customer['document'],
                     'municipalTaxNumber' => $customer['insc_municipal'],
@@ -74,9 +79,9 @@ foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '
             ];
         } else {
             $postfields = [
-                'cityServiceCode' => $waiting['service_code'],
+                'cityServiceCode' => $service_code,
                 'description' => substr(implode("\n", $line_items), 0, 600),
-                'servicesAmount' => $invoice['total'],
+                'servicesAmount' => $waiting->services_amount,
                 'borrower' => [
                     'federalTaxNumber' => $customer['document'],
                     'name' => $name,
@@ -99,26 +104,30 @@ foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '
                 'rpsNumber' => (int)$rps_number + 1,
             ];
         }
+        logModuleCall('gofas_nfeio', 'rps_number', $rps_number, '',  '', 'replaceVars');
+
         if ($params['debug']) {
             logModuleCall('gofas_nfeio', 'aftercronjob',$postfields , '',  '', 'replaceVars');
-            logModuleCall('gofas_nfeio', 'waiting',$waiting , '',  '', 'replaceVars');
         }
         $nfe = gnfe_issue_nfe($postfields);
+        logModuleCall('gofas_nfeio', 'nfe resp',$nfe , '',  '', 'replaceVars');
+
         if ($nfe->message) {
             $error .= $nfe->message;
         }
         if (!$nfe->message) {
-            $gnfe_update_nfe = gnfe_update_nfe($nfe,$invoices->userid,$invoices->id,'n/a',date('Y-m-d H:i:s'),date('Y-m-d H:i:s'));
+            $gnfe_update_nfe = gnfe_update_nfe($nfe,$invoices->userid,$invoices->id,'n/a',date('Y-m-d H:i:s'),date('Y-m-d H:i:s'),$waiting->id);
             if ($gnfe_update_nfe and $gnfe_update_nfe !== 'success') {
                 $error = $gnfe_update_nfe;
             }
             $update_rps = gnfe_update_rps($rps_serial_number_, $rps_number);
+
             if ($update_rps and $update_rps !== 'success') {
                 $error = $update_rps;
             }
         }
     }
     if ($params['debug']) {
-        logModuleCall('gofas_nfeio', 'aftercronjob', ['$params' => $params, '$datepaid' => $datepaid, '$datepaid_to_issue' => $datepaid_to_issue], 'post',  ['$processed_invoices' => $processed_invoices, '$nfe' => $nfe, 'error' => $error], 'replaceVars');
+        // logModuleCall('gofas_nfeio', 'aftercronjob', ['$params' => $params, '$datepaid' => $datepaid, '$datepaid_to_issue' => $datepaid_to_issue], 'post',  ['$processed_invoices' => $processed_invoices, '$nfe' => $nfe, 'error' => $error], 'replaceVars');
     }
 }

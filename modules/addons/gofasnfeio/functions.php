@@ -50,6 +50,7 @@ if ( !function_exists('gnfe_customer') ) {
                 }
             }
         }
+
         // Cliente possui CPF e CNPJ
         // CPF com 1 nº a menos, adiciona 0 antes do documento
         if ( strlen( $cpf_customfield_value ) === 10 ) {
@@ -171,7 +172,6 @@ if ( !function_exists('gnfe_queue_nfe') ) {
             'user_id' => $invoice['userid'],
             'nfe_id' => 'waiting',
             'status' => 'Waiting',
-            //
             'services_amount' => $item['monthly'],
             'environment' => 'waiting',
             'flow_status' => 'waiting',
@@ -180,7 +180,6 @@ if ( !function_exists('gnfe_queue_nfe') ) {
             'updated_at' => 'waiting',
             'rpsSerialNumber' => 'waiting',
             'service_code' => $item['value'],
-            'monthly' => $item['monthly']
         ];
 
         $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
@@ -189,7 +188,6 @@ if ( !function_exists('gnfe_queue_nfe') ) {
         if (!$nfe_for_invoice['status'] || $create_all) {
             try {
                 $save_nfe = Capsule::table('gofasnfeio')->insert($data);
-                logModuleCall('gofas_nfeio', 'data gnfe_queue_nfe create',$data , '',  '', 'replaceVars');
 
                 return 'success';
             } catch (\Exception $e) {
@@ -437,7 +435,7 @@ if ( !function_exists('gnfe_save_nfe') ) {
     }
 }
 if ( !function_exists('gnfe_update_nfe') ) {
-    function gnfe_update_nfe($nfe,$user_id,$invoice_id,$pdf,$created_at,$updated_at) {
+    function gnfe_update_nfe($nfe,$user_id,$invoice_id,$pdf,$created_at,$updated_at,$id_gofasnfeio) {
         $data = [
             'invoice_id' => $invoice_id,
             'user_id' => $user_id,
@@ -452,8 +450,11 @@ if ( !function_exists('gnfe_update_nfe') ) {
             'rpsSerialNumber' => $nfe->rpsSerialNumber,
             'rpsNumber' => $nfe->rpsNumber,
         ];
+        logModuleCall('gofas_nfeio', '$data',$data , '',  '', 'replaceVars');
         try {
-            $save_nfe = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->update($data);
+            $save_nfe = Capsule::table('gofasnfeio')->where('id', '=', $id_gofasnfeio)->update($data);
+            logModuleCall('gofas_nfeio', 'save_nfe',$save_nfe , '',  '', 'replaceVars');
+
             return 'success';
         } catch (\Exception $e) {
             return $e->getMessage();
