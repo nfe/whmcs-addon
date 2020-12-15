@@ -36,7 +36,7 @@ if ($post) {
         logModuleCall('gofas_nfeio', 'receive_callback', ['post' => $post], 'post',  ['nfe_local' => $nfe], 'replaceVars');
     }
 
-    foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['id', 'invoice_id']) as $waiting ) {
+    foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['id', 'invoice_id', 'service_code', 'services_amount']) as $waiting ) {
         //$invoices[]				= $Waiting->invoice_id;
         $data = getTodaysDate(false);
         $dataAtual = toMySQLDate($data);
@@ -74,15 +74,21 @@ if ($post) {
                 $rps_number = 0;
             }
 
-            $namePF = $client['fullname'];
-            $name = $customer['doc_type'] == 2 ? $client['companyname'] : $namePF;
+            if ($customer['doc_type'] == 2) {
+                $name = $client['companyname'];
+            } elseif ($customer['doc_type'] == 1 || $customer == 'CPF e/ou CNPJ ausente.' || !$customer['doc_type']) {
+                $name = $client['fullname'];
+            }
+
             $name = htmlspecialchars_decode($name);
+
+            $service_code = $waiting->service_code ? $waiting->service_code : $params['service_code'];
 
             if (!strlen($customer['insc_municipal']) == 0) {
                 $postfields = [
-                    'cityServiceCode' => $params['service_code'],
+                    'cityServiceCode' => $service_code,
                     'description' => substr(implode("\n", $line_items), 0, 600),
-                    'servicesAmount' => $invoice['total'],
+                    'servicesAmount' => $waiting->services_amount,
                     'borrower' => [
                         'federalTaxNumber' => $customer['document'],
                         'municipalTaxNumber' => $customer['insc_municipal'],
@@ -107,9 +113,9 @@ if ($post) {
                 ];
             } else {
                 $postfields = [
-                    'cityServiceCode' => $params['service_code'],
+                    'cityServiceCode' => $service_code,
                     'description' => substr(implode("\n", $line_items), 0, 600),
-                    'servicesAmount' => $invoice['total'],
+                    'servicesAmount' => $waiting->services_amount,
                     'borrower' => [
                         'federalTaxNumber' => $customer['document'],
                         'name' => $name,
