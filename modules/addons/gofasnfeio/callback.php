@@ -3,6 +3,8 @@ require_once __DIR__ . '/../../../init.php';
 use WHMCS\Database\Capsule;
 $post = json_decode(file_get_contents('php://input'), true);
 if ($post) {
+    logModuleCall('gofas_nfeio', 'post resp',$post , '',  '', 'replaceVars');
+
     require_once __DIR__ . '/functions.php';
     $params = [];
     foreach ( Capsule::table('tbladdonmodules')->where( 'module', '=', 'gofasnfeio' )->get( ['setting', 'value'] ) as $settings ) {

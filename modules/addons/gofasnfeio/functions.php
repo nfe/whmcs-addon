@@ -168,8 +168,29 @@ if ( !function_exists('gnfe_queue_nfe') ) {
     function gnfe_queue_nfe($invoice_id,$create_all = false) {
         $invoice = localAPI('GetInvoice',  ['invoiceid' => $invoice_id], false);
         $itens = get_prodict_invoice($invoice_id);
-        logModuleCall('gofas_nfeio', 'gnfe_queue_nfe itens',$itens, '',  '', 'replaceVars');
-
+        if (!$itens) {
+            foreach (Capsule::table('tblinvoiceitems')->where( 'invoiceid', '=', $invoice_id )->get( ['userid', 'amount']) as $item_not_salle) {
+                $data = [
+                    'invoice_id' => $invoice_id,
+                    'user_id' => $item_not_salle->userid,
+                    'nfe_id' => 'waiting',
+                    'status' => 'Waiting',
+                    'services_amount' => $item_not_salle->amount,
+                    'environment' => 'waiting',
+                    'flow_status' => 'waiting',
+                    'pdf' => 'waiting',
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => 'waiting',
+                    'rpsSerialNumber' => 'waiting',
+                ];
+                try {
+                    $save_nfe = Capsule::table('gofasnfeio')->insert($data);
+                } catch (\Exception $e) {
+                    return $e->getMessage();
+                }
+            }
+            return 'success';
+        }
         foreach ($itens as $item) {
             $data = [
                 'invoice_id' => $invoice_id,
@@ -188,11 +209,18 @@ if ( !function_exists('gnfe_queue_nfe') ) {
 
             $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
             if (!$nfe_for_invoice['status'] || $create_all) {
+                $create_all = true;
                 try {
-                    $save_nfe = Capsule::table('gofasnfeio')->insert($data);
-                    $create_all = true;
-                    logModuleCall('gofas_nfeio', 'save_nfe var',$save_nfe , '',  '', 'replaceVars');
-                    logModuleCall('gofas_nfeio', 'save_nfe',$data , '',  '', 'replaceVars');
+                    $service_code_row = Capsule::table('gofasnfeio')->where('service_code', '=', $item['value'])->where('invoice_id', '=', $invoice_id)->get(['id', 'services_amount']);
+
+                    if (count($service_code_row) == 1) {
+                        $mountDB = floatval($service_code_row[0]->services_amount);
+                        $mount_item = floatval($item['monthly']);
+                        $mount = $mountDB + $mount_item;
+                        $update_nfe = Capsule::table('gofasnfeio')->where('id', '=', $service_code_row[0]->id)->update(['services_amount' => $mount]);
+                    } else {
+                        $save_nfe = Capsule::table('gofasnfeio')->insert($data);
+                    }
                 } catch (\Exception $e) {
                     return $e->getMessage();
                 }
@@ -212,7 +240,6 @@ if ( !function_exists('gnfe_queue_nfe_edit') ) {
     function gnfe_queue_nfe_edit($invoice_id,$gofasnfeio_id) {
         $invoice = localAPI('GetInvoice',  ['invoiceid' => $invoice_id], false);
         $itens = get_prodict_invoice($invoice_id);
-        logModuleCall('gofas_nfeio', 'gnfe_queue_nfe itens',$itens, '',  '', 'replaceVars');
 
         foreach ($itens as $item) {
             $data = [
@@ -328,6 +355,7 @@ if ( !function_exists('gnfe_issue_nfe') ) {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
         $response = curl_exec ($curl);
         curl_close ($curl);
+        logModuleCall('gofas_nfeio', 'resp',$response , '',  '', 'replaceVars');
         return json_decode(json_encode(json_decode($response)));
     }
 }
@@ -528,10 +556,7 @@ if ( !function_exists('gnfe_update_nfe') ) {
                 $id = $id_gofasnfeio;
                 $camp = 'id';
             }
-
             $save_nfe = Capsule::table('gofasnfeio')->where($camp, '=',$id)->update($data);
-            logModuleCall('gofas_nfeio', 'save_nfe',$save_nfe , '',  '', 'replaceVars');
-
             return 'success';
         } catch (\Exception $e) {
             return $e->getMessage();

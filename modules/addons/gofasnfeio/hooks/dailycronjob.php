@@ -96,6 +96,8 @@ if ( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (
                             'rpsNumber' => (int)$company['companies']['rpsNumber'] + 1,
                         ];
                     }
+                    logModuleCall('gofas_nfeio', 'postfields daily',$postfields , '',  '', 'replaceVars');
+
                     if ($params['debug']) {
                         logModuleCall('gofas_nfeio', 'dailycronjob',$postfields , '',  '', 'replaceVars');
                     }
