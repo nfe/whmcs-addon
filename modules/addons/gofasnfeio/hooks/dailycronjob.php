@@ -103,7 +103,7 @@ if ( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (
                     foreach ( Capsule::table('gofasnfeio')->where( 'status', '=', 'Waiting' )->get( ['invoice_id', 'status'] ) as $Waiting ) {
                         $waiting[] = $Waiting->invoice_id;
                     }
-                    $queue = gnfe_queue_nfe($invoices->id);
+                    $queue = gnfe_queue_nfe_edit($invoices->id,$nfeio->id);
                     if ($queue !== 'success') {
                         $error .= $queue;
                     }

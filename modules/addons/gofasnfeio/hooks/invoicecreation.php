@@ -4,33 +4,31 @@ if (!defined('WHMCS')) {
 }
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
-$itens = get_prodict_invoice($vars['invoiceid']);
 
 if ( stripos($params['issue_note'], 'Gerada') and (string)$vars['status'] !== (string)'Draft' and (!$params['issue_note_after'] or $params['issue_note_after'] === 0 )) {
     $invoice = localAPI('GetInvoice',  ['invoiceid' => $vars['invoiceid']], false);
-    foreach ($itens as $item) {
-        if ( (float)$item['monthly'] > (float)'0.00' and $invoice['status'] !== (string)'Draft' ) {
-            $nfe_for_invoice = gnfe_get_local_nfe($vars['invoiceid'],['invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'pdf', 'created_at']);
-            if ($nfe_for_invoice['status'] !== (string)'Created' or $nfe_for_invoice['status'] !== (string)'Issued') {
-                $client = localAPI('GetClientsDetails',['clientid' => $invoice['userid'], 'stats' => false, ], false);
-                foreach ( $invoice['items']['item'] as $value) {
-                    $line_items[] = $value['description'];//substr( $value['description'],  0, 100);
+    if ( (float)$invoice['total'] > (float)'0.00' and $invoice['status'] !== (string)'Draft' ) {
+        $nfe_for_invoice = gnfe_get_local_nfe($vars['invoiceid'],['invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'pdf', 'created_at']);
+        if ($nfe_for_invoice['status'] !== (string)'Created' or $nfe_for_invoice['status'] !== (string)'Issued') {
+            $client = localAPI('GetClientsDetails',['clientid' => $invoice['userid'], 'stats' => false, ], false);
+            foreach ( $invoice['items']['item'] as $value) {
+                $line_items[] = $value['description'];//substr( $value['description'],  0, 100);
+            }
+
+            /*if($params['email_nfe']) {
+            	$client_email = $client['email'];
+            }
+            elseif(!$params['email_nfe']) {
+            	$client_email = $client['email'];
+            }*/
+            $queue = gnfe_queue_nfe($vars['invoiceid'],true);
+            if ($queue !== 'success') {
+                if ($vars['source'] === 'adminarea') {
+                    header('Location: ' . gnfe_whmcs_admin_url() . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_error=Erro ao criar nota fiscal: ' . $queue);
+                    exit;
                 }
-                /*if($params['email_nfe']) {
-                	$client_email = $client['email'];
-                }
-                elseif(!$params['email_nfe']) {
-                	$client_email = $client['email'];
-                }*/
-                $queue = gnfe_queue_nfe($vars['invoiceid'],$item,true);
-                if ($queue !== 'success') {
-                    if ($vars['source'] === 'adminarea') {
-                        header('Location: ' . gnfe_whmcs_admin_url() . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_error=Erro ao criar nota fiscal: ' . $queue);
-                        exit;
-                    }
-                }
-                if ($queue === 'success') {
-                }
+            }
+            if ($queue === 'success') {
             }
         }
     }

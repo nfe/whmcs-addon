@@ -165,46 +165,115 @@ if ( !function_exists('gnfe_ibge') ) {
     }
 }
 if ( !function_exists('gnfe_queue_nfe') ) {
-    function gnfe_queue_nfe($invoice_id,$item,$create_all = false) {
+    function gnfe_queue_nfe($invoice_id,$create_all = false) {
         $invoice = localAPI('GetInvoice',  ['invoiceid' => $invoice_id], false);
+        $itens = get_prodict_invoice($invoice_id);
+        logModuleCall('gofas_nfeio', 'gnfe_queue_nfe itens',$itens, '',  '', 'replaceVars');
+
+        foreach ($itens as $item) {
+            $data = [
+                'invoice_id' => $invoice_id,
+                'user_id' => $invoice['userid'],
+                'nfe_id' => 'waiting',
+                'status' => 'Waiting',
+                'services_amount' => $item['monthly'],
+                'environment' => 'waiting',
+                'flow_status' => 'waiting',
+                'pdf' => 'waiting',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => 'waiting',
+                'rpsSerialNumber' => 'waiting',
+                'service_code' => $item['value'],
+            ];
+
+            $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
+            if (!$nfe_for_invoice['status'] || $create_all) {
+                try {
+                    $save_nfe = Capsule::table('gofasnfeio')->insert($data);
+                    $create_all = true;
+                    logModuleCall('gofas_nfeio', 'save_nfe var',$save_nfe , '',  '', 'replaceVars');
+                    logModuleCall('gofas_nfeio', 'save_nfe',$data , '',  '', 'replaceVars');
+                } catch (\Exception $e) {
+                    return $e->getMessage();
+                }
+            } elseif ((string)$nfe_for_invoice['status'] === (string)'Cancelled' or (string)$nfe_for_invoice['status'] === (string)'Error') {
+                try {
+                    $update_nfe = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->update($data);
+                } catch (\Exception $e) {
+                    return $e->getMessage();
+                }
+            }
+        }
+        return 'success';
+    }
+}
+
+if ( !function_exists('gnfe_queue_nfe_edit') ) {
+    function gnfe_queue_nfe_edit($invoice_id,$gofasnfeio_id) {
+        $invoice = localAPI('GetInvoice',  ['invoiceid' => $invoice_id], false);
+        $itens = get_prodict_invoice($invoice_id);
+        logModuleCall('gofas_nfeio', 'gnfe_queue_nfe itens',$itens, '',  '', 'replaceVars');
+
+        foreach ($itens as $item) {
+            $data = [
+                'invoice_id' => $invoice_id,
+                'user_id' => $invoice['userid'],
+                'nfe_id' => 'waiting',
+                'status' => 'Waiting',
+                'services_amount' => $item['monthly'],
+                'environment' => 'waiting',
+                'flow_status' => 'waiting',
+                'pdf' => 'waiting',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => 'waiting',
+                'rpsSerialNumber' => 'waiting',
+                'service_code' => $item['value'],
+            ];
+
+            $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
+
+            if ((string)$nfe_for_invoice['status'] === (string)'Cancelled' or (string)$nfe_for_invoice['status'] === (string)'Error') {
+                try {
+                    $update_nfe = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->where('id', '=', $gofasnfeio_id)->update($data);
+                } catch (\Exception $e) {
+                    return $e->getMessage();
+                }
+            }
+        }
+        return 'success';
+    }
+}
+
+if ( !function_exists('gnfe_queue_nfe_edit_all') ) {
+    function gnfe_queue_nfe_edit_all($invoice_id) {
+        $invoice = localAPI('GetInvoice',  ['invoiceid' => $invoice_id], false);
+
         $data = [
             'invoice_id' => $invoice_id,
             'user_id' => $invoice['userid'],
             'nfe_id' => 'waiting',
             'status' => 'Waiting',
-            'services_amount' => $item['monthly'],
             'environment' => 'waiting',
             'flow_status' => 'waiting',
             'pdf' => 'waiting',
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => 'waiting',
             'rpsSerialNumber' => 'waiting',
-            'service_code' => $item['value'],
         ];
 
         $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
-        logModuleCall('gofas_nfeio', 'nfe_for_invoice',$nfe_for_invoice , '',  '', 'replaceVars');
 
-        if (!$nfe_for_invoice['status'] || $create_all) {
+        if ((string)$nfe_for_invoice['status'] === (string)'Cancelled' or (string)$nfe_for_invoice['status'] === (string)'Error') {
             try {
-                $save_nfe = Capsule::table('gofasnfeio')->insert($data);
-
-                return 'success';
-            } catch (\Exception $e) {
-                return $e->getMessage();
-            }
-        } elseif ((string)$nfe_for_invoice['status'] === (string)'Cancelled' or (string)$nfe_for_invoice['status'] === (string)'Error') {
-            try {
-                logModuleCall('gofas_nfeio', 'data gnfe_queue_nfe update',$data , '',  '', 'replaceVars');
-
                 $update_nfe = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->update($data);
-                return 'success';
             } catch (\Exception $e) {
                 return $e->getMessage();
             }
         }
+        return 'success';
     }
 }
+
 if ( !function_exists('gnfe_issue_nfe') ) {
     function gnfe_issue_nfe($postfields) {
         $webhook_url = gnfe_whmcs_url() . 'modules/addons/gofasnfeio/callback.php';
