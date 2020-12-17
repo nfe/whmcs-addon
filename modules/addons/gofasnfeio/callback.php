@@ -86,10 +86,14 @@ if ($post) {
 
             $service_code = $waiting->service_code ? $waiting->service_code : $params['service_code'];
 
+            foreach ( Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get( ['value'] ) as $gnfewhmcsadminurl) {
+                $gnfewhmcsadminurl = $gnfewhmcsadminurl->value;
+            }
+            $desc = 'Nota referednte a fatura #' . $waiting->invoice_id . '  ' . $gnfewhmcsadminurl . 'viewinvoice.php?id=' . $waiting->invoice_id;
             if (!strlen($customer['insc_municipal']) == 0) {
                 $postfields = [
                     'cityServiceCode' => $service_code,
-                    'description' => substr(implode("\n", $line_items), 0, 600),
+                    'description' => $desc,
                     'servicesAmount' => $waiting->services_amount,
                     'borrower' => [
                         'federalTaxNumber' => $customer['document'],
@@ -116,7 +120,7 @@ if ($post) {
             } else {
                 $postfields = [
                     'cityServiceCode' => $service_code,
-                    'description' => substr(implode("\n", $line_items), 0, 600),
+                    'description' => $desc,
                     'servicesAmount' => $waiting->services_amount,
                     'borrower' => [
                         'federalTaxNumber' => $customer['document'],

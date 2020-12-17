@@ -31,29 +31,42 @@ if ($_REQUEST['gnfe_create']) {
         }
     }
 }
+
+if ($_REQUEST['gnfe_open']) {
+    logModuleCall('gofas_nfeio', '_REQUEST gnfe_open',$_REQUEST['gnfe_open'] , '',  '', 'replaceVars');
+    foreach (Capsule::table('gofasnfeio')->where( 'invoice_id', '=',$_REQUEST['gnfe_open'] )->get( ['id', 'nfe_id']) as $nfe) {
+        $url = 'https://app.nfe.io/companies/' . $params['company_id'] . '/service-invoices/' . $nfe->nfe_id;
+        echo "<script type='text/javascript' language='Javascript'>window.open('" . $url . "');</script>";
+    }
+}
+
 if ($_REQUEST['gnfe_cancel']) {
-    $delete_nfe = gnfe_delete_nfe($_REQUEST['gnfe_cancel']);
+    foreach (Capsule::table('gofasnfeio')->where( 'invoice_id', '=',$_REQUEST['id'] )->get( ['id', 'nfe_id']) as $nfe) {
+        $delete_nfe = gnfe_delete_nfe($nfe->nfe_id);
+        if ($delete_nfe->message) {
+            $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">' . $delete_nfe->message . '</div>';
+            header_remove();
+            header('Location: ' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_message=' . base64_encode(urlencode($message)));
+            return '';
+        }
+    }
     if (!$delete_nfe->message) {
         $gnfe_update_nfe = gnfe_update_nfe((object)['id' => $nfe_for_invoice['nfe_id'], 'status' => 'Cancelled', 'servicesAmount' => $nfe_for_invoice['services_amount'], 'environment' => $nfe_for_invoice['environment'], 'flow_status' => $nfe_for_invoice['flow_status']],$nfe_for_invoice['user_id'],$vars['invoiceid'],'n/a',$nfe_for_invoice['created_at'],date('Y-m-d H:i:s') );
         $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #5cb85c;color: #ffffff;padding: 5px;text-align: center;">Nota Fiscal Cancelada com Sucesso</div>';
         header_remove();
         header('Location: ' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_message=' . base64_encode(urlencode($message)) );
-        exit;
-    }
-    if ($delete_nfe->message) {
-        $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">' . $delete_nfe->message . '</div>';
-        header_remove();
-        header('Location: ' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_message=' . base64_encode(urlencode($message)));
-        exit;
+        return '';
     }
 }
 if ($_REQUEST['gnfe_email']) {
-    $gnfe_email = gnfe_email_nfe($_REQUEST['gnfe_email']);
-    if (!$gnfe_email->message) {
-        $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #5cb85c;color: #ffffff;padding: 5px;text-align: center;">Email Enviado com Sucesso</div>';
-        header_remove();
-        header('Location: ' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_message=' . base64_encode(urlencode($message)));
-        exit;
+    foreach (Capsule::table('gofasnfeio')->where( 'invoice_id', '=',$_REQUEST['id'] )->get( ['id', 'nfe_id']) as $nfe) {
+        $gnfe_email = gnfe_email_nfe($_REQUEST['gnfe_email']);
+        if (!$gnfe_email->message) {
+            $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #5cb85c;color: #ffffff;padding: 5px;text-align: center;">Email Enviado com Sucesso</div>';
+            header_remove();
+            header('Location: ' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_message=' . base64_encode(urlencode($message)));
+            exit;
+        }
     }
     if ($gnfe_email->message) {
         $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">' . $gnfe_email->message . '</div>';
@@ -97,9 +110,9 @@ if ((string)$invoice['status'] === (string)'Draft' ) {
 echo '<div style="text-align: left; padding: 8px 0px; max-width: 445px; border-top: 1px solid #ccc; margin: 8px 0px;">';
 echo '<div style="margin: 0px 0px 5px 0px;"><strong>Nota Fiscal:</strong>' . $invoice_nfe . '</div>';
 echo '<a ' . $disabled['a'] . ' style="margin-right: 4px;" href="' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_create=yes" class="btn btn-primary" id="gnfe_generate" title="Emitir Nota Fiscal">Emitir NFE</a>';
-echo '<a ' . $disabled['b'] . ' style="margin-right: 4px;"target="_blank" href="https://app.nfe.io/companies/' . $params['company_id'] . '/service-invoices/' . $nfe_for_invoice['nfe_id'] . '" class="btn btn-success" id="gnfe_view" title="Ver Nota Fiscal">Visualizar NFE</a>';
+echo '<a ' . $disabled['b'] . ' style="margin-right: 4px;" href="' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_open=' . $vars['invoiceid'] . '" class="btn btn-success" id="gnfe_view" title="Ver Nota Fiscal">Visualizar NFE</a>';
 echo '<a ' . $disabled['c'] . ' style="margin-right: 4px;" href="' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_cancel=' . $nfe_for_invoice['nfe_id'] . '" class="btn btn-danger" id="gnfe_cancel" title="Cancelar Nota Fiscal">Cancelar NFE</a>';
-echo '<a ' . $disabled['d'] . ' href="' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_email=' . $nfe_for_invoice['nfe_id'] . '" class="btn btn-primary" id="gnfe_cancel" title="Enviar Nota Fiscal por Email">Enviar Email</a>';
+echo '<a ' . $disabled['d'] . ' href="' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_email=' . $nfe_for_invoice['nfe_id'] . '" class="btn btn-primary" id="gnfe_email" title="Enviar Nota Fiscal por Email">Enviar Email</a>';
 echo '<div>';
 
 if ($_REQUEST['gnfe_error']) {

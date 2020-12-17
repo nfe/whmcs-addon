@@ -184,7 +184,15 @@ if ( !function_exists('gnfe_queue_nfe') ) {
                     'rpsSerialNumber' => 'waiting',
                 ];
                 try {
-                    $save_nfe = Capsule::table('gofasnfeio')->insert($data);
+                    $service_code_row = Capsule::table('gofasnfeio')->whereNull('service_code')->where('invoice_id', '=', $invoice_id)->get(['id', 'services_amount']);
+                    if (count($service_code_row) == 1) {
+                        $mountDB = floatval($service_code_row[0]->services_amount);
+                        $mount_item = floatval($item_not_salle->monthly);
+                        $mount = $mountDB + $mount_item;
+                        $update_nfe = Capsule::table('gofasnfeio')->where('id', '=', $service_code_row[0]->id)->update(['services_amount' => $mount]);
+                    } else {
+                        $save_nfe = Capsule::table('gofasnfeio')->insert($data);
+                    }
                 } catch (\Exception $e) {
                     return $e->getMessage();
                 }
