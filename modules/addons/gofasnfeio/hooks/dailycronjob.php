@@ -45,7 +45,7 @@ if ( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (
                     foreach ( Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get( ['value'] ) as $gnfewhmcsadminurl) {
                         $gnfewhmcsadminurl = $gnfewhmcsadminurl->value;
                     }
-                    $desc = 'Nota referednte a fatura #' . $nfeio->invoice_id . '  ' . $gnfewhmcsadminurl . 'viewinvoice.php?id=' . $waiting->invoice_id;
+                    $desc = 'Nota referednte a fatura #' . $nfeio->invoice_id . '  ' . $gnfewhmcsadminurl . 'viewinvoice.php?id=' . $waiting->invoice_id . '     ';
                     if (!strlen($customer['insc_municipal']) == 0) {
                         $postfields = [
                             'cityServiceCode' => $service_code,
@@ -100,7 +100,6 @@ if ( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (
                             'rpsNumber' => (int)$company['companies']['rpsNumber'] + 1,
                         ];
                     }
-                    logModuleCall('gofas_nfeio', 'postfields daily',$postfields , '',  '', 'replaceVars');
 
                     if ($params['debug']) {
                         logModuleCall('gofas_nfeio', 'dailycronjob',$postfields , '',  '', 'replaceVars');
