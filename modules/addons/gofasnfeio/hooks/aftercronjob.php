@@ -6,7 +6,7 @@ if (!defined('WHMCS')) {
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
 
-foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['id', 'invoice_id', 'service_code', 'services_amount']) as $waiting ) {
+foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get( ['id', 'invoice_id', 'services_amount']) as $waiting ) {
     $data = getTodaysDate(false);
     $dataAtual = toMySQLDate($data);
 
@@ -53,7 +53,7 @@ foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '
         foreach ( Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get( ['value'] ) as $gnfewhmcsadminurl) {
             $gnfewhmcsadminurl = $gnfewhmcsadminurl->value;
         }
-        $desc = 'Nota referednte a fatura #' . $waiting->invoice_id . '  ' . $gnfewhmcsadminurl . 'viewinvoice.php?id=' . $waiting->invoice_id . '     ';
+        $desc = 'Nota referente a fatura #' . $waiting->invoice_id . '  ' . $gnfewhmcsadminurl . 'viewinvoice.php?id=' . $waiting->invoice_id . '     ';
         if (!strlen($customer['insc_municipal']) == 0) {
             $postfields = [
                 'cityServiceCode' => $service_code,

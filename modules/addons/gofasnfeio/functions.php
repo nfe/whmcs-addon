@@ -168,8 +168,12 @@ if ( !function_exists('gnfe_queue_nfe') ) {
     function gnfe_queue_nfe($invoice_id,$create_all = false) {
         $invoice = localAPI('GetInvoice',  ['invoiceid' => $invoice_id], false);
         $itens = get_prodict_invoice($invoice_id);
+        logModuleCall('gofas_nfeio', 'gnfe_queue_nfe itens',$itens , '',  '', 'replaceVars');
+
         if (!$itens) {
             foreach (Capsule::table('tblinvoiceitems')->where( 'invoiceid', '=', $invoice_id )->get( ['userid', 'amount']) as $item_not_salle) {
+                logModuleCall('gofas_nfeio', 'gnfe_queue_nfe item_not_salle',$item_not_salle , '',  '', 'replaceVars');
+
                 $data = [
                     'invoice_id' => $invoice_id,
                     'user_id' => $item_not_salle->userid,
@@ -762,16 +766,12 @@ function get_prodict_invoice($invoice_id) {
         $pdo->beginTransaction();
         try {
             $list2 = [];
-            $stmt = $pdo->prepare("SELECT val.value FROM tblcustomfields
-            INNER JOIN tblcustomfieldsvalues val ON val.fieldid = tblcustomfields.id
-            WHERE tblcustomfields.fieldname='Código de Serviço' AND tblcustomfields.type = 'product'
-            AND val.relid = :PROD");
+            $stmt = $pdo->prepare('SELECT * FROM tblproductcode WHERE product_id=:PROD');
             $stmt->execute([':PROD' => $item[0]]);
             $row = $stmt->fetchAll();
             $pdo->commit();
-            logModuleCall('gofas_nfeio', 'row itens',$row , '',  '', 'replaceVars');
             $list2['item'] = $item['packageid'];
-            $list2['value'] = $row[0]['value'];
+            $list2['value'] = $row[0]['code_service'];
             $list2['monthly'] = $item['monthly'];
             $list[] = $list2;
         } catch (\Throwable $th) {

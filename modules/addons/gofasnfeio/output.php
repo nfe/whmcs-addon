@@ -13,12 +13,17 @@ if ( !function_exists('gofasnfeio_output') ) {
             $num = Capsule::table('tblproductcode')->where('product_id','=',$_POST['product'])->count();
             if ($num > 0) {
                 $res = Capsule::table('tblproductcode')->where('product_id','=',$_POST['product'])->update(['code_service' => $_POST['code'], 'update_at' => date('Y-m-d H:i:s')]);
+                if ($_POST['code'] == 0) {
+                    $res = Capsule::table('tblproductcode')->where('product_id','=',$_POST['product'])->delete();
+                }
             } else {
-                $res = Capsule::table('tblproductcode')->insert(['code_service' => $_POST['code'], 'product_id' => $_POST['product'], 'create_at' => date('Y-m-d H:i:s'), 'ID_user' => $user['adminid']]);
+                if ($_POST['code'] != 0) {
+                    $res = Capsule::table('tblproductcode')->insert(['code_service' => $_POST['code'], 'product_id' => $_POST['product'], 'create_at' => date('Y-m-d H:i:s'), 'ID_user' => $user['adminid']]);
+                }
             }
         }
 
-        if ($_GET['Prod_code'] === 'yes') {
+        if ($_GET['action'] === 'code_product') {
             $html_table = '';
 
             foreach ( Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsadminurl')->get( ['value'] ) as $gnfewhmcsadminurl_ ) {
@@ -106,10 +111,11 @@ if ( !function_exists('gofasnfeio_output') ) {
             whereBetween('tblproducts.id', [end($nfess), reset($nfess)])->
             take($take)->
             get( ['tblproducts.id', 'tblproducts.name', 'tblproducts.created_at', 'tblproductcode.update_at', 'tblproductcode.code_service'] ) as $product) {
-                $update_at = $product->updated_at ? date('d/m/Y', strtotime($product->updated_at)) : '';
+                $created_at = $product->created_at ? date('d/m/Y', strtotime($product->created_at)) : '';
+                $update_at = $product->update_at ? date('d/m/Y', strtotime($product->update_at)) : '';
                 //depois linkar o id e o nome com a pagina do produto
                 $html_table .= '<tr><td><a href="' . $gnfewhmcsadminurl . 'configproducts.php?action=edit&id=' . $product->id . '" target="blank">#' . $product->id . '</a></td>
-                <td>' . date('d/m/Y', strtotime($product->created_at)) . '</td>
+                <td>' . $created_at . '</td>
                 <td>' . $update_at . '</td>
                 <td><a href="' . $gnfewhmcsadminurl . 'configproducts.php?action=edit&id=' . $product->id . '" target="blank">' . $product->name . '</a></td>
                 <form action="" method="post">
@@ -121,15 +127,15 @@ if ( !function_exists('gofasnfeio_output') ) {
             }
 
             echo '
-            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&Prod_code=not" class="btn btn-primary" id="gnfe_cancel" title="NFE.oi">NFE.oi</a>
-		<div><h3>Listagem de notas fiscais</h3>' . $nfes_total . ' Itens encontrados.<br>Exibindo de ' . $nfes_from . ' a ' . $nfes_to . '. Página ' . $nfes_page . ' de ' . $nfes_pages . '</div>
+            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=nfeio" class="btn btn-primary" id="gnfe_cancel" title="NFE.oi">NFE.oi</a>
+		<div><h3>Listagem produtos</h3>' . $nfes_total . ' Itens encontrados.<br>Exibindo de ' . $nfes_from . ' a ' . $nfes_to . '. Página ' . $nfes_page . ' de ' . $nfes_pages . '</div>
 		<div class="tab-content admin-tabs">
 					<table id="sortabletbl0" class="datatable" width="100%" border="0" cellspacing="1" cellpadding="3">
 						<tbody>
 							<tr>
 								<th>ID</th>
 								<th>Data de Criação do Produto</th>
-								<th>Data de Modificação do codigo</th>
+								<th>Data de Alteração</th>
 								<th>Nome do Produto</th>
 								<th>Codigo de Serviço</th>
 								<th>Salvar</th>
@@ -269,7 +275,7 @@ if ( !function_exists('gofasnfeio_output') ) {
         }
         if ((int)$nfes_total > 0) {
             echo '
-            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&Prod_code=yes" class="btn btn-primary" id="gnfe_cancel" title="Codigo dos Produtos">Codigo dos Produtos</a>
+            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=code_product" class="btn btn-primary" id="gnfe_cancel" title="Codigo dos Produtos">Codigo dos Produtos</a>
 		<div><h3>Listagem de notas fiscais</h3>' . $nfes_total . ' Itens encontrados.<br>Exibindo de ' . $nfes_from . ' a ' . $nfes_to . '. Página ' . $nfes_page . ' de ' . $nfes_pages . '</div>
 		<div class="tab-content admin-tabs">
 					<table id="sortabletbl0" class="datatable" width="100%" border="0" cellspacing="1" cellpadding="3">

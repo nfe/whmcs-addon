@@ -89,7 +89,7 @@ if ($post) {
             foreach ( Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get( ['value'] ) as $gnfewhmcsadminurl) {
                 $gnfewhmcsadminurl = $gnfewhmcsadminurl->value;
             }
-            $desc = 'Nota referednte a fatura #' . $waiting->invoice_id . '  ' . $gnfewhmcsadminurl . 'viewinvoice.php?id=' . $waiting->invoice_id . '     ';
+            $desc = 'Nota referente a fatura #' . $waiting->invoice_id . '  ' . $gnfewhmcsadminurl . 'viewinvoice.php?id=' . $waiting->invoice_id . '     ';
             if (!strlen($customer['insc_municipal']) == 0) {
                 $postfields = [
                     'cityServiceCode' => $service_code,
