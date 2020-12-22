@@ -713,13 +713,6 @@ if ( !function_exists('set_custom_field_ini_date') ) {
     }
 }
 
-    function set_camp_custom_code() {
-        $num = Capsule::table('tblcustomfields')->where('fieldname', '=', 'Código de Serviço')->where('type', '=', 'product')->count();
-        if ($num == 0) {
-            Capsule::table('tblcustomfields')->insert(['type' => 'product', 'relid' => '0', 'fieldname' => 'Código de Serviço', 'fieldtype' => 'text', 'adminonly' => 'on', 'showorder' => 'on', 'showinvoice' => 'on']);
-        }
-    }
-
 if ( !function_exists('gnfe_get_company') ) {
     function gnfe_get_company() {
         $curl = curl_init();
@@ -803,3 +796,23 @@ if ( !function_exists('set_code_service_camp_gofasnfeio') ) {
         }
     }
 }
+create_table_product_code();
+    function create_table_product_code() {
+        $pdo = Capsule::connection()->getPdo();
+        $pdo->beginTransaction();
+
+        try {
+            $statement = $pdo->prepare('CREATE TABLE tblproductcode (
+                    id int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    product_id int(10) NOT NULL,
+                    code_service int(10) NOT NULL,
+                    create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    update_at TIMESTAMP NULL,
+                    ID_user int(10) NOT NULL)');
+            $statement->execute();
+            $pdo->commit();
+        } catch (\Exception $e) {
+            $pdo->rollBack();
+            logModuleCall('gofas_nfeio', 'dailycronjob',$e , '',  '', 'replaceVars');
+        }
+    }

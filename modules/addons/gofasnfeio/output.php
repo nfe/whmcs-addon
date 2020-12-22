@@ -7,6 +7,149 @@ if ( !function_exists('gofasnfeio_output') ) {
         foreach ( Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsadminurl')->get( ['value'] ) as $gnfewhmcsadminurl_ ) {
             $gnfewhmcsadminurl = $gnfewhmcsadminurl_->value;
         }
+
+        if ($_POST['product']) {
+            $user = localAPI('GetAdminDetails',[]);
+            $num = Capsule::table('tblproductcode')->where('product_id','=',$_POST['product'])->count();
+            if ($num > 0) {
+                $res = Capsule::table('tblproductcode')->where('product_id','=',$_POST['product'])->update(['code_service' => $_POST['code'], 'update_at' => date('Y-m-d H:i:s')]);
+            } else {
+                $res = Capsule::table('tblproductcode')->insert(['code_service' => $_POST['code'], 'product_id' => $_POST['product'], 'create_at' => date('Y-m-d H:i:s'), 'ID_user' => $user['adminid']]);
+            }
+        }
+
+        if ($_GET['Prod_code'] === 'yes') {
+            $html_table = '';
+
+            foreach ( Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsadminurl')->get( ['value'] ) as $gnfewhmcsadminurl_ ) {
+                $gnfewhmcsadminurl = $gnfewhmcsadminurl_->value;
+            }
+            $nfes = [];
+            foreach ( Capsule::table('tblproducts')->orderBy('id', 'desc')->get( ['id'] ) as $nfes_ ) {
+                $nfes[] = $nfes_->id;
+            }
+            if ($_REQUEST['page']) {
+                $nfes_page = (int)$_REQUEST['page'];
+            } else {
+                $nfes_page = 1;
+            }
+            if ($_REQUEST['take']) {
+                $take = (int)$_REQUEST['take'];
+            } else {
+                $take = 10;
+            }
+
+            $nfs_keys = array_keys($nfes);
+            $nfes_total = count($nfes);
+            if ($take > $nfes_total) {
+                $take = $nfes_total;
+            }
+
+            $nfes_pages = ceil($nfes_total / $take);
+            $nfes_from_ = ( $nfes_page * $take ) - $take;
+            $nfes_from = $nfs_keys[$nfes_from_ + 1];
+            $nfes_to_ = ( $nfes_from + $take ) - 2;
+            $nfes_to = $nfs_keys[$nfes_to_ + 1];
+            $nfess = array_slice($nfes, $nfes_from_, $nfes_to);
+
+            if ((int)$nfes_page === (int)$nfes_pages) {
+                $nfes_to = $nfes_total;
+                $nfess = array_slice($nfes, $nfes_from_, $nfes_to_);
+            }
+            if ((int)$take >= (int)$nfes_total) {
+                $nfes_from = 1;
+                $nfess = array_slice($nfes, $nfes_from_, $nfes_to);
+            }
+            // Pagination
+            $i = 1;
+            while ($i <= $nfes_pages ) {
+                $page_num = $i++;
+
+                if ( (int)$page_num !== (int)$nfes_page ) {
+                    $tag = 'a ';
+                    $a_style = '';
+                    $li_class = 'class="enabled"';
+                    $href = $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&page=' . $page_num;
+                } elseif ( (int)$page_num === (int)$nfes_page ) {
+                    $tag = 'span ';
+                    $a_style = 'style="background: #337ab7; color: #fff"';
+                    $li_class = 'class="disabled"';
+                    $href = '';
+                }
+                $pagination_ .= '<li ' . $li_class . '><' . $tag . ' ' . $a_style . ' href="' . $href . '" ><strong>' . $page_num . '</strong></' . $tag . '></li>';
+            }
+            if ((int)$nfes_page === 1) {
+                $preview_class = ' class="previous disabled" ';
+                $preview_href = '';
+                $preview_tag = 'span ';
+            } else {
+                $preview_class = ' class="previous" ';
+                $preview_href = ' href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&page=' . ($nfes_page - 1) . '" ';
+                $preview_tag = 'a ';
+            }
+            if ((int)$nfes_page === (int)$nfes_pages) {
+                $next_class = ' class="next disabled" ';
+                $next_href = '';
+                $next_tag = 'span ';
+            } else {
+                $next_class = ' class="next" ';
+                $next_href = ' href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&page=' . ($nfes_page + 1) . '" ';
+                $next_tag = 'a ';
+            }
+            $pagination .= '<li ' . $preview_class . '><' . $preview_tag . ' ' . $preview_href . '>« Página anterior</' . $preview_tag . '></li>';
+            $pagination .= $pagination_;
+            $pagination .= '<li ' . $next_class . '><' . $next_tag . ' ' . $next_href . '>Próxima página »</' . $next_tag . '></li>';
+
+            foreach ( Capsule::table('tblproducts')->
+            leftJoin('tblproductcode', 'tblproducts.id', '=', 'tblproductcode.product_id')->
+            orderBy('tblproducts.id', 'desc')->
+            whereBetween('tblproducts.id', [end($nfess), reset($nfess)])->
+            take($take)->
+            get( ['tblproducts.id', 'tblproducts.name', 'tblproducts.created_at', 'tblproductcode.update_at', 'tblproductcode.code_service'] ) as $product) {
+                $update_at = $product->updated_at ? date('d/m/Y', strtotime($product->updated_at)) : '';
+                //depois linkar o id e o nome com a pagina do produto
+                $html_table .= '<tr><td><a href="' . $gnfewhmcsadminurl . 'configproducts.php?action=edit&id=' . $product->id . '" target="blank">#' . $product->id . '</a></td>
+                <td>' . date('d/m/Y', strtotime($product->created_at)) . '</td>
+                <td>' . $update_at . '</td>
+                <td><a href="' . $gnfewhmcsadminurl . 'configproducts.php?action=edit&id=' . $product->id . '" target="blank">' . $product->name . '</a></td>
+                <form action="" method="post">
+                <td><input type="text" name="code" value="' . $product->code_service . '" style="width: 100%;"></td>
+                
+                <input type="hidden" class="product" name="product" value="' . $product->id . '">
+                <td><input type="submit"  style="width: 100%;" value="Salvar"></td>
+                </form>';
+            }
+
+            echo '
+            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&Prod_code=not" class="btn btn-primary" id="gnfe_cancel" title="NFE.oi">NFE.oi</a>
+		<div><h3>Listagem de notas fiscais</h3>' . $nfes_total . ' Itens encontrados.<br>Exibindo de ' . $nfes_from . ' a ' . $nfes_to . '. Página ' . $nfes_page . ' de ' . $nfes_pages . '</div>
+		<div class="tab-content admin-tabs">
+					<table id="sortabletbl0" class="datatable" width="100%" border="0" cellspacing="1" cellpadding="3">
+						<tbody>
+							<tr>
+								<th>ID</th>
+								<th>Data de Criação do Produto</th>
+								<th>Data de Modificação do codigo</th>
+								<th>Nome do Produto</th>
+								<th>Codigo de Serviço</th>
+								<th>Salvar</th>
+							</tr>
+							
+								' . $html_table . '
+							
+						</tbody>
+					</table>
+				</div>
+				
+				<div class="text-center">
+					<ul class="pagination">
+						' . $pagination . '
+					</ul>
+				</div>
+                ';
+            return '';
+        }
+
         $nfes = [];
         foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->get( ['id'] ) as $nfes_ ) {
             $nfes[] = $nfes_->id;
@@ -85,7 +228,7 @@ if ( !function_exists('gofasnfeio_output') ) {
 
         foreach ( Capsule::table('gofasnfeio')->
 			orderBy('id', 'desc')->
-			whereBetween('id', [end($nfess), reset($nfess)])->
+            whereBetween('id', [end($nfess), reset($nfess)])->
 			take($take)->
 			get( ['invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'flow_status', 'pdf', 'created_at', 'updated_at'] ) as $value ) {
             $client = localAPI('GetClientsDetails',['clientid' => $value->user_id, 'stats' => false, ], false);
@@ -126,6 +269,7 @@ if ( !function_exists('gofasnfeio_output') ) {
         }
         if ((int)$nfes_total > 0) {
             echo '
+            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&Prod_code=yes" class="btn btn-primary" id="gnfe_cancel" title="Codigo dos Produtos">Codigo dos Produtos</a>
 		<div><h3>Listagem de notas fiscais</h3>' . $nfes_total . ' Itens encontrados.<br>Exibindo de ' . $nfes_from . ' a ' . $nfes_to . '. Página ' . $nfes_page . ' de ' . $nfes_pages . '</div>
 		<div class="tab-content admin-tabs">
 					<table id="sortabletbl0" class="datatable" width="100%" border="0" cellspacing="1" cellpadding="3">
