@@ -12,7 +12,6 @@ if ( !function_exists('gofasnfeio_output') ) {
             require_once __DIR__ . '/outputproduct.php';
             return '';
         }
-        logModuleCall('gofas_nfeio', 'teste','saiu' , '',  '', 'replaceVars');
 
         $nfes = [];
         foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->get( ['id'] ) as $nfes_ ) {

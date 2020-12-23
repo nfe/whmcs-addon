@@ -2,8 +2,6 @@
 use WHMCS\Database\Capsule;
 
     $html_table = '';
-    logModuleCall('gofas_nfeio', 'teste','saiu' , '',  '', 'replaceVars');
-
     if ($_POST['product']) {
         $user = localAPI('GetAdminDetails',[]);
         try {
@@ -158,3 +156,6 @@ use WHMCS\Database\Capsule;
 					</ul>
 				</div>
                 ';
+                if ($_REQUEST['gnfe_message']) {
+                    echo urldecode(base64_decode( $_REQUEST['gnfe_message'] ));
+                }

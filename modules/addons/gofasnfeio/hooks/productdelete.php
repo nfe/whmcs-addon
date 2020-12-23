@@ -1,3 +1,3 @@
 <?php
-logModuleCall('gofas_nfeio', 'vars prod delete',$vars , '',  '', 'replaceVars');
+use WHMCS\Database\Capsule;
 Capsule::table('tblproductcode')->where('product_id','=',$vars['pid'])->delete();
