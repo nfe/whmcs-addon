@@ -7,7 +7,12 @@ if ( !function_exists('gofasnfeio_output') ) {
         foreach ( Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsadminurl')->get( ['value'] ) as $gnfewhmcsadminurl_ ) {
             $gnfewhmcsadminurl = $gnfewhmcsadminurl_->value;
         }
-        require_once __DIR__ . '/outputproduct.php';
+
+        if ($_GET['action'] === 'code_product') {
+            require_once __DIR__ . '/outputproduct.php';
+            return '';
+        }
+        logModuleCall('gofas_nfeio', 'teste','saiu' , '',  '', 'replaceVars');
 
         $nfes = [];
         foreach ( Capsule::table('gofasnfeio')->orderBy('id', 'desc')->get( ['id'] ) as $nfes_ ) {

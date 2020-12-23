@@ -1,8 +1,8 @@
 <?php
 use WHMCS\Database\Capsule;
 
-if ($_GET['action'] === 'code_product') {
     $html_table = '';
+    logModuleCall('gofas_nfeio', 'teste','saiu' , '',  '', 'replaceVars');
 
     if ($_POST['product']) {
         $user = localAPI('GetAdminDetails',[]);
@@ -158,5 +158,3 @@ if ($_GET['action'] === 'code_product') {
 					</ul>
 				</div>
                 ';
-    return '';
-}
