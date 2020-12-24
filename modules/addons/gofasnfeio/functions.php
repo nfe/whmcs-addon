@@ -796,7 +796,7 @@ if ( !function_exists('set_code_service_camp_gofasnfeio') ) {
         }
     }
 }
-create_table_product_code();
+if ( !function_exists('create_table_product_code') ) {
     function create_table_product_code() {
         $pdo = Capsule::connection()->getPdo();
         $pdo->beginTransaction();
@@ -813,6 +813,6 @@ create_table_product_code();
             $pdo->commit();
         } catch (\Exception $e) {
             $pdo->rollBack();
-            logModuleCall('gofas_nfeio', 'dailycronjob',$e , '',  '', 'replaceVars');
         }
     }
+}
