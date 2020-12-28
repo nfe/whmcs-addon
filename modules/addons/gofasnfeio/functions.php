@@ -816,3 +816,15 @@ if ( !function_exists('create_table_product_code') ) {
         }
     }
 }
+
+function update_table() {
+    $current_version = '1.2.5';
+    $row = Capsule::table('tblconfiguration')->where( 'setting', '=', 'version_nfeio' )->get(['value']);
+    $version = $row[0];
+    if ($version != $current_version) {
+        create_table_product_code();
+        set_code_service_camp_gofasnfeio();
+    } else {
+        Capsule::table('tblconfiguration')->insert(['setting' => 'version_nfeio', 'value' => $current_version, 'created_at' => date('Y-m-d H:i:s')]);
+    }
+}
