@@ -33,7 +33,6 @@ if ($_REQUEST['gnfe_create']) {
 }
 
 if ($_REQUEST['gnfe_open']) {
-    logModuleCall('gofas_nfeio', '_REQUEST gnfe_open',$_REQUEST['gnfe_open'] , '',  '', 'replaceVars');
     foreach (Capsule::table('gofasnfeio')->where( 'invoice_id', '=',$_REQUEST['gnfe_open'] )->get( ['id', 'nfe_id']) as $nfe) {
         $url = 'https://app.nfe.io/companies/' . $params['company_id'] . '/service-invoices/' . $nfe->nfe_id;
         echo "<script type='text/javascript' language='Javascript'>window.open('" . $url . "');</script>";
