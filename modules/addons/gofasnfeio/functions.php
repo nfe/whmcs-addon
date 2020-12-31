@@ -182,7 +182,6 @@ if (!function_exists('gnfe_queue_nfe')) {
     {
         $invoice = localAPI('GetInvoice', ['invoiceid' => $invoice_id], false);
         $itens = get_prodict_invoice($invoice_id);
-        logModuleCall('gofas_nfeio', 'itens teste', $itens, '', '', 'replaceVars');
 
         if (!$itens) {
             foreach (Capsule::table('tblinvoiceitems')->where('invoiceid', '=', $invoice_id)->get(['userid', 'amount']) as $item_not_salle) {
@@ -349,6 +348,7 @@ if (!function_exists('gnfe_issue_nfe')) {
         }
         if ($gnfe_webhook_id) {
             $check_webhook = gnfe_check_webhook($gnfe_webhook_id);
+            $error = '';
             if ($check_webhook['message']) {
                 $error .= $check_webhook['message'];
             }
@@ -383,6 +383,7 @@ if (!function_exists('gnfe_issue_nfe')) {
                 }
             }
         }
+
         if (gnfe_config('debug')) {
             logModuleCall('gofas_nfeio', 'check_webhook', ['gnfe_webhook_id' => $gnfe_webhook_id, 'check_webhook' => $check_webhook, 'check_webhook_url' => $check_webhook['hooks']['url']], 'post', ['create_webhook' => $create_webhook, 'delete_webhook' => $delete_webhook, 'error' => $error], 'replaceVars');
         }
@@ -395,7 +396,6 @@ if (!function_exists('gnfe_issue_nfe')) {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
         curl_close($curl);
-        logModuleCall('gofas_nfeio', 'resp', $response, '', '', 'replaceVars');
 
         return json_decode(json_encode(json_decode($response)));
     }
@@ -610,7 +610,6 @@ if (!function_exists('gnfe_update_nfe')) {
             'rpsSerialNumber' => $nfe->rpsSerialNumber,
             'rpsNumber' => $nfe->rpsNumber,
         ];
-        logModuleCall('gofas_nfeio', '$data', $data, '', '', 'replaceVars');
 
         try {
             if (!$id_gofasnfeio) {
@@ -814,35 +813,32 @@ if (!function_exists('gnfe_customer_service_code')) {
 
 function get_prodict_invoice($invoice_id)
 {
-    $query = "SELECT DISTINCT tblhosting.packageid,tblpricing.monthly from  tblhosting
+    $query = "SELECT DISTINCT tblhosting.packageid,tblpricing.monthly from tblhosting
     INNER JOIN tblinvoiceitems ON tblinvoiceitems.relid = tblhosting.id 
     JOIN tblpricing ON tblpricing.relid = tblhosting.packageid
     LEFT JOIN tblproducts ON tblproducts.id = tblhosting.packageid 
-    WHERE tblpricing.type = 'product'  AND tblinvoiceitems.invoiceid = :id";
+    WHERE tblpricing.type = 'product' AND tblinvoiceitems.invoiceid = :id";
+
     $pdo = Capsule::connection()->getPdo();
     $pdo->beginTransaction();
     $tax_check = gnfe_config('tax');
     $row = null;
     $list = [];
 
-    if ('Sim' != $tax_check) {
-        logModuleCall('gofas_nfeio', 'true get_prodict_invoice', $tax_check, '', '', 'replaceVars');
-
-        $query .= 'AND tblproducts.tax = 1';
+    if ('Não' == $tax_check) {
+        $query .= ' AND tblproducts.tax = 1';
     } else {
-        logModuleCall('gofas_nfeio', 'false get_prodict_invoice', $tax_check, '', '', 'replaceVars');
-
         Capsule::table('tblproducts')->update(['tax' => 1]);
     }
+    // Capsule::table('tblproducts')->update(['tax' => 1]);
 
     try {
         $statement = $pdo->prepare($query);
         $statement->execute([':id' => $invoice_id]);
         $row = $statement->fetchAll();
         $pdo->commit();
-    } catch (\Throwable $th) {
+    } catch (\Exception $th) {
         $pdo->rollBack();
-        logModuleCall('gofas_nfeio', 'erroGetProdictInvoice', $th, '', '', 'replaceVars');
     }
     foreach ($row as $item) {
         $pdo->beginTransaction();
@@ -857,7 +853,7 @@ function get_prodict_invoice($invoice_id)
             $list2['value'] = $row[0]['code_service'];
             $list2['monthly'] = $item['monthly'];
             $list[] = $list2;
-        } catch (\Throwable $th) {
+        } catch (\Exception $th) {
             $pdo->rollBack();
             logModuleCall('gofas_nfeio', 'erroForeach', $th, '', '', 'replaceVars');
         }
@@ -912,6 +908,7 @@ function update_table()
     if ($version != $current_version) {
         create_table_product_code();
         set_code_service_camp_gofasnfeio();
+        set_custom_field_ini_date();
     } else {
         Capsule::table('tblconfiguration')->insert(['setting' => 'version_nfeio', 'value' => $current_version, 'created_at' => date('Y-m-d H:i:s')]);
     }
