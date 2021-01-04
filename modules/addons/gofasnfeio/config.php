@@ -1,11 +1,14 @@
 <?php
+
 if (!defined('WHMCS')) {
-    die();
+    exit();
 }
 use WHMCS\Database\Capsule;
-if ( !function_exists('gofasnfeio_config') ) {
-    if ( !function_exists('gnfe_customfields_dropdow') ) {
-        function gnfe_customfields_dropdow() {
+
+if (!function_exists('gofasnfeio_config')) {
+    if (!function_exists('gnfe_customfields_dropdow')) {
+        function gnfe_customfields_dropdow()
+        {
             $customfields_array = [];
             foreach (Capsule::table('tblcustomfields')->where('type', '=', 'client')->get(['fieldname', 'id']) as $customfield) {
                 $customfields_array[] = $customfield;
@@ -21,15 +24,17 @@ if ( !function_exists('gofasnfeio_config') ) {
             } else {
                 $dropFieldArray = ['0' => 'nothing to show'];
             }
+
             return $dropFieldArray;
         }
     }
-    function gofasnfeio_config() {
+    function gofasnfeio_config()
+    {
         $module_version = '1.2.4';
-        $module_version_int = (int)preg_replace('/[^0-9]/', '', $module_version);
+        $module_version_int = (int) preg_replace('/[^0-9]/', '', $module_version);
 
         /// REMOVER VERIFICAÇÃO APÓS VERSÃO 2.0
-        $verificarEmail = Capsule::table('tbladdonmodules')->where( 'module', '=', 'gofasnfeio' )->where( 'setting', '=', 'gnfe_email_nfe_config' )->count();
+        $verificarEmail = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'gnfe_email_nfe_config')->count();
         if (empty($verificarEmail)) {
             // echo "vazio";
             try {
@@ -39,43 +44,44 @@ if ( !function_exists('gofasnfeio_config') ) {
             }
         }////// FIM VERIFICAÇÃO
 
-        $actual_link = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-        if ( stripos( $actual_link, '/configaddonmods.php') ) {
-            $whmcs_url__ = str_replace('\\','/',(isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . substr(getcwd(),strlen($_SERVER['DOCUMENT_ROOT'])));
-            $admin_url = $whmcs_url__ . '/';
+        $actual_link = (isset($_SERVER['HTTPS']) ? 'https' : 'http')."://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+        if (stripos($actual_link, '/configaddonmods.php')) {
+            $whmcs_url__ = str_replace('\\', '/', (isset($_SERVER['HTTPS']) ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].substr(getcwd(), strlen($_SERVER['DOCUMENT_ROOT'])));
+            $admin_url = $whmcs_url__.'/';
             $vtokens = explode('/', $actual_link);
-            $whmcs_admin_path = '/' . $vtokens[sizeof($vtokens) - 2] . '/';
-            $whmcs_url = str_replace( $whmcs_admin_path, '', $admin_url) . '/';
-            foreach ( Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsurl')->get( ['value', 'created_at'] ) as $gnfewhmcsurl_ ) {
+            $whmcs_admin_path = '/'.$vtokens[sizeof($vtokens) - 2].'/';
+            $whmcs_url = str_replace($whmcs_admin_path, '', $admin_url).'/';
+            foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsurl')->get(['value', 'created_at']) as $gnfewhmcsurl_) {
                 $gnfewhmcsurl = $gnfewhmcsurl_->value;
                 $gnfewhmcsurl_created_at = $gnfewhmcsurl_->created_at;
             }
-            foreach ( Capsule::table('tblconfiguration')->where('setting', '=', 'gnfe_email_nfe')->get( ['value'] ) as $gnfe_email_nfe_ ) {
+            foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'gnfe_email_nfe')->get(['value']) as $gnfe_email_nfe_) {
                 $gnfe_email_nfe = $gnfewhmcsurl_->value;
             }
 
-            foreach ( Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsadminurl')->get( ['value', 'created_at'] ) as $gnfewhmcsadminurl_ ) {
+            foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsadminurl')->get(['value', 'created_at']) as $gnfewhmcsadminurl_) {
                 $gnfewhmcsadminurl = $gnfewhmcsadminurl_->value;
                 $gnfewhmcsadminurl_created_at = $gnfewhmcsurl_->created_at;
             }
-            foreach ( Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsadminpath')->get( ['value', 'created_at'] ) as $gnfewhmcsadminpath_ ) {
+            foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsadminpath')->get(['value', 'created_at']) as $gnfewhmcsadminpath_) {
                 $gnfewhmcsadminpath = $gnfewhmcsadminpath_->value;
                 $gnfewhmcsadminpath_created_at = $gnfewhmcsurl_->created_at;
             }
-            if ( !$gnfe_email_nfe ) {
+            if (!$gnfe_email_nfe) {
                 try {
                     Capsule::table('tblconfiguration')->insert(['setting' => 'gnfe_email_nfe', 'value' => 'Active', 'created_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s')]);
                 } catch (\Exception $e) {
                     $e->getMessage();
                 }
             }
-            if ( !$gnfewhmcsurl ) {
+            if (!$gnfewhmcsurl) {
                 // Set config
                 try {
                     Capsule::table('tblconfiguration')->insert(['setting' => 'gnfewhmcsurl', 'value' => $whmcs_url, 'created_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s')]);
                 } catch (\Exception $e) {
                     $e->getMessage();
                 }
+
                 try {
                     Capsule::table('tblconfiguration')->insert(['setting' => 'gnfewhmcsadminurl', 'value' => $admin_url, 'created_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s')]);
                 } catch (\Exception $e) {
@@ -89,23 +95,23 @@ if ( !function_exists('gofasnfeio_config') ) {
                 }
             }
             // Update Settings
-            if ( $gnfewhmcsurl and ($whmcs_url !== $gnfewhmcsurl) ) {
+            if ($gnfewhmcsurl and ($whmcs_url !== $gnfewhmcsurl)) {
                 try {
-                    Capsule::table('tblconfiguration')->where( 'setting', 'gnfewhmcsurl')->update(['value' => $whmcs_url, 'created_at' => $gnfewhmcsurl_created_at, 'updated_at' => date('Y-m-d H:i:s')]);
+                    Capsule::table('tblconfiguration')->where('setting', 'gnfewhmcsurl')->update(['value' => $whmcs_url, 'created_at' => $gnfewhmcsurl_created_at, 'updated_at' => date('Y-m-d H:i:s')]);
                 } catch (\Exception $e) {
                     $e->getMessage();
                 }
             }
-            if ( $gnfewhmcsadminurl and ($admin_url !== $gnfewhmcsadminurl) ) {
+            if ($gnfewhmcsadminurl and ($admin_url !== $gnfewhmcsadminurl)) {
                 try {
-                    Capsule::table('tblconfiguration')->where( 'setting', 'gnfewhmcsadminurl')->update(['value' => $admin_url, 'created_at' => $gnfewhmcsadminurl_created_at, 'updated_at' => date('Y-m-d H:i:s')]);
+                    Capsule::table('tblconfiguration')->where('setting', 'gnfewhmcsadminurl')->update(['value' => $admin_url, 'created_at' => $gnfewhmcsadminurl_created_at, 'updated_at' => date('Y-m-d H:i:s')]);
                 } catch (\Exception $e) {
                     $e->getMessage();
                 }
             }
-            if ( $gnfewhmcsadminpath and ($whmcs_admin_path !== $gnfewhmcsadminpath) ) {
+            if ($gnfewhmcsadminpath and ($whmcs_admin_path !== $gnfewhmcsadminpath)) {
                 try {
-                    Capsule::table('tblconfiguration')->where( 'setting', 'gnfewhmcsadminpath')->update(['value' => $whmcs_admin_path, 'created_at' => $gnfewhmcsadminpath_created_at, 'updated_at' => date('Y-m-d H:i:s')]);
+                    Capsule::table('tblconfiguration')->where('setting', 'gnfewhmcsadminpath')->update(['value' => $whmcs_admin_path, 'created_at' => $gnfewhmcsadminpath_created_at, 'updated_at' => date('Y-m-d H:i:s')]);
                 } catch (\Exception $e) {
                     $e->getMessage();
                 }
@@ -114,11 +120,12 @@ if ( !function_exists('gofasnfeio_config') ) {
         // Verify available updates
         $available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Nova versão disponível no <a style="color:#CC0000;text-decoration:underline;" href="https://github.com/nfe/whmcs-addon/releases" target="_blank">Github</a></p>';
 
-        if ( !function_exists('gnfe_verifyInstall') ) {
-            function gnfe_verifyInstall() {
-                if ( !Capsule::schema()->hasTable('gofasnfeio') ) {
+        if (!function_exists('gnfe_verifyInstall')) {
+            function gnfe_verifyInstall()
+            {
+                if (!Capsule::schema()->hasTable('gofasnfeio')) {
                     try {
-                        Capsule::schema()->create('gofasnfeio', function($table) {
+                        Capsule::schema()->create('gofasnfeio', function ($table) {
                             // incremented id
                             $table->increments('id');
                             // whmcs info
@@ -142,7 +149,7 @@ if ( !function_exists('gofasnfeio_config') ) {
                 // Added in v 1 dot 1 dot 3
                 if (!Capsule::schema()->hasColumn('gofasnfeio', 'rpsNumber')) {
                     try {
-                        Capsule::schema()->table('gofasnfeio', function($table){$table->string('rpsNumber');});
+                        Capsule::schema()->table('gofasnfeio', function ($table) {$table->string('rpsNumber'); });
                     } catch (\Exception $e) {
                         $error .= "Não foi possível atualizar a tabela do módulo no banco de dados: {$e->getMessage()}";
                     }
@@ -150,7 +157,8 @@ if ( !function_exists('gofasnfeio_config') ) {
 
                 if (!$error) {
                     return ['sucess' => 1];
-                } elseif ($error) {
+                }
+                if ($error) {
                     return ['error' => $error];
                 }
             }
@@ -159,8 +167,8 @@ if ( !function_exists('gofasnfeio_config') ) {
 
         $intro = ['intro' => [
             'FriendlyName' => '',
-            'Description' => '<h4 style="padding-top: 5px;">Módulo Nota Fiscal NFE.io para WHMCS v' . $module_version . '</h4>
-					' . $available_update_message . '',
+            'Description' => '<h4 style="padding-top: 5px;">Módulo Nota Fiscal NFE.io para WHMCS v'.$module_version.'</h4>
+					'.$available_update_message.'',
         ]];
         $api_key = ['api_key' => [
             'FriendlyName' => 'API Key',
@@ -217,13 +225,13 @@ if ( !function_exists('gofasnfeio_config') ) {
             'FriendlyName' => 'Debug',
             'Type' => 'yesno',
             'Default' => 'yes',
-            'Description' => 'Marque essa opção para salvar informações de diagnóstico no <a target="_blank" style="text-decoration:underline;" href="' . $admin_url . 'systemmodulelog.php">Log de Módulo</a>',
+            'Description' => 'Marque essa opção para salvar informações de diagnóstico no <a target="_blank" style="text-decoration:underline;" href="'.$admin_url.'systemmodulelog.php">Log de Módulo</a>',
         ]];
         $insc_municipal = ['insc_municipal' => [
             'FriendlyName' => 'Inscrição Municipal',
             'Type' => 'dropdown',
             'Options' => gnfe_customfields_dropdow(),
-            'Description' => 'Escolha o campo personalizado de Inscrição Municipal']];
+            'Description' => 'Escolha o campo personalizado de Inscrição Municipal', ]];
 
         $tax = ['tax' => [
             'FriendlyName' => 'Aplicar imposto automaticamente em todos os produtos ?',
@@ -233,16 +241,17 @@ if ( !function_exists('gofasnfeio_config') ) {
         ]];
         $footer = ['footer' => [
             'FriendlyName' => '',
-            'Description' => '&copy; ' . date('Y') . ' <a target="_blank" title="Para suporte utilize o github" href="https://github.com/nfe/whmcs-addon/issues">Suporte módulo</a>',
+            'Description' => '&copy; '.date('Y').' <a target="_blank" title="Para suporte utilize o github" href="https://github.com/nfe/whmcs-addon/issues">Suporte módulo</a>',
         ]];
-        $fields = array_merge($intro,$api_key,$company_id,$service_code,$rps_serial_number,$rps_number,$issue_note,$issue_note_after,$gnfe_email_nfe_config,$cancel_invoice_cancel_nfe,$debug,$insc_municipal,$tax,$footer);
+        $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $rps_number, $issue_note, $issue_note_after, $gnfe_email_nfe_config, $cancel_invoice_cancel_nfe, $debug, $insc_municipal, $tax, $footer);
         $configarray = [
             'name' => 'NFE.io',
             'description' => 'Módulo Nota Fiscal NFE.io para WHMCS',
             'version' => $module_version,
-            'author' => '<a title="NFE.io Nota Fiscal WHMCS" href="https://github.com/nfe/whmcs-addon/" target="_blank" ><img src="' . $whmcs_url . 'modules/addons/gofasnfeio/lib/logo.png"></a>',
+            'author' => '<a title="NFE.io Nota Fiscal WHMCS" href="https://github.com/nfe/whmcs-addon/" target="_blank" ><img src="'.$whmcs_url.'modules/addons/gofasnfeio/lib/logo.png"></a>',
             'fields' => $fields,
         ];
+
         return $configarray;
     }
 }
