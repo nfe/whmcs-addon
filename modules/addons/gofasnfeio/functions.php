@@ -201,7 +201,6 @@ if (!function_exists('gnfe_queue_nfe')) {
 
                 try {
                     $service_code_row = Capsule::table('gofasnfeio')->whereNull('service_code')->where('invoice_id', '=', $invoice_id)->get(['id', 'services_amount']);
-                    logModuleCall('gofas_nfeio', 'service_code_row', $service_code_row, '', '', 'replaceVars');
 
                     if (1 == count($service_code_row)) {
                         $mountDB = floatval($service_code_row[0]->services_amount);
@@ -855,7 +854,7 @@ function get_prodict_invoice($invoice_id)
             $list[] = $list2;
         } catch (\Exception $th) {
             $pdo->rollBack();
-            logModuleCall('gofas_nfeio', 'erroForeach', $th, '', '', 'replaceVars');
+            logModuleCall('gofas_nfeio', 'get_prodict_invoice erro', $th, '', '', 'replaceVars');
         }
     }
 
