@@ -1,6 +1,11 @@
 <?php
+
 if (!defined('WHMCS')) {
-    die();
+    exit();
 }
-require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/output.php';
+
+require_once __DIR__.'/config.php';
+
+require_once __DIR__.'/output.php';
+
+require_once __DIR__.'/activate.php';
