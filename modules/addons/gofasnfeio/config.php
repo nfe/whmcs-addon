@@ -239,6 +239,12 @@ if (!function_exists('gofasnfeio_config')) {
             'Options' => 'Sim,Não',
             'Default' => 'Sim',
         ]];
+        $tax = ['InvoiceDetails' => [
+            'FriendlyName' => 'O que deve aparecer nos detalhes da fatura ?',
+            'Type' => 'radio',
+            'Options' => 'Número da fatura,nome dos serviços',
+            'Default' => 'Numero da fatura',
+        ]];
         $footer = ['footer' => [
             'FriendlyName' => '',
             'Description' => '&copy; '.date('Y').' <a target="_blank" title="Para suporte utilize o github" href="https://github.com/nfe/whmcs-addon/issues">Suporte módulo</a>',

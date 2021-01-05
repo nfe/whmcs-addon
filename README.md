@@ -51,7 +51,7 @@ Clique nas imagens para ampliar
 ## ATUALIZAÇÂO
 1. Faça download do módulo [neste link](https://github.com/nfe/whmcs-addon/archive/master.zip "neste link");
 2. Descompacte o arquivo .zip;
-3. Desative a versão anterior do modulo no painel administrativo do WHMCS, em Opções > Módulos Addon > Gofas NFE.io > Desativar.
+3. Desative a versão anterior do módulo no painel administrativo do WHMCS, em Opções > Módulos Addon > Gofas NFE.io > Desativar.
 4. Subistitua o diretório `/gofasnfeio/`, localizado na pasta `/modules/addons/` na instalação do WHMCS, pela pasta `/modules/addons/` do arquivo descompactado;
 5. Volte a ativar o modulo no mesmo painel administrativo.
 

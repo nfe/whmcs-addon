@@ -4,6 +4,8 @@ require_once __DIR__.'/../../../init.php';
 use WHMCS\Database\Capsule;
 
 $post = json_decode(file_get_contents('php://input'), true);
+logModuleCall('gofas_nfeio', 'callback', $post, '', '', 'replaceVars');
+
 if ($post) {
     require_once __DIR__.'/functions.php';
     $params = [];
@@ -15,6 +17,8 @@ if ($post) {
         $nfe_for_invoice[$key] = json_decode(json_encode($value), true);
     }
     $nfe = $nfe_for_invoice['0'];
+    logModuleCall('gofas_nfeio', 'callback2', $nfe, '', '', 'replaceVars');
+
     if ((string) $nfe['nfe_id'] === (string) $post['id'] and $nfe['status'] !== (string) $post['status']) {
         $new_nfe = [
             'invoice_id' => $nfe['invoice_id'],

@@ -120,7 +120,6 @@ use WHMCS\Database\Capsule;
             get(['tblproducts.id', 'tblproducts.name', 'tblproducts.created_at', 'tblproductcode.update_at', 'tblproductcode.code_service']) as $product) {
         $created_at = $product->created_at ? date('d/m/Y', strtotime($product->created_at)) : '';
         $update_at = $product->update_at ? date('d/m/Y', strtotime($product->update_at)) : '';
-        //depois linkar o id e o nome com a pagina do produto
         $html_table .= '<tr><td><a href="'.$gnfewhmcsadminurl.'configproducts.php?action=edit&id='.$product->id.'" target="blank">#'.$product->id.'</a></td>
                 <td>'.$created_at.'</td>
                 <td>'.$update_at.'</td>

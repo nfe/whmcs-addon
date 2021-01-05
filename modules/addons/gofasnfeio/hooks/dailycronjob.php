@@ -15,7 +15,6 @@ if ('Manualmente' !== $params['issue_note'] && $params['issue_note_after'] && (i
             $datepaid = date('Ymd', strtotime($invoices->datepaid));
             $datepaid_to_issue_ = '-'.$params['issue_note_after'].' days';
             $datepaid_to_issue = date('Ymd', strtotime($datepaid_to_issue_));
-            //ver isso com varios registros
             $nfe_for_invoice = gnfe_get_local_nfe($invoices->id, ['nfe_id', 'status', 'services_amount', 'created_at']);
             $client = localAPI('GetClientsDetails', ['clientid' => $invoices->userid, 'stats' => false], false);
             $invoice = localAPI('GetInvoice', ['invoiceid' => $invoices->id], false);

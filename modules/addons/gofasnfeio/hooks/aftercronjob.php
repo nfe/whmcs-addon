@@ -7,8 +7,8 @@ use WHMCS\Database\Capsule;
 
 $params = gnfe_config();
 
-// foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get(['id', 'invoice_id', 'services_amount']) as $waiting) {
-    foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->get(['id', 'invoice_id', 'services_amount']) as $waiting) {
+// foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->get(['id', 'invoice_id', 'services_amount']) as $waiting) {
+    foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get(['id', 'invoice_id', 'services_amount']) as $waiting) {
         $data = getTodaysDate(false);
         $dataAtual = toMySQLDate($data);
 
@@ -19,6 +19,9 @@ $params = gnfe_config();
         }
 
         foreach ($getQuery as $invoices) {
+            foreach ($invoice['items']['item'] as $value) {
+                $line_items[] = $value['description'];
+            }
             $invoice = localAPI('GetInvoice', ['invoiceid' => $waiting->invoice_id], false);
             $client = localAPI('GetClientsDetails', ['clientid' => $invoice['userid'], 'stats' => false], false);
             foreach ($invoice['items']['item'] as $value) {
@@ -53,10 +56,15 @@ $params = gnfe_config();
 
             $service_code = $waiting->service_code ? $waiting->service_code : $params['service_code'];
 
-            foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value']) as $gnfewhmcsadminurl) {
-                $gnfewhmcsadminurl = $gnfewhmcsadminurl->value;
+            foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value']) as $gnfeWhmcsUrl) {
+                $gnfeWhmcsUrl = $gnfeWhmcsUrl->value;
             }
-            $desc = 'Nota referente a fatura #'.$waiting->invoice_id.'  '.$gnfewhmcsadminurl.'viewinvoice.php?id='.$waiting->invoice_id.'     ';
+            if ('Número da fatura' == $params['InvoiceDetails']) {
+                $desc = 'Nota referente a fatura #'.$waiting->invoice_id.'  '.$gnfeWhmcsUrl.'viewinvoice.php?id='.$waiting->invoice_id.'     ';
+            } else {
+                $desc = substr(implode("\n", $line_items), 0, 600);
+            }
+
             if (0 == !strlen($customer['insc_municipal'])) {
                 $postfields = [
                     'cityServiceCode' => $service_code,
