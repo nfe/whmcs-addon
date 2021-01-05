@@ -7,7 +7,6 @@ use WHMCS\Database\Capsule;
 
 $params = gnfe_config();
 
-// foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->get(['id', 'invoice_id', 'services_amount']) as $waiting) {
     foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get(['id', 'invoice_id', 'services_amount']) as $waiting) {
         $data = getTodaysDate(false);
         $dataAtual = toMySQLDate($data);

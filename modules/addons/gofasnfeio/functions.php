@@ -828,30 +828,38 @@ function get_product_invoice($invoice_id)
 if (!function_exists('set_code_service_camp_gofasnfeio')) {
     function set_code_service_camp_gofasnfeio()
     {
-        $pdo = Capsule::connection()->getPdo();
-        $pdo->beginTransaction();
+        if (!Capsule::schema()->hasColumn('gofasnfeio', 'service_code') && !Capsule::schema()->hasColumn('gofasnfeio', 'monthly')) {
+            $pdo = Capsule::connection()->getPdo();
+            $pdo->beginTransaction();
 
-        try {
-            $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD service_code TEXT;');
-            $statement->execute();
-            $pdo->commit();
-        } catch (\Exception $e) {
-            $pdo->rollBack();
-        }
-        $pdo->beginTransaction();
+            try {
+                $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD service_code TEXT;');
+                $statement->execute();
+                $pdo->commit();
+            } catch (\Exception $e) {
+                $pdo->rollBack();
+            }
+            $pdo->beginTransaction();
 
-        try {
-            $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD monthly DECIMAL(16,2)');
-            $statement->execute();
-            $pdo->commit();
-        } catch (\Exception $e) {
-            $pdo->rollBack();
+            try {
+                $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD monthly DECIMAL(16,2)');
+                $statement->execute();
+                $pdo->commit();
+            } catch (\Exception $e) {
+                $pdo->rollBack();
+            }
         }
     }
 }
+
+
 if (!function_exists('create_table_product_code')) {
     function create_table_product_code()
     {
+        if (Capsule::schema()->hasTable('tblproductcode')) {
+            return '';
+        }
+
         $pdo = Capsule::connection()->getPdo();
         $pdo->beginTransaction();
 
@@ -867,10 +875,7 @@ if (!function_exists('create_table_product_code')) {
             $pdo->commit();
         } catch (\Exception $e) {
             $pdo->rollBack();
+            logModuleCall('gofas_nfeio', 'create_table_product_code error', $e, '', '', 'replaceVars');
         }
     }
-}
-
-function update_table()
-{
 }

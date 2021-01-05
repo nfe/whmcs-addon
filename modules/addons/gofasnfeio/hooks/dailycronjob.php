@@ -45,7 +45,11 @@ if ('Manualmente' !== $params['issue_note'] && $params['issue_note_after'] && (i
                     foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value']) as $gnfewhmcsadminurl) {
                         $gnfewhmcsadminurl = $gnfewhmcsadminurl->value;
                     }
-                    $desc = 'Nota referente a fatura #'.$nfeio->invoice_id.'  '.$gnfewhmcsadminurl.'viewinvoice.php?id='.$waiting->invoice_id.'     ';
+                    if ('Número da fatura' == $params['InvoiceDetails']) {
+                        $desc = 'Nota referente a fatura #'.$waiting->invoice_id.'  '.$gnfeWhmcsUrl.'viewinvoice.php?id='.$waiting->invoice_id.'     ';
+                    } else {
+                        $desc = substr(implode("\n", $line_items), 0, 600);
+                    }
                     if (0 == !strlen($customer['insc_municipal'])) {
                         $postfields = [
                             'cityServiceCode' => $service_code,

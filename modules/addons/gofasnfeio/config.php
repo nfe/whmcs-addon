@@ -5,6 +5,8 @@ if (!defined('WHMCS')) {
 }
 use WHMCS\Database\Capsule;
 
+require_once __DIR__.'/functions.php';
+
 if (!function_exists('gofasnfeio_config')) {
     if (!function_exists('gnfe_customfields_dropdow')) {
         function gnfe_customfields_dropdow()
@@ -149,7 +151,9 @@ if (!function_exists('gofasnfeio_config')) {
                 // Added in v 1 dot 1 dot 3
                 if (!Capsule::schema()->hasColumn('gofasnfeio', 'rpsNumber')) {
                     try {
-                        Capsule::schema()->table('gofasnfeio', function ($table) {$table->string('rpsNumber'); });
+                        Capsule::schema()->table('gofasnfeio', function ($table) {
+                            $table->string('rpsNumber');
+                        });
                     } catch (\Exception $e) {
                         $error .= "Não foi possível atualizar a tabela do módulo no banco de dados: {$e->getMessage()}";
                     }
@@ -164,7 +168,10 @@ if (!function_exists('gofasnfeio_config')) {
             }
         }
         gnfe_verifyInstall();
-
+        create_table_product_code();
+        set_code_service_camp_gofasnfeio();
+        set_custom_field_ini_date();
+        
         $intro = ['intro' => [
             'FriendlyName' => '',
             'Description' => '<h4 style="padding-top: 5px;">Módulo Nota Fiscal NFE.io para WHMCS v'.$module_version.'</h4>
