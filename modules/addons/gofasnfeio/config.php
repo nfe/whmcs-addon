@@ -32,7 +32,7 @@ if (!function_exists('gofasnfeio_config')) {
     }
     function gofasnfeio_config()
     {
-        $module_version = '1.2.4';
+        $module_version = '1.2.7';
         $module_version_int = (int) preg_replace('/[^0-9]/', '', $module_version);
 
         /// REMOVER VERIFICAÇÃO APÓS VERSÃO 2.0
@@ -249,8 +249,8 @@ if (!function_exists('gofasnfeio_config')) {
         $tax = ['InvoiceDetails' => [
             'FriendlyName' => 'O que deve aparecer nos detalhes da fatura ?',
             'Type' => 'radio',
-            'Options' => 'Número da fatura,nome dos serviços',
-            'Default' => 'Numero da fatura',
+            'Options' => 'Número da fatura,Nome dos serviços',
+            'Default' => 'Número da fatura',
         ]];
         $footer = ['footer' => [
             'FriendlyName' => '',
