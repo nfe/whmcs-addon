@@ -48,6 +48,12 @@ Clique nas imagens para ampliar
 2. Descompacte o arquivo .zip;
 3. Copie o diretório `/gofasnfeio/`, localizados na pasta `/modules/addons/` do arquivo recém descompactado, para a pasta `/modules/addons/` da instalação do WHMCS;
 
+## ATUALIZAÇÃO
+1. Faça download do módulo [neste link](https://github.com/nfe/whmcs-addon/archive/master.zip "neste link");
+2. Descompacte o arquivo .zip;
+3. Dentro da instalação do seu WHMCS remova a pasta `/modules/addons/gofasnfeio/`;
+3. Copie o diretório `/gofasnfeio/`, localizados na pasta `/modules/addons/` do arquivo recém descompactado, para a pasta `/modules/addons/` da instalação do WHMCS;
+
 ## PRÉ CONFIGURAÇÃO E ATIVAÇÃO
 1. No painel administrativo do WHMCS, crie um campo personalizado de cliente para CPF e/ou CNPJ. Caso prefira, você pode criar dois campos distintos, sendo um campo apenas para CPF e outro campo apenas para CNPJ. O módulo identifica os campos do perfil do cliente automaticamente;
 2. Ative o addon no painel administrativo do WHMCS, em Opções > Módulos Addon > Gofas NFE.io > Ativar.
@@ -65,7 +71,7 @@ Clique nas imagens para ampliar
 10. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
 
 ## LINK DA NOTA EM PDF E XML
-Para inserir um link da nota fiscal do PDF e XML direto na fatura do template do WHMCS, utilize o exemplo abaixo:
+Para inserir um link da nota fiscal do PDF e XML, edite o arquivo viewinvoice.tpl da pasta do template do WHMCS, utilize o exemplo abaixo:
 ```
 {if $status eq "Paid" || $clientsdetails.userid eq "6429"}<i class="fal fa-file-invoice" aria-hidden="true"></i> NOTA FISCAL  <a href="/modules/addons/gofasnfeio/pdf.php?invoice_id={$invoiceid}" target="_blank" class="btn btn-link" tite="Nota Fiscal disponível 24 horas após confirmação de pagamento.">PDF</a> | <a href="/modules/addons/gofasnfeio/xml.php?invoice_id={$invoiceid}" target="_blank" class="btn btn-link" tite="Nota Fiscal disponível 24 horas após confirmação de pagamento.">XML</a>{/if}
 ```
@@ -73,6 +79,15 @@ Para inserir um link da nota fiscal do PDF e XML direto na fatura do template do
 ## CHANGELOG
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
 
+### v1.2.7
+- envio do nome da empresa ao invés do nome pessoa física quando o CNPJ estiver definido
+- criar nota fiscal de acordo com o código de serviço de cada serviço
+- corrigido erro de caracteres especiais
+- opção de criar nota individualmente por tipo de serviço
+- emissão de nota fiscal a partir da data de instalação do módulo
+- opção de descrição do serviço na nota: referente a fatura ou nome do serviço.
+- ajuste de link das notas fiscais na fatura para abrir todas as notas.
+- ajuste de instalação do módulo
 ### v1.2.6
 - opção manual para criação de notas fiscais.
 ### v1.2.5
@@ -101,4 +116,4 @@ Para inserir um link da nota fiscal do PDF e XML direto na fatura do template do
 #### v1.0.0
 - Lançamento.
 
-© 2020 [Gofas Software](https://gofas.net/whmcs/modulo-nfe-io-para-whmcs/)
+© 2021 [Manutenção Link Nacional](https://www.linknacional.com.br/suporte-whmcs)
