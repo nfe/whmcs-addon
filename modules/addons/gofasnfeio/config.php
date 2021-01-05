@@ -188,7 +188,7 @@ if (!function_exists('gofasnfeio_config')) {
             'Description' => '<a href="https://app.nfe.io/companies/" style="text-decoration:underline;" target="_blank">Obter ID da empresa</a>',
         ]];
         $service_code = ['service_code' => [
-            'FriendlyName' => 'Código de Serviço',
+            'FriendlyName' => 'Código de Serviço Principal',
             'Type' => 'text',
             'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/#o-que-e-codigo-de-servico" target="_blank">O que é Código de Serviço?</a>',
         ]];
