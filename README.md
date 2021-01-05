@@ -48,6 +48,13 @@ Clique nas imagens para ampliar
 2. Descompacte o arquivo .zip;
 3. Copie o diretório `/gofasnfeio/`, localizados na pasta `/modules/addons/` do arquivo recém descompactado, para a pasta `/modules/addons/` da instalação do WHMCS;
 
+## ATUALIZAÇÂO
+1. Faça download do módulo [neste link](https://github.com/nfe/whmcs-addon/archive/master.zip "neste link");
+2. Descompacte o arquivo .zip;
+3. Desative a versão anterior do módulo no painel administrativo do WHMCS, em Opções > Módulos Addon > Gofas NFE.io > Desativar.
+4. Subistitua o diretório `/gofasnfeio/`, localizado na pasta `/modules/addons/` na instalação do WHMCS, pela pasta `/modules/addons/` do arquivo descompactado;
+5. Volte a ativar o modulo no mesmo painel administrativo.
+
 ## PRÉ CONFIGURAÇÃO E ATIVAÇÃO
 1. No painel administrativo do WHMCS, crie um campo personalizado de cliente para CPF e/ou CNPJ. Caso prefira, você pode criar dois campos distintos, sendo um campo apenas para CPF e outro campo apenas para CNPJ. O módulo identifica os campos do perfil do cliente automaticamente;
 2. Ative o addon no painel administrativo do WHMCS, em Opções > Módulos Addon > Gofas NFE.io > Ativar.
