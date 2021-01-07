@@ -9,6 +9,8 @@ $params = gnfe_config();
 $data = getTodaysDate(false);
 $dataAtual = toMySQLDate($data);
 
+logModuleCall('gofas_nfeio', 'daily cron t', $params['issue_note_after'],'' , 'replaceVars');
+logModuleCall('gofas_nfeio', 'daily cron issue_note', $params['issue_note'],'' , 'replaceVars');
 if ('Manualmente' !== $params['issue_note'] && $params['issue_note_after'] && (int) $params['issue_note_after'] > 0) {
     foreach (Capsule::table('tblinvoices')->whereBetween('date', [$params['initial_date'], $dataAtual])->where('status', '=', 'Paid')->get(['id', 'userid', 'datepaid', 'total']) as $invoices) {
         foreach (Capsule::table('gofasnfeio')->where('status', '=', 'Waiting')->where('invoice_id', '=', $invoices->id)->get(['id', 'invoice_id', 'service_code', 'monthly', 'services_amount']) as $nfeio) {

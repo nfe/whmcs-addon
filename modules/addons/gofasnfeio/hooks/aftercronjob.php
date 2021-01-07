@@ -6,8 +6,9 @@ if (!defined('WHMCS')) {
 use WHMCS\Database\Capsule;
 
 $params = gnfe_config();
-
+logModuleCall('gofas_nfeio', 'enter aftercronjob', '','' , 'replaceVars');
     foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get(['id', 'invoice_id', 'services_amount']) as $waiting) {
+        // foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->get(['id', 'invoice_id', 'services_amount']) as $waiting) {
         $data = getTodaysDate(false);
         $dataAtual = toMySQLDate($data);
 
@@ -16,6 +17,11 @@ $params = gnfe_config();
         } else {
             $getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
         }
+
+        logModuleCall('gofas_nfeio', 'getQuery', json_decode($getQuery),'' , 'replaceVars');
+        logModuleCall('gofas_nfeio', 'invoice_id', $waiting->invoice_id,'' , 'replaceVars');
+        logModuleCall('gofas_nfeio', 'dataAtual', $dataAtual,'' , 'replaceVars');
+        logModuleCall('gofas_nfeio', 'initial_date', $params['initial_date'],'' , 'replaceVars');
 
         foreach ($getQuery as $invoices) {
             foreach ($invoice['items']['item'] as $value) {
