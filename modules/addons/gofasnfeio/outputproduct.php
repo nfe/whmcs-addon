@@ -49,8 +49,8 @@ use WHMCS\Database\Capsule;
         $update_at = $product->update_at ? date('d/m/Y', strtotime($product->update_at)) : '';
 
         $html_table .= '<tr><td><a href="'.$gnfewhmcsadminurl.'configproducts.php?action=edit&id='.$product->id.'" target="blank">#'.$product->id.'</a></td>
-                <td style="text-align: center; vertical-align: middle;>'.$created_at.'</td>
-                <td style="text-align: center; vertical-align: middle;>'.$update_at.'</td>
+                <td style="text-align: center; vertical-align: middle;">'.$created_at.'</td>
+                <td style="text-align: center; vertical-align: middle;">'.$update_at.'</td>
                 <td><a href="'.$gnfewhmcsadminurl.'configproducts.php?action=edit&id='.$product->id.'" target="blank">'.$product->name.'</a></td>
                 <form action="" method="post">
                 <td><input type="text" name="code" value="'.$product->code_service.'" style="width: 100%;"></td>
