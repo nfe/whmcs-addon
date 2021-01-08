@@ -828,7 +828,7 @@ function get_product_invoice($invoice_id)
 if (!function_exists('set_code_service_camp_gofasnfeio')) {
     function set_code_service_camp_gofasnfeio()
     {
-        if (!Capsule::schema()->hasColumn('gofasnfeio', 'service_code') && !Capsule::schema()->hasColumn('gofasnfeio', 'monthly')) {
+        if (!Capsule::schema()->hasColumn('gofasnfeio', 'service_code')) {
             $pdo = Capsule::connection()->getPdo();
             $pdo->beginTransaction();
 
@@ -839,10 +839,13 @@ if (!function_exists('set_code_service_camp_gofasnfeio')) {
             } catch (\Exception $e) {
                 $pdo->rollBack();
             }
-            $pdo->beginTransaction();
+        }
+        if(!Capsule::schema()->hasColumn('gofasnfeio', 'services_amount')){
 
+            $pdo = Capsule::connection()->getPdo();
+            $pdo->beginTransaction();
             try {
-                $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD monthly DECIMAL(16,2)');
+                $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD services_amount DECIMAL(16,2)');
                 $statement->execute();
                 $pdo->commit();
             } catch (\Exception $e) {
