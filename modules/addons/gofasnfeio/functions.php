@@ -185,6 +185,9 @@ if (!function_exists('gnfe_queue_nfe')) {
 
         if (!$itens) {
             foreach (Capsule::table('tblinvoiceitems')->where('invoiceid', '=', $invoice_id)->get(['userid', 'amount']) as $item_not_salle) {
+                if($item_not_salle->amount == -1){
+                    return '';
+                }
                 $data = [
                     'invoice_id' => $invoice_id,
                     'user_id' => $item_not_salle->userid,
@@ -532,6 +535,9 @@ if (!function_exists('gnfe_whmcs_admin_url')) {
 if (!function_exists('gnfe_save_nfe')) {
     function gnfe_save_nfe($nfe, $user_id, $invoice_id, $pdf, $created_at, $updated_at)
     {
+        if($nfe->servicesAmount == -1){
+            return;
+        }
         $data = [
             'invoice_id' => $invoice_id,
             'user_id' => $user_id,
@@ -631,27 +637,36 @@ if (!function_exists('gnfe_check_webhook')) {
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
+        logModuleCall('gofas_nfeio', 'aftercronjob', curl_getinfo($curl), '', '', 'replaceVars');
         curl_close($curl);
 
         return json_decode(json_encode(json_decode($response)), true);
     }
 }
-if (!function_exists('gnfe_create_webhook')) {
-    function gnfe_create_webhook($url)
-    {
+if( !function_exists('gnfe_create_webhook') ) {
+	function gnfe_create_webhook($url) {
+        try {
+            
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/hooks');
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: '.gnfe_config('api_key')]);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_POST, 1);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(['url' => $url, 'contentType' => 'application/json', 'secret' => (string) time(), 'events' => ['issue', 'cancel'], 'status' => 'Active']));
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        $response = curl_exec($curl);
-        curl_close($curl);
-
+		curl_setopt($curl, CURLOPT_URL, "https://api.nfe.io/v1/hooks");
+		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Accept: aplication/json', 'Authorization: '.gnfe_config('api_key')));
+		curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+		curl_setopt($curl, CURLOPT_POST, 1);
+		curl_setopt($curl, CURLOPT_POSTFIELDS,json_encode(array('url'=> $url, 'contentType'=> 'application/json', 'secret'=> (string)time(), 'events'=>array('issue', 'cancel'), 'status'=>'Active',  )));
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
+        $response = curl_exec ($curl);
+        logModuleCall('gofas_nfeio', 'aftercronjob', curl_getinfo($curl), '', '', 'replaceVars');
+		curl_close ($curl);
+    
+    } catch (Exception $th) {
+        logModuleCall('gofas_nfeio', 'Exception', $th->getMessage(), '', '', 'replaceVars');
+        
+    }
         return json_decode(json_encode(json_decode($response)), true);
+    
     }
 }
+
 if (!function_exists('gnfe_delete_webhook')) {
     function gnfe_delete_webhook($id)
     {
