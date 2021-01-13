@@ -182,6 +182,12 @@ if (!function_exists('gnfe_queue_nfe')) {
     {
         $invoice = localAPI('GetInvoice', ['invoiceid' => $invoice_id], false);
         $itens = get_product_invoice($invoice_id);
+       
+
+        $initial_date = Capsule::table('tbladdonmodules')->where('setting', '=', 'initial_date')->where('module', '=', 'gofasnfeio')->get(['value'])[0]->value;
+        if( strtotime($initial_date) > strtotime($invoice['date'])){
+            return '';
+        }
 
         if (!$itens) {
             foreach (Capsule::table('tblinvoiceitems')->where('invoiceid', '=', $invoice_id)->get(['userid', 'amount']) as $item_not_salle) {
@@ -221,49 +227,50 @@ if (!function_exists('gnfe_queue_nfe')) {
             return 'success';
         }
         foreach ($itens as $item) {
-            $data = [
-                'invoice_id' => $invoice_id,
-                'user_id' => $invoice['userid'],
-                'nfe_id' => 'waiting',
-                'status' => 'Waiting',
-                'services_amount' => $item['monthly'],
-                'environment' => 'waiting',
-                'flow_status' => 'waiting',
-                'pdf' => 'waiting',
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => 'waiting',
-                'rpsSerialNumber' => 'waiting',
-                'service_code' => $item['value'],
-            ];
+            if($item['monthly'] < 0){
+                $data = [
+                    'invoice_id' => $invoice_id,
+                    'user_id' => $invoice['userid'],
+                    'nfe_id' => 'waiting',
+                    'status' => 'Waiting',
+                    'services_amount' => $item['monthly'],
+                    'environment' => 'waiting',
+                    'flow_status' => 'waiting',
+                    'pdf' => 'waiting',
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => 'waiting',
+                    'rpsSerialNumber' => 'waiting',
+                    'service_code' => $item['value'],
+                ];
 
-            $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
-            if (!$nfe_for_invoice['status'] || $create_all) {
-                $create_all = true;
+                $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
+                if (!$nfe_for_invoice['status'] || $create_all) {
+                    $create_all = true;
 
-                try {
-                    $service_code_row = Capsule::table('gofasnfeio')->where('service_code', '=', $item['value'])->where('invoice_id', '=', $invoice_id)->get(['id', 'services_amount']);
+                    try {
+                        $service_code_row = Capsule::table('gofasnfeio')->where('service_code', '=', $item['value'])->where('invoice_id', '=', $invoice_id)->get(['id', 'services_amount']);
 
-                    if (1 == count($service_code_row)) {
-                        $mountDB = floatval($service_code_row[0]->services_amount);
-                        $mount_item = floatval($item['monthly']);
-                        $mount = $mountDB + $mount_item;
+                        if (1 == count($service_code_row)) {
+                            $mountDB = floatval($service_code_row[0]->services_amount);
+                            $mount_item = floatval($item['monthly']);
+                            $mount = $mountDB + $mount_item;
 
-                        $update_nfe = Capsule::table('gofasnfeio')->where('id', '=', $service_code_row[0]->id)->update(['services_amount' => $mount]);
-                    } else {
-                        $save_nfe = Capsule::table('gofasnfeio')->insert($data);
+                            $update_nfe = Capsule::table('gofasnfeio')->where('id', '=', $service_code_row[0]->id)->update(['services_amount' => $mount]);
+                        } else {
+                            $save_nfe = Capsule::table('gofasnfeio')->insert($data);
+                        }
+                    } catch (\Exception $e) {
+                        return $e->getMessage();
                     }
-                } catch (\Exception $e) {
-                    return $e->getMessage();
-                }
-            } elseif ((string) $nfe_for_invoice['status'] === (string) 'Cancelled' or (string) $nfe_for_invoice['status'] === (string) 'Error') {
-                try {
-                    $update_nfe = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->update($data);
-                } catch (\Exception $e) {
-                    return $e->getMessage();
+                } elseif ((string) $nfe_for_invoice['status'] === (string) 'Cancelled' or (string) $nfe_for_invoice['status'] === (string) 'Error') {
+                    try {
+                        $update_nfe = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->update($data);
+                    } catch (\Exception $e) {
+                        return $e->getMessage();
+                    }
                 }
             }
         }
-
         return 'success';
     }
 }
@@ -857,14 +864,17 @@ if (!function_exists('set_code_service_camp_gofasnfeio')) {
         }
         if(!Capsule::schema()->hasColumn('gofasnfeio', 'services_amount')){
 
-            $pdo = Capsule::connection()->getPdo();
-            $pdo->beginTransaction();
-            try {
-                $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD services_amount DECIMAL(16,2)');
-                $statement->execute();
-                $pdo->commit();
-            } catch (\Exception $e) {
-                $pdo->rollBack();
+            if(!Capsule::schema()->hasColumn('gofasnfeio', 'services_amount')){
+
+                $pdo = Capsule::connection()->getPdo();
+                $pdo->beginTransaction();
+                try {
+                    $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD services_amount DECIMAL(16,2)');
+                    $statement->execute();
+                    $pdo->commit();
+                } catch (\Exception $e) {
+                    $pdo->rollBack();
+                }
             }
         }
     }
