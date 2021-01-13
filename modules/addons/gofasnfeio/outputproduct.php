@@ -40,89 +40,17 @@ use WHMCS\Database\Capsule;
     foreach (Capsule::table('tblproducts')->orderBy('id', 'desc')->get(['id']) as $nfes_) {
         $nfes[] = $nfes_->id;
     }
-    if ($_REQUEST['page']) {
-        $nfes_page = (int) $_REQUEST['page'];
-    } else {
-        $nfes_page = 1;
-    }
-    if ($_REQUEST['take']) {
-        $take = (int) $_REQUEST['take'];
-    } else {
-        $take = 10;
-    }
-
-    $nfs_keys = array_keys($nfes);
-    $nfes_total = count($nfes);
-    if ($take > $nfes_total) {
-        $take = $nfes_total;
-    }
-
-    $nfes_pages = ceil($nfes_total / $take);
-    $nfes_from_ = ($nfes_page * $take) - $take;
-    $nfes_from = $nfs_keys[$nfes_from_ + 1];
-    $nfes_to_ = ($nfes_from + $take) - 2;
-    $nfes_to = $nfs_keys[$nfes_to_ + 1];
-    $nfess = array_slice($nfes, $nfes_from_, $nfes_to);
-
-    if ((int) $nfes_page === (int) $nfes_pages) {
-        $nfes_to = $nfes_total;
-        $nfess = array_slice($nfes, $nfes_from_, $nfes_to_);
-    }
-    if ((int) $take >= (int) $nfes_total) {
-        $nfes_from = 1;
-        $nfess = array_slice($nfes, $nfes_from_, $nfes_to);
-    }
-    // Pagination
-    $i = 1;
-    while ($i <= $nfes_pages) {
-        $page_num = $i++;
-
-        if ((int) $page_num !== (int) $nfes_page) {
-            $tag = 'a ';
-            $a_style = '';
-            $li_class = 'class="enabled"';
-            $href = $gnfewhmcsadminurl.'addonmodules.php?module=gofasnfeio&page='.$page_num;
-        } elseif ((int) $page_num === (int) $nfes_page) {
-            $tag = 'span ';
-            $a_style = 'style="background: #337ab7; color: #fff"';
-            $li_class = 'class="disabled"';
-            $href = '';
-        }
-        $pagination_ .= '<li '.$li_class.'><'.$tag.' '.$a_style.' href="'.$href.'" ><strong>'.$page_num.'</strong></'.$tag.'></li>';
-    }
-    if (1 === (int) $nfes_page) {
-        $preview_class = ' class="previous disabled" ';
-        $preview_href = '';
-        $preview_tag = 'span ';
-    } else {
-        $preview_class = ' class="previous" ';
-        $preview_href = ' href="'.$gnfewhmcsadminurl.'addonmodules.php?module=gofasnfeio&page='.($nfes_page - 1).'" ';
-        $preview_tag = 'a ';
-    }
-    if ((int) $nfes_page === (int) $nfes_pages) {
-        $next_class = ' class="next disabled" ';
-        $next_href = '';
-        $next_tag = 'span ';
-    } else {
-        $next_class = ' class="next" ';
-        $next_href = ' href="'.$gnfewhmcsadminurl.'addonmodules.php?module=gofasnfeio&page='.($nfes_page + 1).'" ';
-        $next_tag = 'a ';
-    }
-    $pagination .= '<li '.$preview_class.'><'.$preview_tag.' '.$preview_href.'>« Página anterior</'.$preview_tag.'></li>';
-    $pagination .= $pagination_;
-    $pagination .= '<li '.$next_class.'><'.$next_tag.' '.$next_href.'>Próxima página »</'.$next_tag.'></li>';
-
+   
     foreach (Capsule::table('tblproducts')->
             leftJoin('tblproductcode', 'tblproducts.id', '=', 'tblproductcode.product_id')->
             orderBy('tblproducts.id', 'desc')->
-            whereBetween('tblproducts.id', [end($nfess), reset($nfess)])->
-            take($take)->
             get(['tblproducts.id', 'tblproducts.name', 'tblproducts.created_at', 'tblproductcode.update_at', 'tblproductcode.code_service']) as $product) {
         $created_at = $product->created_at ? date('d/m/Y', strtotime($product->created_at)) : '';
         $update_at = $product->update_at ? date('d/m/Y', strtotime($product->update_at)) : '';
+
         $html_table .= '<tr><td><a href="'.$gnfewhmcsadminurl.'configproducts.php?action=edit&id='.$product->id.'" target="blank">#'.$product->id.'</a></td>
-                <td>'.$created_at.'</td>
-                <td>'.$update_at.'</td>
+                <td style="text-align: center; vertical-align: middle;">'.$created_at.'</td>
+                <td style="text-align: center; vertical-align: middle;">'.$update_at.'</td>
                 <td><a href="'.$gnfewhmcsadminurl.'configproducts.php?action=edit&id='.$product->id.'" target="blank">'.$product->name.'</a></td>
                 <form action="" method="post">
                 <td><input type="text" name="code" value="'.$product->code_service.'" style="width: 100%;"></td>
@@ -151,12 +79,6 @@ use WHMCS\Database\Capsule;
 							
 						</tbody>
 					</table>
-				</div>
-				
-				<div class="text-center">
-					<ul class="pagination">
-						'.$pagination.'
-					</ul>
 				</div>
                 ';
                 if ($_REQUEST['gnfe_message']) {

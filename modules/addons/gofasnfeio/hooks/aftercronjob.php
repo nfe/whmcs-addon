@@ -4,10 +4,12 @@ if (!defined('WHMCS')) {
     exit();
 }
 use WHMCS\Database\Capsule;
-
+if ($params['debug']) {
+    logModuleCall('gofas_nfeio', 'check', 'check', '', 'replaceVars');
+}
 $params = gnfe_config();
-
-    foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get(['id', 'invoice_id', 'services_amount']) as $waiting) {
+    foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->get(['id', 'invoice_id', 'services_amount']) as $waiting) {
+        // foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->get(['id', 'invoice_id', 'services_amount']) as $waiting) {
         $data = getTodaysDate(false);
         $dataAtual = toMySQLDate($data);
 
@@ -15,6 +17,12 @@ $params = gnfe_config();
             $getQuery = Capsule::table('tblinvoices')->whereBetween('date', [$params['initial_date'], $dataAtual])->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
         } else {
             $getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
+        }
+        if ($params['debug']) {
+            logModuleCall('gofas_nfeio', 'getQuery', json_decode($getQuery), '', 'replaceVars');
+            logModuleCall('gofas_nfeio', 'invoice_id', $waiting->invoice_id, '', 'replaceVars');
+            logModuleCall('gofas_nfeio', 'dataAtual', $dataAtual, '', 'replaceVars');
+            logModuleCall('gofas_nfeio', 'initial_date', $params['initial_date'], '', 'replaceVars');
         }
 
         foreach ($getQuery as $invoices) {

@@ -32,7 +32,7 @@ if (!function_exists('gofasnfeio_config')) {
     }
     function gofasnfeio_config()
     {
-        $module_version = '1.2.4';
+        $module_version = '1.2.7';
         $module_version_int = (int) preg_replace('/[^0-9]/', '', $module_version);
 
         /// REMOVER VERIFICAÇÃO APÓS VERSÃO 2.0
@@ -188,7 +188,7 @@ if (!function_exists('gofasnfeio_config')) {
             'Description' => '<a href="https://app.nfe.io/companies/" style="text-decoration:underline;" target="_blank">Obter ID da empresa</a>',
         ]];
         $service_code = ['service_code' => [
-            'FriendlyName' => 'Código de Serviço',
+            'FriendlyName' => 'Código de Serviço Principal',
             'Type' => 'text',
             'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/#o-que-e-codigo-de-servico" target="_blank">O que é Código de Serviço?</a>',
         ]];
@@ -239,24 +239,23 @@ if (!function_exists('gofasnfeio_config')) {
             'Type' => 'dropdown',
             'Options' => gnfe_customfields_dropdow(),
             'Description' => 'Escolha o campo personalizado de Inscrição Municipal', ]];
-
         $tax = ['tax' => [
             'FriendlyName' => 'Aplicar imposto automaticamente em todos os produtos ?',
             'Type' => 'radio',
             'Options' => 'Sim,Não',
             'Default' => 'Sim',
         ]];
-        $tax = ['InvoiceDetails' => [
+        $invoiceDetails = ['InvoiceDetails' => [
             'FriendlyName' => 'O que deve aparecer nos detalhes da fatura ?',
             'Type' => 'radio',
-            'Options' => 'Número da fatura,nome dos serviços',
-            'Default' => 'Numero da fatura',
+            'Options' => 'Número da fatura,Nome dos serviços',
+            'Default' => 'Número da fatura',
         ]];
         $footer = ['footer' => [
             'FriendlyName' => '',
             'Description' => '&copy; '.date('Y').' <a target="_blank" title="Para suporte utilize o github" href="https://github.com/nfe/whmcs-addon/issues">Suporte módulo</a>',
         ]];
-        $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $rps_number, $issue_note, $issue_note_after, $gnfe_email_nfe_config, $cancel_invoice_cancel_nfe, $debug, $insc_municipal, $tax, $footer);
+        $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $rps_number, $issue_note, $issue_note_after, $gnfe_email_nfe_config, $cancel_invoice_cancel_nfe, $debug, $insc_municipal, $tax, $invoiceDetails, $footer);
         $configarray = [
             'name' => 'NFE.io',
             'description' => 'Módulo Nota Fiscal NFE.io para WHMCS',

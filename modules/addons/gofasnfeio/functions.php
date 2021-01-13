@@ -854,16 +854,17 @@ if (!function_exists('set_code_service_camp_gofasnfeio')) {
             } catch (\Exception $e) {
                 $pdo->rollBack();
             }
-            $pdo->beginTransaction();
+        }
+        if(!Capsule::schema()->hasColumn('gofasnfeio', 'services_amount')){
 
-            if(!Capsule::schema()->hasColumn('gofasnfeio', 'monthly')){
-                try {
-                    $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD monthly DECIMAL(16,2)');
-                    $statement->execute();
-                    $pdo->commit();
-                } catch (\Exception $e) {
-                    $pdo->rollBack();
-                }
+            $pdo = Capsule::connection()->getPdo();
+            $pdo->beginTransaction();
+            try {
+                $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD services_amount DECIMAL(16,2)');
+                $statement->execute();
+                $pdo->commit();
+            } catch (\Exception $e) {
+                $pdo->rollBack();
             }
         }
     }
