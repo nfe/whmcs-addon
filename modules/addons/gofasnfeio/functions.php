@@ -637,6 +637,7 @@ if (!function_exists('gnfe_check_webhook')) {
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
+        logModuleCall('gofas_nfeio', 'aftercronjob', curl_getinfo($curl), '', '', 'replaceVars');
         curl_close($curl);
 
         return json_decode(json_encode(json_decode($response)), true);
@@ -654,6 +655,7 @@ if( !function_exists('gnfe_create_webhook') ) {
 		curl_setopt($curl, CURLOPT_POSTFIELDS,json_encode(array('url'=> $url, 'contentType'=> 'application/json', 'secret'=> (string)time(), 'events'=>array('issue', 'cancel'), 'status'=>'Active',  )));
         curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
         $response = curl_exec ($curl);
+        logModuleCall('gofas_nfeio', 'aftercronjob', curl_getinfo($curl), '', '', 'replaceVars');
 		curl_close ($curl);
     
     } catch (Exception $th) {
