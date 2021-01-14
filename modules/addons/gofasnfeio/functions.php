@@ -183,7 +183,6 @@ if (!function_exists('gnfe_queue_nfe')) {
         $invoice = localAPI('GetInvoice', ['invoiceid' => $invoice_id], false);
         $itens = get_product_invoice($invoice_id);
 
-       
         $initial_date = Capsule::table('tbladdonmodules')->where('setting', '=', 'initial_date')->where('module', '=', 'gofasnfeio')->get(['value'])[0]->value;
         foreach ($itens as $item) {
             $data = [
@@ -752,41 +751,44 @@ if (!function_exists('gnfe_customer_service_code')) {
 
 function get_product_invoice($invoice_id)
 {
-    $query ="SELECT tblinvoiceitems.invoiceid ,tblinvoiceitems.type ,tblinvoiceitems.relid,tblinvoiceitems.description,tblinvoiceitems.amount FROM tblinvoiceitems 
-    WHERE tblinvoiceitems.invoiceid = :INVOICEID";
+    $query ="SELECT tblinvoiceitems.invoiceid ,tblinvoiceitems.type ,tblinvoiceitems.relid,
+    tblinvoiceitems.description,tblinvoiceitems.amount FROM tblinvoiceitems WHERE tblinvoiceitems.invoiceid = :INVOICEID";
     
-    $tax_check = gnfe_config('tax');
-    if ('Não' == $tax_check) {
-        $query .= ' AND tblproducts.tax = 1';
-    } else {
-        Capsule::table('tblproducts')->update(['tax' => 1]);
-    }
-
     $pdo = Capsule::connection()->getPdo();
     $pdo->beginTransaction();
     $statement = $pdo->prepare($query);
     $statement->execute([':INVOICEID' => $invoice_id]);
     $row = $statement->fetchAll();
     $pdo->commit();
-    
+
+    $tax_check = gnfe_config('tax');
     foreach ($row as $item) {
         $hosting_id = $item["relid"];
         
         if ($item["type"] == 'Hosting') {
             $query = "SELECT tblhosting.billingcycle ,tblhosting.id,tblproductcode.code_service ,tblhosting.packageid,tblhosting.id FROM tblhosting
-            LEFT JOIN tblproductcode ON tblhosting.packageid = tblproductcode.product_id
             LEFT JOIN tblproducts ON tblproducts.id = tblhosting.packageid 
+            LEFT JOIN tblproductcode ON tblhosting.packageid = tblproductcode.product_id
             WHERE tblhosting.id = :HOSTING";
+            
+            if ('Não' == $tax_check) {
+                $query .= ' AND tblproducts.tax = 1';
+            } else {
+                Capsule::table('tblproducts')->update(['tax' => 1]);
+            }
+            
             $pdo->beginTransaction();
             $statement = $pdo->prepare($query);
             $statement->execute([':HOSTING' => $hosting_id]);
             $product = $statement->fetchAll();
             $pdo->commit();
 
-            $product_array['id_product'] = $product[0]["packageid"];
-            $product_array['code_service'] = $product[0]["code_service"];
-            $product_array['amount'] = $item["amount"];
-            $products_details[] = $product_array;
+            if ($product) {
+                $product_array['id_product'] = $product[0]["packageid"];
+                $product_array['code_service'] = $product[0]["code_service"];
+                $product_array['amount'] = $item["amount"];
+                $products_details[] = $product_array;
+            }
         } else {
             $product_array['id_product'] = $item["packageid"];
             $product_array['code_service'] = null;
