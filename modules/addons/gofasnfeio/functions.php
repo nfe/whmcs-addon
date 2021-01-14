@@ -227,7 +227,7 @@ if (!function_exists('gnfe_queue_nfe')) {
             return 'success';
         }
         foreach ($itens as $item) {
-            if($item['monthly'] < 0){
+            if($item['monthly'] > 0){
                 $data = [
                     'invoice_id' => $invoice_id,
                     'user_id' => $invoice['userid'],
