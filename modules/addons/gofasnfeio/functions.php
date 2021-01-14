@@ -182,39 +182,37 @@ if (!function_exists('gnfe_queue_nfe')) {
     {
         $invoice = localAPI('GetInvoice', ['invoiceid' => $invoice_id], false);
         $itens = get_product_invoice($invoice_id);
+
        
-
         $initial_date = Capsule::table('tbladdonmodules')->where('setting', '=', 'initial_date')->where('module', '=', 'gofasnfeio')->get(['value'])[0]->value;
-        if( strtotime($initial_date) > strtotime($invoice['date'])){
-            return '';
-        }
-
-        if (!$itens) {
-            foreach (Capsule::table('tblinvoiceitems')->where('invoiceid', '=', $invoice_id)->get(['userid', 'amount']) as $item_not_salle) {
-                if($item_not_salle->amount == -1){
-                    return '';
-                }
-                $data = [
+        foreach ($itens as $item) {
+            $data = [
                     'invoice_id' => $invoice_id,
-                    'user_id' => $item_not_salle->userid,
+                    'user_id' => $invoice['userid'],
                     'nfe_id' => 'waiting',
                     'status' => 'Waiting',
-                    'services_amount' => $item_not_salle->amount,
+                    'services_amount' => $item['amount'],
                     'environment' => 'waiting',
                     'flow_status' => 'waiting',
                     'pdf' => 'waiting',
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => 'waiting',
                     'rpsSerialNumber' => 'waiting',
+                    'service_code' => $item['code_service'],
                 ];
 
+            $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
+            if (!$nfe_for_invoice['status'] || $create_all) {
+                $create_all = true;
+
                 try {
-                    $service_code_row = Capsule::table('gofasnfeio')->whereNull('service_code')->where('invoice_id', '=', $invoice_id)->get(['id', 'services_amount']);
+                    $service_code_row = Capsule::table('gofasnfeio')->where('service_code', '=', $item['code_service'])->where('invoice_id', '=', $invoice_id)->get(['id', 'services_amount']);
 
                     if (1 == count($service_code_row)) {
                         $mountDB = floatval($service_code_row[0]->services_amount);
-                        $mount_item = floatval($item_not_salle->amount);
+                        $mount_item = floatval($item['amount']);
                         $mount = $mountDB + $mount_item;
+
                         $update_nfe = Capsule::table('gofasnfeio')->where('id', '=', $service_code_row[0]->id)->update(['services_amount' => $mount]);
                     } else {
                         $save_nfe = Capsule::table('gofasnfeio')->insert($data);
@@ -222,52 +220,11 @@ if (!function_exists('gnfe_queue_nfe')) {
                 } catch (\Exception $e) {
                     return $e->getMessage();
                 }
-            }
-
-            return 'success';
-        }
-        foreach ($itens as $item) {
-            if($item['monthly'] > 0){
-                $data = [
-                    'invoice_id' => $invoice_id,
-                    'user_id' => $invoice['userid'],
-                    'nfe_id' => 'waiting',
-                    'status' => 'Waiting',
-                    'services_amount' => $item['monthly'],
-                    'environment' => 'waiting',
-                    'flow_status' => 'waiting',
-                    'pdf' => 'waiting',
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => 'waiting',
-                    'rpsSerialNumber' => 'waiting',
-                    'service_code' => $item['value'],
-                ];
-
-                $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
-                if (!$nfe_for_invoice['status'] || $create_all) {
-                    $create_all = true;
-
-                    try {
-                        $service_code_row = Capsule::table('gofasnfeio')->where('service_code', '=', $item['value'])->where('invoice_id', '=', $invoice_id)->get(['id', 'services_amount']);
-
-                        if (1 == count($service_code_row)) {
-                            $mountDB = floatval($service_code_row[0]->services_amount);
-                            $mount_item = floatval($item['monthly']);
-                            $mount = $mountDB + $mount_item;
-
-                            $update_nfe = Capsule::table('gofasnfeio')->where('id', '=', $service_code_row[0]->id)->update(['services_amount' => $mount]);
-                        } else {
-                            $save_nfe = Capsule::table('gofasnfeio')->insert($data);
-                        }
-                    } catch (\Exception $e) {
-                        return $e->getMessage();
-                    }
-                } elseif ((string) $nfe_for_invoice['status'] === (string) 'Cancelled' or (string) $nfe_for_invoice['status'] === (string) 'Error') {
-                    try {
-                        $update_nfe = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->update($data);
-                    } catch (\Exception $e) {
-                        return $e->getMessage();
-                    }
+            } elseif ((string) $nfe_for_invoice['status'] === (string) 'Cancelled' or (string) $nfe_for_invoice['status'] === (string) 'Error') {
+                try {
+                    $update_nfe = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->update($data);
+                } catch (\Exception $e) {
+                    return $e->getMessage();
                 }
             }
         }
@@ -287,14 +244,14 @@ if (!function_exists('gnfe_queue_nfe_edit')) {
                 'user_id' => $invoice['userid'],
                 'nfe_id' => 'waiting',
                 'status' => 'Waiting',
-                'services_amount' => $item['monthly'],
+                'services_amount' => $item['amount'],
                 'environment' => 'waiting',
                 'flow_status' => 'waiting',
                 'pdf' => 'waiting',
                 'created_at' => date('Y-m-d H:i:s'),
                 'updated_at' => 'waiting',
                 'rpsSerialNumber' => 'waiting',
-                'service_code' => $item['value'],
+                'service_code' => $item['code_service'],
             ];
 
             $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
@@ -542,7 +499,7 @@ if (!function_exists('gnfe_whmcs_admin_url')) {
 if (!function_exists('gnfe_save_nfe')) {
     function gnfe_save_nfe($nfe, $user_id, $invoice_id, $pdf, $created_at, $updated_at)
     {
-        if($nfe->servicesAmount == -1){
+        if ($nfe->servicesAmount == -1) {
             return;
         }
         $data = [
@@ -650,27 +607,24 @@ if (!function_exists('gnfe_check_webhook')) {
         return json_decode(json_encode(json_decode($response)), true);
     }
 }
-if( !function_exists('gnfe_create_webhook') ) {
-	function gnfe_create_webhook($url) {
+if (!function_exists('gnfe_create_webhook')) {
+    function gnfe_create_webhook($url)
+    {
         try {
-            
-        $curl = curl_init();
-		curl_setopt($curl, CURLOPT_URL, "https://api.nfe.io/v1/hooks");
-		curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Accept: aplication/json', 'Authorization: '.gnfe_config('api_key')));
-		curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-		curl_setopt($curl, CURLOPT_POST, 1);
-		curl_setopt($curl, CURLOPT_POSTFIELDS,json_encode(array('url'=> $url, 'contentType'=> 'application/json', 'secret'=> (string)time(), 'events'=>array('issue', 'cancel'), 'status'=>'Active',  )));
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER,1);
-        $response = curl_exec ($curl);
-        logModuleCall('gofas_nfeio', 'aftercronjob', curl_getinfo($curl), '', '', 'replaceVars');
-		curl_close ($curl);
-    
-    } catch (Exception $th) {
-        logModuleCall('gofas_nfeio', 'Exception', $th->getMessage(), '', '', 'replaceVars');
-        
-    }
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_URL, "https://api.nfe.io/v1/hooks");
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Accept: aplication/json', 'Authorization: '.gnfe_config('api_key')));
+            curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+            curl_setopt($curl, CURLOPT_POST, 1);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(array('url'=> $url, 'contentType'=> 'application/json', 'secret'=> (string)time(), 'events'=>array('issue', 'cancel'), 'status'=>'Active',  )));
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            $response = curl_exec($curl);
+            logModuleCall('gofas_nfeio', 'aftercronjob', curl_getinfo($curl), '', '', 'replaceVars');
+            curl_close($curl);
+        } catch (Exception $th) {
+            logModuleCall('gofas_nfeio', 'Exception', $th->getMessage(), '', '', 'replaceVars');
+        }
         return json_decode(json_encode(json_decode($response)), true);
-    
     }
 }
 
@@ -798,54 +752,53 @@ if (!function_exists('gnfe_customer_service_code')) {
 
 function get_product_invoice($invoice_id)
 {
-    $query = "SELECT DISTINCT tblhosting.packageid,tblpricing.monthly from tblhosting
-    INNER JOIN tblinvoiceitems ON tblinvoiceitems.relid = tblhosting.id 
-    JOIN tblpricing ON tblpricing.relid = tblhosting.packageid
-    LEFT JOIN tblproducts ON tblproducts.id = tblhosting.packageid 
-    WHERE tblpricing.type = 'product' AND tblinvoiceitems.invoiceid = :id";
-
-    $pdo = Capsule::connection()->getPdo();
-    $pdo->beginTransaction();
+    $query ="SELECT tblinvoiceitems.invoiceid ,tblinvoiceitems.type ,tblinvoiceitems.relid,tblinvoiceitems.description,tblinvoiceitems.amount FROM tblinvoiceitems 
+    WHERE tblinvoiceitems.invoiceid = :INVOICEID";
+    
     $tax_check = gnfe_config('tax');
-    $row = null;
-    $list = [];
-
     if ('Não' == $tax_check) {
         $query .= ' AND tblproducts.tax = 1';
     } else {
         Capsule::table('tblproducts')->update(['tax' => 1]);
     }
-    // Capsule::table('tblproducts')->update(['tax' => 1]);
 
-    try {
-        $statement = $pdo->prepare($query);
-        $statement->execute([':id' => $invoice_id]);
-        $row = $statement->fetchAll();
-        $pdo->commit();
-    } catch (\Exception $th) {
-        $pdo->rollBack();
-    }
+    $pdo = Capsule::connection()->getPdo();
+    $pdo->beginTransaction();
+    $statement = $pdo->prepare($query);
+    $statement->execute([':INVOICEID' => $invoice_id]);
+    $row = $statement->fetchAll();
+    $pdo->commit();
+    
     foreach ($row as $item) {
-        $pdo->beginTransaction();
-
-        try {
-            $list2 = [];
-            $stmt = $pdo->prepare('SELECT * FROM tblproductcode WHERE product_id=:PROD');
-            $stmt->execute([':PROD' => $item[0]]);
-            $row = $stmt->fetchAll();
+        $hosting_id = $item["relid"];
+        
+        if ($item["type"] == 'Hosting') {
+            $query = "SELECT tblhosting.billingcycle ,tblhosting.id,tblproductcode.code_service ,tblhosting.packageid,tblhosting.id FROM tblhosting
+            LEFT JOIN tblproductcode ON tblhosting.packageid = tblproductcode.product_id
+            LEFT JOIN tblproducts ON tblproducts.id = tblhosting.packageid 
+            WHERE tblhosting.id = :HOSTING";
+            $pdo->beginTransaction();
+            $statement = $pdo->prepare($query);
+            $statement->execute([':HOSTING' => $hosting_id]);
+            $product = $statement->fetchAll();
             $pdo->commit();
-            $list2['item'] = $item['packageid'];
-            $list2['value'] = $row[0]['code_service'];
-            $list2['monthly'] = $item['monthly'];
-            $list[] = $list2;
-        } catch (\Exception $th) {
-            $pdo->rollBack();
-            logModuleCall('gofas_nfeio', 'get_product_invoice erro', $th, '', '', 'replaceVars');
+
+            $product_array['id_product'] = $product[0]["packageid"];
+            $product_array['code_service'] = $product[0]["code_service"];
+            $product_array['amount'] = $item["amount"];
+            $products_details[] = $product_array;
+        } else {
+            $product_array['id_product'] = $item["packageid"];
+            $product_array['code_service'] = null;
+            $product_array['amount'] = $item["amount"];
+            $products_details[] = $product_array;
         }
     }
+    logModuleCall('gofas_nfeio', 'products_details', $products_details, '', 'replaceVars');
 
-    return $list;
+    return $products_details;
 }
+
 
 if (!function_exists('set_code_service_camp_gofasnfeio')) {
     function set_code_service_camp_gofasnfeio()
@@ -862,10 +815,8 @@ if (!function_exists('set_code_service_camp_gofasnfeio')) {
                 $pdo->rollBack();
             }
         }
-        if(!Capsule::schema()->hasColumn('gofasnfeio', 'services_amount')){
-
-            if(!Capsule::schema()->hasColumn('gofasnfeio', 'services_amount')){
-
+        if (!Capsule::schema()->hasColumn('gofasnfeio', 'services_amount')) {
+            if (!Capsule::schema()->hasColumn('gofasnfeio', 'services_amount')) {
                 $pdo = Capsule::connection()->getPdo();
                 $pdo->beginTransaction();
                 try {
