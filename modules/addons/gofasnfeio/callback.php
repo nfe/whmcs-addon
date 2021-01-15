@@ -10,7 +10,7 @@ logModuleCall('gofas_nfeio', 'callback environment', $post['environment'], '', '
 
 if ($post) {
     require_once __DIR__.'/functions.php';
-    if (Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count() == 0 && $post['environment'] == 'Production') {
+    if (Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count() == 0 || $post['environment'] == 'Production') {
         return '';
     }
 
