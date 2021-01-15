@@ -5,9 +5,15 @@ use WHMCS\Database\Capsule;
 
 $post = json_decode(file_get_contents('php://input'), true);
 logModuleCall('gofas_nfeio', 'callback', $post, '', '', 'replaceVars');
+logModuleCall('gofas_nfeio', 'callback db', Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count(), '', '', 'replaceVars');
+logModuleCall('gofas_nfeio', 'callback environment', $post['environment'], '', '', 'replaceVars');
 
 if ($post) {
     require_once __DIR__.'/functions.php';
+    if (Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count() == 0 || $post['environment'] != 'Production') {
+        return '';
+    }
+
     $params = [];
     foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
         $params[$settings->setting] = $settings->value;
@@ -17,7 +23,6 @@ if ($post) {
         $nfe_for_invoice[$key] = json_decode(json_encode($value), true);
     }
     $nfe = $nfe_for_invoice['0'];
-    logModuleCall('gofas_nfeio', 'callback2', $nfe, '', '', 'replaceVars');
 
     if ((string) $nfe['nfe_id'] === (string) $post['id'] and $nfe['status'] !== (string) $post['status']) {
         $new_nfe = [
