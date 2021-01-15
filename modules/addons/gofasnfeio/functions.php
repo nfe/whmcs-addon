@@ -324,8 +324,12 @@ if (!function_exists('gnfe_issue_nfe')) {
         curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($postfields));
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
+        $info =curl_getinfo($curl);
         curl_close($curl);
-
+        if ($params['debug']) {
+            logModuleCall('gofas_nfeio', 'response', $response, '', '', 'replaceVars');
+            logModuleCall('gofas_nfeio', 'info', $info, '', '', 'replaceVars');
+        }
         return json_decode(json_encode(json_decode($response)));
     }
 }
