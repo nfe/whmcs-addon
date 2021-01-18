@@ -54,6 +54,15 @@ if ('Manualmente' !== $params['issue_note'] && $params['issue_note_after'] && (i
                     } else {
                         $desc = substr(implode("\n", $line_items), 0, 600);
                     }
+                    if (strpos($client['address1'], ',')) {
+                        $array_adress=explode(",", $client['address1']);
+                        $street = $array_adress[0];
+                        $number=$array_adress[1];
+                    } else {
+                        $street = str_replace(',', '', preg_replace('/[0-9]+/i', '', $client['address1']));
+                        $number=preg_replace('/[^0-9]/', '', $client['address1']);
+                    }
+
                     if (0 == !strlen($customer['insc_municipal'])) {
                         $postfields = [
                             'cityServiceCode' => $service_code,
@@ -67,8 +76,8 @@ if ('Manualmente' !== $params['issue_note'] && $params['issue_note_after'] && (i
                                 'address' => [
                                     'country' => gnfe_country_code($client['countrycode']),
                                     'postalCode' => preg_replace('/[^0-9]/', '', $client['postcode']),
-                                    'street' => str_replace(',', '', preg_replace('/[0-9]+/i', '', $client['address1'])),
-                                    'number' => preg_replace('/[^0-9]/', '', $client['address1']),
+                                    'street' => $street,
+                                    'number' => $number,
                                     'additionalInformation' => '',
                                     'district' => $client['address2'],
                                     'city' => [
@@ -93,8 +102,8 @@ if ('Manualmente' !== $params['issue_note'] && $params['issue_note_after'] && (i
                                 'address' => [
                                     'country' => gnfe_country_code($client['countrycode']),
                                     'postalCode' => preg_replace('/[^0-9]/', '', $client['postcode']),
-                                    'street' => str_replace(',', '', preg_replace('/[0-9]+/i', '', $client['address1'])),
-                                    'number' => preg_replace('/[^0-9]/', '', $client['address1']),
+                                    'street' => $street,
+                                    'number' => $number,
                                     'additionalInformation' => '',
                                     'district' => $client['address2'],
                                     'city' => [
