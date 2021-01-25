@@ -15,7 +15,7 @@ $params = gnfe_config();
         $data = getTodaysDate(false);
         $dataAtual = toMySQLDate($data);
 
-        if ('Manualmente' !== $params['issue_note']) {
+        if ($params['issue_note'] !== 'Manualmente') {
             $getQuery = Capsule::table('tblinvoices')->whereBetween('date', [$params['initial_date'], $dataAtual])->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
         } else {
             $getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
@@ -56,13 +56,13 @@ $params = gnfe_config();
                 $rps_number = 0;
             }
 
-            if (2 == $customer['doc_type']) {
+            if ($customer['doc_type'] == 2) {
                 if ($client['companyname'] != '') {
                     $name = $client['companyname'];
                 } else {
                     $name = $client['fullname'];
                 }
-            } elseif (1 == $customer['doc_type'] || 'CPF e/ou CNPJ ausente.' == $customer || !$customer['doc_type']) {
+            } elseif ($customer['doc_type'] == 1 || $customer == 'CPF e/ou CNPJ ausente.' || !$customer['doc_type']) {
                 $name = $client['fullname'];
             }
             $name = htmlspecialchars_decode($name);
@@ -72,7 +72,7 @@ $params = gnfe_config();
             foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value']) as $gnfeWhmcsUrl) {
                 $gnfeWhmcsUrl = $gnfeWhmcsUrl->value;
             }
-            if ('Número da fatura' == $params['InvoiceDetails']) {
+            if ($params['InvoiceDetails'] == 'Número da fatura') {
                 $desc = 'Nota referente a fatura #' . $waiting->invoice_id . '  ' . $gnfeWhmcsUrl . 'viewinvoice.php?id=' . $waiting->invoice_id . '     ';
             } else {
                 $desc = substr(implode("\n", $line_items), 0, 600);
@@ -89,7 +89,7 @@ $params = gnfe_config();
             logModuleCall('gofas_nfeio', 'customer[insc_municipal', $customer['insc_municipal'], '', '', 'replaceVars');
             logModuleCall('gofas_nfeio', 'customer', $customer, '', '', 'replaceVars');
 
-            if (0 == !strlen($customer['insc_municipal'])) {
+            if (!strlen($customer['insc_municipal']) == 0) {
                 $postfields = [
                     'cityServiceCode' => $service_code,
                     'description' => $desc,
