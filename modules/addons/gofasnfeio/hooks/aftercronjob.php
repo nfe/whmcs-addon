@@ -85,9 +85,6 @@ $params = gnfe_config();
                 $street = str_replace(',', '', preg_replace('/[0-9]+/i', '', $client['address1']));
                 $number = preg_replace('/[^0-9]/', '', $client['address1']);
             }
-            logModuleCall('gofas_nfeio', 'customer[document', $customer['document'], '', '', 'replaceVars');
-            logModuleCall('gofas_nfeio', 'customer[insc_municipal', $customer['insc_municipal'], '', '', 'replaceVars');
-            logModuleCall('gofas_nfeio', 'customer', $customer, '', '', 'replaceVars');
 
             if (!strlen($customer['insc_municipal']) == 0) {
                 $postfields = [
