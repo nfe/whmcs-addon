@@ -17,13 +17,13 @@ if ('Manualmente' !== $params['issue_note'] && $params['issue_note_after'] && (i
     foreach (Capsule::table('tblinvoices')->whereBetween('date', [$params['initial_date'], $dataAtual])->where('status', '=', 'Paid')->get(['id', 'userid', 'datepaid', 'total']) as $invoices) {
         foreach (Capsule::table('gofasnfeio')->where('status', '=', 'Waiting')->where('invoice_id', '=', $invoices->id)->get(['id', 'invoice_id', 'service_code', 'monthly', 'services_amount']) as $nfeio) {
             $datepaid = date('Ymd', strtotime($invoices->datepaid));
-            $datepaid_to_issue_ = '-'.$params['issue_note_after'].' days';
+            $datepaid_to_issue_ = '-' . $params['issue_note_after'] . ' days';
             $datepaid_to_issue = date('Ymd', strtotime($datepaid_to_issue_));
             $nfe_for_invoice = gnfe_get_local_nfe($invoices->id, ['nfe_id', 'status', 'services_amount', 'created_at']);
             $client = localAPI('GetClientsDetails', ['clientid' => $invoices->userid, 'stats' => false], false);
             $invoice = localAPI('GetInvoice', ['invoiceid' => $invoices->id], false);
             if ((float) $invoices->total > (float) '0.00' and (int) $datepaid_to_issue >= (int) $datepaid) {
-                $processed_invoices[$invoices->id] = 'Paid on: '.$datepaid;
+                $processed_invoices[$invoices->id] = 'Paid on: ' . $datepaid;
                 if (!$nfe_for_invoice['status'] or (string) $nfe_for_invoice['status'] === (string) 'Error' or (string) $nfe_for_invoice['status'] === (string) 'None') {
                     foreach ($invoice['items']['item'] as $value) {
                         $line_items[] = $value['description'];
@@ -38,7 +38,11 @@ if ('Manualmente' !== $params['issue_note'] && $params['issue_note_after'] && (i
                     $company = gnfe_get_company();
 
                     if (2 == $customer['doc_type']) {
-                        $name = $client['companyname'];
+                        if ($client['companyname'] != '') {
+                            $name = $client['companyname'];
+                        } else {
+                            $name = $client['fullname'];
+                        }
                     } elseif (1 == $customer['doc_type'] || 'CPF e/ou CNPJ ausente.' == $customer || !$customer['doc_type']) {
                         $name = $client['fullname'];
                     }
@@ -50,17 +54,17 @@ if ('Manualmente' !== $params['issue_note'] && $params['issue_note_after'] && (i
                         $gnfewhmcsadminurl = $gnfewhmcsadminurl->value;
                     }
                     if ('Número da fatura' == $params['InvoiceDetails']) {
-                        $desc = 'Nota referente a fatura #'.$waiting->invoice_id.'  '.$gnfeWhmcsUrl.'viewinvoice.php?id='.$waiting->invoice_id.'     ';
+                        $desc = 'Nota referente a fatura #' . $waiting->invoice_id . '  ' . $gnfeWhmcsUrl . 'viewinvoice.php?id=' . $waiting->invoice_id . '     ';
                     } else {
                         $desc = substr(implode("\n", $line_items), 0, 600);
                     }
                     if (strpos($client['address1'], ',')) {
-                        $array_adress=explode(",", $client['address1']);
+                        $array_adress = explode(',', $client['address1']);
                         $street = $array_adress[0];
-                        $number=$array_adress[1];
+                        $number = $array_adress[1];
                     } else {
                         $street = str_replace(',', '', preg_replace('/[0-9]+/i', '', $client['address1']));
-                        $number=preg_replace('/[^0-9]/', '', $client['address1']);
+                        $number = preg_replace('/[^0-9]/', '', $client['address1']);
                     }
 
                     if (0 == !strlen($customer['insc_municipal'])) {

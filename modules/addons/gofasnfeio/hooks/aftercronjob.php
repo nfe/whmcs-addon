@@ -57,7 +57,11 @@ $params = gnfe_config();
             }
 
             if (2 == $customer['doc_type']) {
-                $name = $client['companyname'];
+                if ($client['companyname'] != '') {
+                    $name = $client['companyname'];
+                } else {
+                    $name = $client['fullname'];
+                }
             } elseif (1 == $customer['doc_type'] || 'CPF e/ou CNPJ ausente.' == $customer || !$customer['doc_type']) {
                 $name = $client['fullname'];
             }
@@ -69,19 +73,22 @@ $params = gnfe_config();
                 $gnfeWhmcsUrl = $gnfeWhmcsUrl->value;
             }
             if ('Número da fatura' == $params['InvoiceDetails']) {
-                $desc = 'Nota referente a fatura #'.$waiting->invoice_id.'  '.$gnfeWhmcsUrl.'viewinvoice.php?id='.$waiting->invoice_id.'     ';
+                $desc = 'Nota referente a fatura #' . $waiting->invoice_id . '  ' . $gnfeWhmcsUrl . 'viewinvoice.php?id=' . $waiting->invoice_id . '     ';
             } else {
                 $desc = substr(implode("\n", $line_items), 0, 600);
             }
             if (strpos($client['address1'], ',')) {
-                $array_adress=explode(",", $client['address1']);
+                $array_adress = explode(',', $client['address1']);
                 $street = $array_adress[0];
-                $number=$array_adress[1];
+                $number = $array_adress[1];
             } else {
                 $street = str_replace(',', '', preg_replace('/[0-9]+/i', '', $client['address1']));
-                $number=preg_replace('/[^0-9]/', '', $client['address1']);
+                $number = preg_replace('/[^0-9]/', '', $client['address1']);
             }
-            
+            logModuleCall('gofas_nfeio', 'customer[document', $customer['document'], '', '', 'replaceVars');
+            logModuleCall('gofas_nfeio', 'customer[insc_municipal', $customer['insc_municipal'], '', '', 'replaceVars');
+            logModuleCall('gofas_nfeio', 'customer', $customer, '', '', 'replaceVars');
+
             if (0 == !strlen($customer['insc_municipal'])) {
                 $postfields = [
                     'cityServiceCode' => $service_code,
