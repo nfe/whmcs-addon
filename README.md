@@ -1,4 +1,4 @@
-# Módulo Nota Fiscal para WHMCS via NFE.io
+# Módulo Gofas NFE.io para WHMCS
 Automatize a emissão de notas fiscais no WHMCS com a [NFE.io](https://nfe.io "NFE.io")!
 
 A [NFE.io](https://nfe.io "NFE.io") é um sistema de emissão de notas fiscais que automatiza a comunicação com as prefeituras. Com a [NFE.io](https://nfe.io "NFE.io") você se livra de diversas tarefas chatas, melhorando o desempenho do seu negócio. E melhor, você economiza tempo e dinheiro.
@@ -116,4 +116,4 @@ Para inserir um link da nota fiscal do PDF e XML, edite o arquivo viewinvoice.tp
 #### v1.0.0
 - Lançamento.
 
-© 2021 [Manutenção Link Nacional](https://www.linknacional.com.br/suporte-whmcs)
+© 2020 [Gofas Software](https://gofas.net?ref=gitnfeio) | Manutenção por [Link Nacional](https://www.linknacional.com.br/suporte-whmcs)
