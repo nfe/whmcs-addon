@@ -16,14 +16,14 @@ if (stripos($params['issue_note'], 'Paga') and (string) $vars['status'] !== (str
                 $line_items[] = $value['description']; //substr( $value['description'],  0, 100);
             }
             $queue = gnfe_queue_nfe($vars['invoiceid'], true);
-            if ('success' !== $queue) {
-                if ('adminarea' === $vars['source']) {
-                    header('Location: '.gnfe_whmcs_admin_url().'invoices.php?action=edit&id='.$vars['invoiceid'].'&gnfe_error=Erro ao criar nota fiscal: '.$queue);
+            if ($queue !== 'success') {
+                if ($vars['source'] === 'adminarea') {
+                    header('Location: ' . gnfe_whmcs_admin_url() . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_error=Erro ao criar nota fiscal: ' . $queue);
 
                     exit;
                 }
             }
-            if ('success' === $queue) {
+            if ($queue === 'success') {
             }
         }
     }
