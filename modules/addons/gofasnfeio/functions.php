@@ -176,7 +176,6 @@ if (!function_exists('gnfe_queue_nfe')) {
         $invoice = localAPI('GetInvoice', ['invoiceid' => $invoice_id], false);
         $itens = get_product_invoice($invoice_id);
 
-        $initial_date = Capsule::table('tbladdonmodules')->where('setting', '=', 'initial_date')->where('module', '=', 'gofasnfeio')->get(['value'])[0]->value;
         foreach ($itens as $item) {
             $data = [
                 'invoice_id' => $invoice_id,
@@ -194,14 +193,10 @@ if (!function_exists('gnfe_queue_nfe')) {
             ];
             $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
 
-            if ($nfe_for_invoice['status'] == 'Cancelled' || $nfe_for_invoice['status'] == 'Error') {
-                $create_all = false;
-            }
-
             if (!$nfe_for_invoice['status'] || $create_all) {
                 $create_all = true;
                 try {
-                    $service_code_row = Capsule::table('gofasnfeio')->where('service_code', '=', $item['code_service'])->where('invoice_id', '=', $invoice_id)->get(['id', 'services_amount']);
+                    $service_code_row = Capsule::table('gofasnfeio')->where('service_code', '=', $item['code_service'])->where('invoice_id', '=', $invoice_id)->where('status','=','waiting')->get(['id', 'services_amount']);
 
                     if (count($service_code_row) == 1) {
                         $mountDB = floatval($service_code_row[0]->services_amount);
@@ -210,29 +205,6 @@ if (!function_exists('gnfe_queue_nfe')) {
 
                         $update_nfe = Capsule::table('gofasnfeio')->where('id', '=', $service_code_row[0]->id)->update(['services_amount' => $mount]);
                     } else {
-                        $save_nfe = Capsule::table('gofasnfeio')->insert($data);
-                    }
-                } catch (\Exception $e) {
-                    return $e->getMessage();
-                }
-            } elseif ($nfe_for_invoice['status'] === (string)'Cancelled' || (string) $nfe_for_invoice['status'] === (string) 'Error') {
-                try {
-                    $rows = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->get(['invoice_id', 'status', 'services_amount', 'service_code']);
-                    foreach ($rows as $row) {
-                        $data = [
-                            'invoice_id' => $row->invoice_id,
-                            'user_id' => $invoice['userid'],
-                            'nfe_id' => 'waiting',
-                            'status' => 'Waiting',
-                            'services_amount' => $row->services_amount,
-                            'environment' => 'waiting',
-                            'flow_status' => 'waiting',
-                            'pdf' => 'waiting',
-                            'created_at' => date('Y-m-d H:i:s'),
-                            'updated_at' => 'waiting',
-                            'rpsSerialNumber' => 'waiting',
-                            'service_code' => $row->service_code,
-                        ];
                         $save_nfe = Capsule::table('gofasnfeio')->insert($data);
                     }
                 } catch (\Exception $e) {
