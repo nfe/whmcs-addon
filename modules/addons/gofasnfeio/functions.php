@@ -192,11 +192,14 @@ if (!function_exists('gnfe_queue_nfe')) {
                 'rpsSerialNumber' => 'waiting',
                 'service_code' => $item['code_service'],
             ];
-
             $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
-            if (!$nfe_for_invoice['status'] || ($create_all && $nfe_for_invoice['status'] !== (string)'Cancelled')) {
-                $create_all = true;
 
+            if ($nfe_for_invoice['status'] == 'Cancelled' || $nfe_for_invoice['status'] == 'Cancelled') {
+                $create_all = false;
+            }
+
+            if (!$nfe_for_invoice['status'] || $create_all) {
+                $create_all = true;
                 try {
                     $service_code_row = Capsule::table('gofasnfeio')->where('service_code', '=', $item['code_service'])->where('invoice_id', '=', $invoice_id)->get(['id', 'services_amount']);
 
@@ -212,9 +215,26 @@ if (!function_exists('gnfe_queue_nfe')) {
                 } catch (\Exception $e) {
                     return $e->getMessage();
                 }
-            } elseif ((string) $nfe_for_invoice['status'] === (string) 'Cancelled' or (string) $nfe_for_invoice['status'] === (string) 'Error') {
+            } elseif ($nfe_for_invoice['status'] === (string)'Cancelled' || (string) $nfe_for_invoice['status'] === (string) 'Error') {
                 try {
-                    $update_nfe = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->update($data);
+                    $rows = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->get(['invoice_id', 'status', 'services_amount', 'service_code']);
+                    foreach ($rows as $row) {
+                        $data = [
+                            'invoice_id' => $row->invoice_id,
+                            'user_id' => $invoice['userid'],
+                            'nfe_id' => 'waiting',
+                            'status' => 'Waiting',
+                            'services_amount' => $row->services_amount,
+                            'environment' => 'waiting',
+                            'flow_status' => 'waiting',
+                            'pdf' => 'waiting',
+                            'created_at' => date('Y-m-d H:i:s'),
+                            'updated_at' => 'waiting',
+                            'rpsSerialNumber' => 'waiting',
+                            'service_code' => $row->service_code,
+                        ];
+                        $save_nfe = Capsule::table('gofasnfeio')->insert($data);
+                    }
                 } catch (\Exception $e) {
                     return $e->getMessage();
                 }
@@ -305,9 +325,11 @@ if (!function_exists('gnfe_issue_nfe')) {
         }
 
         if (gnfe_config('debug')) {
-            logModuleCall('gofas_nfeio', 'check_webhook', ['gnfe_webhook_id' => $gnfe_webhook_id, 'check_webhook' => $check_webhook, 'check_webhook_url' => $check_webhook['hooks']['url']], 'post', ['create_webhook' => $create_webhook, 'delete_webhook' => $delete_webhook, 'error' => $error], 'replaceVars');
+            logModuleCall('gofas_nfeio', 'check_webhook', $postfields, 'post', ['create_webhook' => $create_webhook, 'delete_webhook' => $delete_webhook, 'error' => $error], 'replaceVars');
         }
         $curl = curl_init();
+        logModuleCall('gofas_nfeio', 'teste', 'teste', '', '', 'replaceVars');
+
         curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices');
         curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
@@ -317,10 +339,8 @@ if (!function_exists('gnfe_issue_nfe')) {
         $response = curl_exec($curl);
         $info = curl_getinfo($curl);
         curl_close($curl);
-        if ($params['debug']) {
-            logModuleCall('gofas_nfeio', 'response', $response, '', '', 'replaceVars');
-            logModuleCall('gofas_nfeio', 'info', $info, '', '', 'replaceVars');
-        }
+        logModuleCall('gofas_nfeio', 'response', $response, '', '', 'replaceVars');
+        logModuleCall('gofas_nfeio', 'info', $info, '', '', 'replaceVars');
         return json_decode(json_encode(json_decode($response)));
     }
 }

@@ -14,7 +14,7 @@ foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsadm
     $gnfewhmcsadminurl = $gnfewhmcsadminurl_->value;
 }
 if ($_REQUEST['gnfe_create']) {
-    if ($nfe_for_invoice['status'] !== (string) 'Created' or $nfe_for_invoice['status'] !== (string) 'Issued') {
+    if ($nfe_for_invoice['status'] !== (string) 'Created' && $nfe_for_invoice['status'] !== (string) 'Issued' && $nfe_for_invoice['status'] !== (string) 'Waiting') {
         foreach ($invoice['items']['item'] as $value) {
             $line_items[] = $value['description']; //substr( $value['description'],  0, 100);
         }
