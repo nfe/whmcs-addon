@@ -194,7 +194,7 @@ if (!function_exists('gnfe_queue_nfe')) {
             ];
             $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
 
-            if ($nfe_for_invoice['status'] == 'Cancelled' || $nfe_for_invoice['status'] == 'Cancelled') {
+            if ($nfe_for_invoice['status'] == 'Cancelled' || $nfe_for_invoice['status'] == 'Error') {
                 $create_all = false;
             }
 
