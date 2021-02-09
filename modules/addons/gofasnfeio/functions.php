@@ -557,10 +557,9 @@ if (!function_exists('gnfe_update_rps')) {
 }
 if (!function_exists('gnfe_get_local_nfe')) {
     function gnfe_get_local_nfe($invoice_id, $values) {
-        foreach (Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->get($values) as $key => $value) {
+        foreach (Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->orderBy('id', 'desc')->get($values) as $key => $value) {
             $nfe_for_invoice[$key] = json_decode(json_encode($value), true);
         }
-
         return $nfe_for_invoice['0'];
     }
 }

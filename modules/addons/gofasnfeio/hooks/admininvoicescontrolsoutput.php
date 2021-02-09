@@ -116,10 +116,10 @@ if ((string) $invoice['status'] === (string) 'Draft') {
 }
 echo '<div style="text-align: left; padding: 8px 0px; max-width: 445px; border-top: 1px solid #ccc; margin: 8px 0px;">';
 echo '<div style="margin: 0px 0px 5px 0px;"><strong>Nota Fiscal:</strong>' . $invoice_nfe . '</div>';
-echo '<a ' . $disabled['a'] . ' style="margin-right: 4px;" href="' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_create=yes" class="btn btn-primary" id="gnfe_generate" title="Emitir Nota Fiscal">Emitir NFE</a>';
-echo '<a ' . $disabled['b'] . ' style="margin-right: 4px;" href="' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_open=' . $vars['invoiceid'] . '" class="btn btn-success" id="gnfe_view" title="Ver Nota Fiscal">Visualizar NFE</a>';
-echo '<a ' . $disabled['c'] . ' style="margin-right: 4px;" href="' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_cancel=' . $nfe_for_invoice['nfe_id'] . '" class="btn btn-danger" id="gnfe_cancel" title="Cancelar Nota Fiscal">Cancelar NFE</a>';
-echo '<a ' . $disabled['d'] . ' href="' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_email=' . $nfe_for_invoice['nfe_id'] . '" class="btn btn-primary" id="gnfe_email" title="Enviar Nota Fiscal por Email">Enviar Email</a>';
+echo '<button ' . $disabled['a'] . ' style="margin-right: 4px;" onclick="location.href=`' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_create=yes`" class="btn btn-primary" id="gnfe_generate" title="Emitir Nota Fiscal">Emitir NFE</button>';
+echo '<button ' . $disabled['b'] . ' style="margin-right: 4px;" onclick="location.href=`' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_open=' . $vars['invoiceid'] . '`" class="btn btn-success" id="gnfe_view" title="Ver Nota Fiscal">Visualizar NFE</button>';
+echo '<button ' . $disabled['c'] . ' style="margin-right: 4px;" onclick="location.href=`' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_cancel=' . $nfe_for_invoice['nfe_id'] . '`" class="btn btn-danger" id="gnfe_cancel" title="Cancelar Nota Fiscal">Cancelar NFE</button>';
+echo '<button ' . $disabled['d'] . ' onclick="location.href=`' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_email=' . $nfe_for_invoice['nfe_id'] . '`" class="btn btn-primary" id="gnfe_email" title="Enviar Nota Fiscal por Email">Enviar Email</button>';
 echo '<div>';
 
 if ($_REQUEST['gnfe_error']) {
