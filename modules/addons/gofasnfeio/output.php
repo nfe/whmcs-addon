@@ -137,7 +137,7 @@ if (!function_exists('gofasnfeio_output')) {
         }
         if ((int) $nfes_total > 0) {
             echo '
-            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=code_product" class="btn btn-primary" id="gnfe_cancel" title="código dos Produtos">código dos Produtos</a>
+            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=code_product" class="btn btn-primary" id="gnfe_cancel" title="Código de Serviços">Código de Serviços</a>
 		<div><h3>Listagem de notas fiscais</h3>' . $nfes_total . ' Itens encontrados.<br>Exibindo de ' . $nfes_from . ' a ' . $nfes_to . '. Página ' . $nfes_page . ' de ' . $nfes_pages . '</div>
 		<div class="tab-content admin-tabs">
 					<table id="sortabletbl0" class="datatable" width="100%" border="0" cellspacing="1" cellpadding="3">
