@@ -4,20 +4,28 @@ Automatize a emissão de notas fiscais no WHMCS com a [NFE.io](https://nfe.io "N
 A [NFE.io](https://nfe.io "NFE.io") é um sistema de emissão de notas fiscais que automatiza a comunicação com as prefeituras. Com a [NFE.io](https://nfe.io "NFE.io") você se livra de diversas tarefas chatas, melhorando o desempenho do seu negócio. E melhor, você economiza tempo e dinheiro.
 
 ------------
-## CAPTURAS DE TELA
-Clique nas imagens para ampliar 
+## TELAS DO MÓDULO
+
+*Configurações*
+Após instalar entre no Admin do WHMC e acess as configurações. Dentro das opções de configurações pesquise por: "Módulos Addon". //whmcsdomain/admin/configaddonmods.php
+Procure pelo módulo NFE.io, Para conseguir configura-lo é necessário Ativar o módulo. Após a ativação do móudlo, o botão "Configure" ficará disponível, clique no botão para acessar as configurações do módulo. Para informações detalhada de como configurar cada campo veja infos no link: https://github.com/LinkNacional/whmcs-addon/tree/issues#configura%C3%A7%C3%B5es-do-m%C3%B3dulo
 
 [![](http://whmcs.linknacional.com.br/prints/img1.png)](http://whmcs.linknacional.com.br/prints/img1.png)
-*Configurações*
+
+*Listagem de notas fiscais*
+O módulo conta com uma listagem de notas fiscais, para acessar a ferramenta, dentro do admin do WHMCS no menu superior passe o mouse na opção "Addons" e clique na opção: NFE.io, irá visualizar uma listagem da situação das notas fiscais.
+Caso a opção não esteja disponível no menu, verifique as configurações do módulo a opção "Controle de Acesso" e veja se tem permissão para visualizar o recurso.
 
 [![Listagem de notas fiscais](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/05/nfe_list_screenshot.png "Listagem de notas fiscais")](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/05/nfe_list_screenshot.png "Listagem de notas fiscais")
-*Listagem de notas fiscais*
 
+*Configurações de Códigos de serviços*
+Dentro da listagem de nota fiscal, possui a opção de listar e cadastrar os códigos de serviços. Se algum dos serviços ofertados possuir código de serviço diferente do definido nas configurações, esse é o local para definição do código do serviço individualmente.
 [![Listagem de notas fiscais](http://whmcs.linknacional.com.br/prints/img2.png "Listagem de notas fiscais")](http://whmcs.linknacional.com.br/prints/img2.png "Listagem de notas fiscais")
-*Configurações de Codigos de serviços*
 
+*Visualização de Fatura via admin*
+Dentro do admin do WHMCS é possível gerenciar a nota fiscal manualmente.
 [![Ações na edição da fatura](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/05/nfe_invoice_screenshot.png "Ações na edição da fatura")](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/05/nfe_invoice_screenshot.png "Ações na edição da fatura")
-*Ações na edição da fatura*
+
 
 ## PRINCIPAIS FUNCIONALIDADES
 ✓ Emite notas fiscais automaticamente, quando a fatura é publicada, ou quando a fatura é paga.
@@ -64,14 +72,31 @@ Clique nas imagens para ampliar
 ## CONFIGURAÇÕES DO MÓDULO
 1. API Key: (Obrigatório) Chave de acesso privada gerado na sua conta NFE.io, necessária para a autenticação das chamadas à API (Obter Api Key);
 2. ID da Empresa: (Obrigatório) Nesse campo você deve indicar o ID da empresa ao qual serão associadas as notas fiscais geradas pelo WHMCS. (Obter ID da empresa);
-3. Código de Serviço: (Obrigatório) O código de serviço varia de acordo com a categoria de tributação do negócio. Saiba mais sobre o código de serviço aqui;
+3. Código de Serviço Principal: (Obrigatório) O código de serviço varia de acordo com a categoria de tributação do negócio. Saiba mais sobre o código de serviço aqui;
 4. Série do RPS: Valor padrão `IO`. Saiba mais em https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/;
 5. Número do RPS: O número RPS da NFE mais recente gerada. Deixe em branco e o módulo irá preencher esse campo após a primeira emissão. Não altere o valor a menos que tenha certeza de como funciona essa opção. Saiba mais em https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/;
 6. Quando emitir NFE: Selecione se deseja que as notas fiscais sejam geradas quando a fatura é publicada ou quando a fatura é paga;
 7. Agendar Emissão: Número de dias após o pagamento da fatura que as notas devem ser emitidas. Preencher essa opção desativa a opção anterior;
 8. Cancelar NFE: Se essa opção está ativada, o módulo cancela a nota fiscal quando a fatura cancelada;
 9. Debug: Marque essa opção para salvar informações de diagnóstico no Log de Módulo do WHMCS;
-10. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
+
+10. Inscrição Municipal: Marque o campo personalizado definido para ser a Inscrição Municipal.
+11. Aplicar imposto automaticamente em todos os produtos: Esta opção define que todos os serviços terão impostos aplicados, caso contrário a aplicação de imposto é selecionada de forma individual por serviço.
+12. O que deve aparecer nos detalhes da fatura?: Define o que vai aparecer nos detalhes das NFE's emitidas.
+13. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
+
+## CONFIGURAÇÕES DOS PRODUTOS E SERVIÇOS
+Os produtos podem ter configurações de código de serviço individuais:
+
+Em Addons>NFE.oi>código dos Produtos é possivel configurar um código de serviço para cada produto/serviço cadastrado.
+
+***o código individual vai ter prioridade sobre o definido nas configurações do módulo.***
+
+E também há configurações de aplicação do imposto:
+
+Nas configurações do módulo como foi explicado anteriormente, há a opção de aplicar imposto automaticamente em todos os produtos, onde se marcados sim, todos os produtos/serviços cadastrados vão ser marcados para aplicar os impostos.
+
+se desejar fazer essas configurações individualmente pode entrar em configurações>Produtos/Serviços e escolher o produto para configurar e marcar a caixa Aplicar Imposto.
 
 ## LINK DA NOTA EM PDF E XML
 Para inserir um link da nota fiscal do PDF e XML, edite o arquivo viewinvoice.tpl da pasta do template do WHMCS, utilize o exemplo abaixo:
