@@ -5,12 +5,11 @@ if (!defined('WHMCS')) {
 }
 use WHMCS\Database\Capsule;
 
-require_once __DIR__.'/functions.php';
+require_once __DIR__ . '/functions.php';
 
 if (!function_exists('gofasnfeio_config')) {
     if (!function_exists('gnfe_customfields_dropdow')) {
-        function gnfe_customfields_dropdow()
-        {
+        function gnfe_customfields_dropdow() {
             $customfields_array = [];
             foreach (Capsule::table('tblcustomfields')->where('type', '=', 'client')->get(['fieldname', 'id']) as $customfield) {
                 $customfields_array[] = $customfield;
@@ -30,9 +29,8 @@ if (!function_exists('gofasnfeio_config')) {
             return $dropFieldArray;
         }
     }
-    function gofasnfeio_config()
-    {
-        $module_version = '1.2.7';
+    function gofasnfeio_config() {
+        $module_version = '1.2.8';
         $module_version_int = (int) preg_replace('/[^0-9]/', '', $module_version);
 
         /// REMOVER VERIFICAÇÃO APÓS VERSÃO 2.0
@@ -46,13 +44,13 @@ if (!function_exists('gofasnfeio_config')) {
             }
         }////// FIM VERIFICAÇÃO
 
-        $actual_link = (isset($_SERVER['HTTPS']) ? 'https' : 'http')."://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+        $actual_link = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . "://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
         if (stripos($actual_link, '/configaddonmods.php')) {
-            $whmcs_url__ = str_replace('\\', '/', (isset($_SERVER['HTTPS']) ? 'https://' : 'http://').$_SERVER['HTTP_HOST'].substr(getcwd(), strlen($_SERVER['DOCUMENT_ROOT'])));
-            $admin_url = $whmcs_url__.'/';
+            $whmcs_url__ = str_replace('\\', '/', (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . substr(getcwd(), strlen($_SERVER['DOCUMENT_ROOT'])));
+            $admin_url = $whmcs_url__ . '/';
             $vtokens = explode('/', $actual_link);
-            $whmcs_admin_path = '/'.$vtokens[sizeof($vtokens) - 2].'/';
-            $whmcs_url = str_replace($whmcs_admin_path, '', $admin_url).'/';
+            $whmcs_admin_path = '/' . $vtokens[sizeof($vtokens) - 2] . '/';
+            $whmcs_url = str_replace($whmcs_admin_path, '', $admin_url) . '/';
             foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsurl')->get(['value', 'created_at']) as $gnfewhmcsurl_) {
                 $gnfewhmcsurl = $gnfewhmcsurl_->value;
                 $gnfewhmcsurl_created_at = $gnfewhmcsurl_->created_at;
@@ -123,8 +121,7 @@ if (!function_exists('gofasnfeio_config')) {
         $available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Nova versão disponível no <a style="color:#CC0000;text-decoration:underline;" href="https://github.com/nfe/whmcs-addon/releases" target="_blank">Github</a></p>';
 
         if (!function_exists('gnfe_verifyInstall')) {
-            function gnfe_verifyInstall()
-            {
+            function gnfe_verifyInstall() {
                 if (!Capsule::schema()->hasTable('gofasnfeio')) {
                     try {
                         Capsule::schema()->create('gofasnfeio', function ($table) {
@@ -171,11 +168,11 @@ if (!function_exists('gofasnfeio_config')) {
         create_table_product_code();
         set_code_service_camp_gofasnfeio();
         set_custom_field_ini_date();
-        
+
         $intro = ['intro' => [
             'FriendlyName' => '',
-            'Description' => '<h4 style="padding-top: 5px;">Módulo Nota Fiscal NFE.io para WHMCS v'.$module_version.'</h4>
-					'.$available_update_message.'',
+            'Description' => '<h4 style="padding-top: 5px;">Módulo Nota Fiscal NFE.io para WHMCS v' . $module_version . '</h4>
+					' . $available_update_message . '',
         ]];
         $api_key = ['api_key' => [
             'FriendlyName' => 'API Key',
@@ -232,7 +229,7 @@ if (!function_exists('gofasnfeio_config')) {
             'FriendlyName' => 'Debug',
             'Type' => 'yesno',
             'Default' => 'yes',
-            'Description' => 'Marque essa opção para salvar informações de diagnóstico no <a target="_blank" style="text-decoration:underline;" href="'.$admin_url.'systemmodulelog.php">Log de Módulo</a>',
+            'Description' => 'Marque essa opção para salvar informações de diagnóstico no <a target="_blank" style="text-decoration:underline;" href="' . $admin_url . 'systemmodulelog.php">Log de Módulo</a>',
         ]];
         $insc_municipal = ['insc_municipal' => [
             'FriendlyName' => 'Inscrição Municipal',
@@ -253,14 +250,14 @@ if (!function_exists('gofasnfeio_config')) {
         ]];
         $footer = ['footer' => [
             'FriendlyName' => '',
-            'Description' => '&copy; '.date('Y').' <a target="_blank" title="Para suporte utilize o github" href="https://github.com/nfe/whmcs-addon/issues">Suporte módulo</a>',
+            'Description' => '&copy; ' . date('Y') . ' <a target="_blank" title="Para suporte utilize o github" href="https://github.com/nfe/whmcs-addon/issues">Suporte módulo</a>',
         ]];
         $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $rps_number, $issue_note, $issue_note_after, $gnfe_email_nfe_config, $cancel_invoice_cancel_nfe, $debug, $insc_municipal, $tax, $invoiceDetails, $footer);
         $configarray = [
             'name' => 'NFE.io',
             'description' => 'Módulo Nota Fiscal NFE.io para WHMCS',
             'version' => $module_version,
-            'author' => '<a title="NFE.io Nota Fiscal WHMCS" href="https://github.com/nfe/whmcs-addon/" target="_blank" ><img src="'.$whmcs_url.'modules/addons/gofasnfeio/lib/logo.png"></a>',
+            'author' => '<a title="NFE.io Nota Fiscal WHMCS" href="https://github.com/nfe/whmcs-addon/" target="_blank" ><img src="' . $whmcs_url . 'modules/addons/gofasnfeio/lib/logo.png"></a>',
             'fields' => $fields,
         ];
 
