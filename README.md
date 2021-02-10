@@ -80,15 +80,15 @@ Clique nas imagens para ampliar
 ## CONFIGURAÇÕES DOS PRODUTOS E SERVIÇOS
 Os produtos podem ter configurações de código de serviço individuais:
 
-    Em Addons>NFE.oi>código dos Produtos é possivel configurar um código de serviço para cada produto/serviço cadastrado.
+Em Addons>NFE.oi>código dos Produtos é possivel configurar um código de serviço para cada produto/serviço cadastrado.
 
 ***o código individual vai ter prioridade sobre o definido nas configurações do módulo.***
 
 E também há configurações de aplicação do imposto:
 
-    Nas configurações do módulo como foi explicado anteriormente, há a opção de aplicar imposto automaticamente em todos os produtos, onde se marcados sim, todos os produtos/serviços cadastrados vão ser marcados para aplicar os impostos.
+Nas configurações do módulo como foi explicado anteriormente, há a opção de aplicar imposto automaticamente em todos os produtos, onde se marcados sim, todos os produtos/serviços cadastrados vão ser marcados para aplicar os impostos.
 
-    se desejar fazer essas configurações individualmente pode entrar em configurações>Produtos/Serviços e escolher o produto para configurar e marcar a caixa Aplicar Imposto.
+se desejar fazer essas configurações individualmente pode entrar em configurações>Produtos/Serviços e escolher o produto para configurar e marcar a caixa Aplicar Imposto.
 
 ## LINK DA NOTA EM PDF E XML
 Para inserir um link da nota fiscal do PDF e XML, edite o arquivo viewinvoice.tpl da pasta do template do WHMCS, utilize o exemplo abaixo:
