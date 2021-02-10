@@ -7,7 +7,7 @@ A [NFE.io](https://nfe.io "NFE.io") é um sistema de emissão de notas fiscais q
 ## CAPTURAS DE TELA
 Clique nas imagens para ampliar 
 
-[![](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/08/26153535/config_screenshot.png)](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/08/26153535/config_screenshot.png)
+[![](https://github.com/LinkNacional/whmcs-addon/tree/issues/images_readme/img1.png)](https://github.com/LinkNacional/whmcs-addon/tree/issues/images_readme/img1.png)
 *Configurações*
 
 [![Listagem de notas fiscais](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/05/nfe_list_screenshot.png "Listagem de notas fiscais")](https://s3.amazonaws.com/uploads.gofas.me/wp-content/uploads/2020/05/nfe_list_screenshot.png "Listagem de notas fiscais")
