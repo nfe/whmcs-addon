@@ -64,14 +64,31 @@ Clique nas imagens para ampliar
 ## CONFIGURAÇÕES DO MÓDULO
 1. API Key: (Obrigatório) Chave de acesso privada gerado na sua conta NFE.io, necessária para a autenticação das chamadas à API (Obter Api Key);
 2. ID da Empresa: (Obrigatório) Nesse campo você deve indicar o ID da empresa ao qual serão associadas as notas fiscais geradas pelo WHMCS. (Obter ID da empresa);
-3. Código de Serviço: (Obrigatório) O código de serviço varia de acordo com a categoria de tributação do negócio. Saiba mais sobre o código de serviço aqui;
+3. Código de Serviço Principal: (Obrigatório) O código de serviço varia de acordo com a categoria de tributação do negócio. Saiba mais sobre o código de serviço aqui;
 4. Série do RPS: Valor padrão `IO`. Saiba mais em https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/;
 5. Número do RPS: O número RPS da NFE mais recente gerada. Deixe em branco e o módulo irá preencher esse campo após a primeira emissão. Não altere o valor a menos que tenha certeza de como funciona essa opção. Saiba mais em https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/;
 6. Quando emitir NFE: Selecione se deseja que as notas fiscais sejam geradas quando a fatura é publicada ou quando a fatura é paga;
 7. Agendar Emissão: Número de dias após o pagamento da fatura que as notas devem ser emitidas. Preencher essa opção desativa a opção anterior;
 8. Cancelar NFE: Se essa opção está ativada, o módulo cancela a nota fiscal quando a fatura cancelada;
 9. Debug: Marque essa opção para salvar informações de diagnóstico no Log de Módulo do WHMCS;
-10. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
+
+10. Inscrição Municipal: Marque o campo personalizado definido para ser a Inscrição Municipal.
+11. Aplicar imposto automaticamente em todos os produtos: Esta opção define a configuração de todos os produtos para serem aplicados impostos.
+12. O que deve aparecer nos detalhes da fatura?: Define o que vai aparecer nos detalhes das NFE's emitidas.
+13. Controle de Acesso: Escolha os grupos de administradores ou operadores que terão permissão para acessar a lista de faturas gerada pelo módulo no menu Addons > Gofas NFE.io.
+
+## CONFIGURAÇÕES DOS PRODUTOS E SERVIÇOS
+Os produtos podem ter configurações de código de serviço individuais:
+
+    Em Addons>NFE.oi>código dos Produtos é possivel configurar um código de serviço para cada produto/serviço cadastrado.
+
+***o código individual vai ter prioridade sobre o definido nas configurações do módulo.***
+
+E também há configurações de aplicação do imposto:
+
+    Nas configurações do módulo como foi explicado anteriormente, há a opção de aplicar imposto automaticamente em todos os produtos, onde se marcados sim, todos os produtos/serviços cadastrados vão ser marcados para aplicar os impostos.
+
+    se desejar fazer essas configurações individualmente pode entrar em configurações>Produtos/Serviços e escolher o produto para configurar e marcar a caixa Aplicar Imposto.
 
 ## LINK DA NOTA EM PDF E XML
 Para inserir um link da nota fiscal do PDF e XML, edite o arquivo viewinvoice.tpl da pasta do template do WHMCS, utilize o exemplo abaixo:
