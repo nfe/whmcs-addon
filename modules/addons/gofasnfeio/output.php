@@ -128,10 +128,12 @@ if (!function_exists('gofasnfeio_output')) {
 								<td>' . number_format($value->services_amount, 2, ',', '.') . '</td>
 								<td>' . $status . '</td>
 								<td style="width: 420px;">
-								<a ' . $disabled['a'] . ' href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&invoice_id=' . $value->invoice_id . '&gnfe_create=yes" class="btn btn-primary" id="gnfe_generate" title="Emitir Nota Fiscal">Emitir Nova</a>
-								<a ' . $disabled['b'] . ' target="_blank" href="https://app.nfe.io/companies/' . $params['company_id'] . '/service-invoices/' . $value->nfe_id . '" title="Ver Nota Fiscal" class="btn btn-success">Visualizar</a>
-								<a ' . $disabled['c'] . ' href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&invoice_id=' . $value->invoice_id . '&gnfe_cancel=' . $value->nfe_id . '&services_amount=' . $value->services_amount . '&environment=' . $value->environment . '&flow_status=' . $value->flow_status . '&user_id=' . $value->user_id . '&created_at=' . $value->created_at . '" class="btn btn-danger" id="gnfe_cancel" title="Cancelar Nota Fiscal">Cancelar</a>
-								<a ' . $disabled['d'] . ' href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&gnfe_email=' . $value->nfe_id . '" class="btn btn-primary" id="gnfe_cancel" title="Enviar Nota Fiscal por Email">Enviar por Email</a></td></tr>';
+
+
+                                <button ' . $disabled['a'] . ' onclick="location.href=`' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&invoice_id=' . $value->invoice_id . '&gnfe_create=yes`" class="btn btn-primary" id="gnfe_generate" title="Emitir Nota Fiscal">Emitir NFE</button>
+                                <button ' . $disabled['b'] . 'target="_blank" onclick="location.href=`https://app.nfe.io/companies/' . $params['company_id'] . '/service-invoices/' . $value->nfe_id . '`" class="btn btn-success" id="gnfe_view" title="Ver Nota Fiscal">Visualizar</button>
+                                <button ' . $disabled['c'] . ' onclick="location.href=`' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&invoice_id=' . $value->invoice_id . '&gnfe_cancel=' . $value->nfe_id . '&services_amount=' . $value->services_amount . '&environment=' . $value->environment . '&flow_status=' . $value->flow_status . '&user_id=' . $value->user_id . '&created_at=' . $value->created_at . '`" class="btn btn-danger" id="gnfe_cancel" title="Cancelar Nota Fiscal">Cancelar NFE</button>
+                                <button ' . $disabled['d'] . ' onclick="location.href=`' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&gnfe_email=' . $value->nfe_id . '`" class="btn btn-primary" id="gnfe_email" title="Enviar Nota Fiscal por Email">Enviar Email</button>';
         }
         if ((int) $nfes_total > 0) {
             echo '
