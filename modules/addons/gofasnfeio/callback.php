@@ -44,6 +44,10 @@ if ($post) {
             $e->getMessage();
         }
     }
+    $invoice_id = Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->get(['invoice_id'])[0];
+    if ($post['status'] == 'Error') {
+        save_error($invoice_id->invoice_id,$post['flowMessage']);
+    }
     if ($params['debug']) {
         logModuleCall('gofas_nfeio', 'receive_callback', ['post' => $post], 'post', ['nfe_local' => $nfe], 'replaceVars');
     }

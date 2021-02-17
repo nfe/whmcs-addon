@@ -300,8 +300,6 @@ if (!function_exists('gnfe_issue_nfe')) {
             logModuleCall('gofas_nfeio', 'check_webhook', $postfields, 'post', ['create_webhook' => $create_webhook, 'delete_webhook' => $delete_webhook, 'error' => $error], 'replaceVars');
         }
         $curl = curl_init();
-        logModuleCall('gofas_nfeio', 'teste', 'teste', '', '', 'replaceVars');
-
         curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices');
         curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
@@ -311,8 +309,6 @@ if (!function_exists('gnfe_issue_nfe')) {
         $response = curl_exec($curl);
         $info = curl_getinfo($curl);
         curl_close($curl);
-        logModuleCall('gofas_nfeio', 'response', $response, '', '', 'replaceVars');
-        logModuleCall('gofas_nfeio', 'info', $info, '', '', 'replaceVars');
         return json_decode(json_encode(json_decode($response)));
     }
 }
@@ -585,7 +581,7 @@ if (!function_exists('gnfe_create_webhook')) {
             curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: aplication/json', 'Authorization: ' . gnfe_config('api_key')]);
             curl_setopt($curl, CURLOPT_TIMEOUT, 30);
             curl_setopt($curl, CURLOPT_POST, 1);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(['url' => $url, 'contentType' => 'application/json', 'secret' => (string)time(), 'events' => ['issue', 'cancel'], 'status' => 'Active',  ]));
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(['url' => $url, 'contentType' => 'application/json', 'secret' => (string)time(), 'events' => ['issue', 'cancel', 'WaitingCalculateTaxes'], 'status' => 'Active',  ]));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             $response = curl_exec($curl);
             logModuleCall('gofas_nfeio', 'aftercronjob', curl_getinfo($curl), '', '', 'replaceVars');
@@ -791,6 +787,18 @@ if (!function_exists('set_code_service_camp_gofasnfeio')) {
                 }
             }
         }
+        if (!Capsule::schema()->hasColumn('gofasnfeio', 'error')) {
+            $pdo = Capsule::connection()->getPdo();
+            $pdo->beginTransaction();
+
+            try {
+                $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD error TEXT;');
+                $statement->execute();
+                $pdo->commit();
+            } catch (\Exception $e) {
+                $pdo->rollBack();
+            }
+        }
     }
 }
 
@@ -816,6 +824,20 @@ if (!function_exists('create_table_product_code')) {
         } catch (\Exception $e) {
             $pdo->rollBack();
             logModuleCall('gofas_nfeio', 'create_table_product_code error', $e, '', '', 'replaceVars');
+        }
+    }
+}
+
+if (!function_exists('save_error')) {
+    function save_error($invoice_id,$error) {
+        logModuleCall('gofas_nfeio', 'invoice_id', $invoice_id, '', '', 'replaceVars');
+        logModuleCall('gofas_nfeio', 'error', $error, '', '', 'replaceVars');
+
+        try {
+            Capsule::table('gofasnfeio')->where('invoice_id','=',(int)$invoice_id)->update(['error' => (string)$error]);
+        } catch (\Exception $e) {
+            $e->getMessage();
+            logModuleCall('gofas_nfeio', 'save_error error', $e->getMessage(), '', '', 'replaceVars');
         }
     }
 }
