@@ -29,9 +29,31 @@ if (!function_exists('gofasnfeio_config')) {
             return $dropFieldArray;
         }
     }
+    function gnfe_verify_module_updates() {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://api.github.com/repos/nfe/whmcs-addon/releases');
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-type: application/json', 'User-Agent: whmcs_nfeio']);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
+        curl_setopt($curl, CURLOPT_TIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+        $response = curl_exec($curl);
+        curl_close($curl);
+        return json_decode($response)[0]->tag_name;
+    }
     function gofasnfeio_config() {
         $module_version = '1.2.8';
+
+        // Verify available updates
+        $available_update_ = gnfe_verify_module_updates();
         $module_version_int = (int) preg_replace('/[^0-9]/', '', $module_version);
+        $available_version_int = (int) preg_replace('/[^0-9]/', '', str_replace('v','',$available_update_));
+
+        if ($available_version_int > $module_version_int) {
+            $available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Nova versão disponível no <a style="color:#CC0000;text-decoration:underline;" href="https://github.com/nfe/whmcs-addon/releases" target="_blank">Github</a></p>';
+        } else {
+            $available_update_message = '<p style="font-size: 14px;color:green;"><i class="fas fa-check-square"></i> Você está executando a versão mais recente do módulo.</p>';
+        }
 
         /// REMOVER VERIFICAÇÃO APÓS VERSÃO 2.0
         $verificarEmail = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'gnfe_email_nfe_config')->count();
@@ -117,8 +139,6 @@ if (!function_exists('gofasnfeio_config')) {
                 }
             }
         }
-        // Verify available updates
-        $available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Nova versão disponível no <a style="color:#CC0000;text-decoration:underline;" href="https://github.com/nfe/whmcs-addon/releases" target="_blank">Github</a></p>';
 
         if (!function_exists('gnfe_verifyInstall')) {
             function gnfe_verifyInstall() {
