@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__.'/../../../init.php';
+require_once __DIR__ . '/../../../init.php';
 use WHMCS\Database\Capsule;
 
 $post = json_decode(file_get_contents('php://input'), true);
@@ -9,7 +9,7 @@ logModuleCall('gofas_nfeio', 'callback db', Capsule::table('gofasnfeio')->where(
 logModuleCall('gofas_nfeio', 'callback environment', $post['environment'], '', '', 'replaceVars');
 
 if ($post) {
-    require_once __DIR__.'/functions.php';
+    require_once __DIR__ . '/functions.php';
     if (Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count() == 0 || $post['environment'] != 'Production') {
         return '';
     }
@@ -53,7 +53,7 @@ if ($post) {
         $data = getTodaysDate(false);
         $dataAtual = toMySQLDate($data);
 
-        if ('Manualmente' !== $params['issue_note']) {
+        if ($params['issue_note'] !== 'Manualmente') {
             $getQuery = Capsule::table('tblinvoices')->whereBetween('date', [$params['initial_date'], $dataAtual])->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
         } else {
             $getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
@@ -86,9 +86,9 @@ if ($post) {
                 $rps_number = 0;
             }
 
-            if (2 == $customer['doc_type']) {
+            if ($customer['doc_type'] == 2) {
                 $name = $client['companyname'];
-            } elseif (1 == $customer['doc_type'] || 'CPF e/ou CNPJ ausente.' == $customer || !$customer['doc_type']) {
+            } elseif ($customer['doc_type'] == 1 || $customer == 'CPF e/ou CNPJ ausente.' || !$customer['doc_type']) {
                 $name = $client['fullname'];
             }
 
@@ -99,8 +99,8 @@ if ($post) {
             foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value']) as $gnfewhmcsadminurl) {
                 $gnfewhmcsadminurl = $gnfewhmcsadminurl->value;
             }
-            $desc = 'Nota referente a fatura #'.$waiting->invoice_id.'  '.$gnfewhmcsadminurl.'viewinvoice.php?id='.$waiting->invoice_id.'     ';
-            if (0 == !strlen($customer['insc_municipal'])) {
+            $desc = 'Nota referente a fatura #' . $waiting->invoice_id . '  ' . $gnfewhmcsadminurl . 'viewinvoice.php?id=' . $waiting->invoice_id . '     ';
+            if (!strlen($customer['insc_municipal'] == 0)) {
                 $postfields = [
                     'cityServiceCode' => $service_code,
                     'description' => $desc,
