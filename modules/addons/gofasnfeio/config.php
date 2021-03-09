@@ -42,17 +42,17 @@ if (!function_exists('gofasnfeio_config')) {
         return json_decode($response)[0]->tag_name;
     }
     function gofasnfeio_config() {
-        $module_version = '1.2.8';
+        $module_version = '1.2.9';
 
         // Verify available updates
         $available_update_ = gnfe_verify_module_updates();
         $module_version_int = (int) preg_replace('/[^0-9]/', '', $module_version);
         $available_version_int = (int) preg_replace('/[^0-9]/', '', str_replace('v','',$available_update_));
 
-        if ($available_version_int > $module_version_int) {
-            $available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Nova versão disponível no <a style="color:#CC0000;text-decoration:underline;" href="https://github.com/nfe/whmcs-addon/releases" target="_blank">Github</a></p>';
-        } else {
+        if ($available_version_int <= $module_version_int) {
             $available_update_message = '<p style="font-size: 14px;color:green;"><i class="fas fa-check-square"></i> Você está executando a versão mais recente do módulo.</p>';
+        } else {
+            $available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Nova versão disponível no <a style="color:#CC0000;text-decoration:underline;" href="https://github.com/nfe/whmcs-addon/releases" target="_blank">Github</a></p>';
         }
 
         /// REMOVER VERIFICAÇÃO APÓS VERSÃO 2.0
