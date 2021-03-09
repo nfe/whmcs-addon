@@ -42,7 +42,7 @@ if (!function_exists('gofasnfeio_config')) {
         return json_decode($response)[0]->tag_name;
     }
     function gofasnfeio_config() {
-        $module_version = '1.2.7.1';
+        $module_version = '1.2.9';
 
         // Verify available updates
         $available_update_ = gnfe_verify_module_updates();
