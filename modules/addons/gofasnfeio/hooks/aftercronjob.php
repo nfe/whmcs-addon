@@ -6,7 +6,7 @@ if (!defined('WHMCS')) {
 use WHMCS\Database\Capsule;
 
 if ($params['debug']) {
-    logModuleCall('gofas_nfeio', 'check', 'check', '', 'replaceVars');
+    logModuleCall('gofas_nfeio', 'carregou', 'aftercronjob', '', 'replaceVars');
 }
 $params = gnfe_config();
 
@@ -20,10 +20,9 @@ $params = gnfe_config();
             $getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
         }
         if ($params['debug']) {
-            logModuleCall('gofas_nfeio', 'getQuery', json_decode($getQuery), '', 'replaceVars');
-            logModuleCall('gofas_nfeio', 'invoice_id', $waiting->invoice_id, '', 'replaceVars');
-            logModuleCall('gofas_nfeio', 'dataAtual', $dataAtual, '', 'replaceVars');
-            logModuleCall('gofas_nfeio', 'initial_date', $params['initial_date'], '', 'replaceVars');
+            logModuleCall('gofas_nfeio', 'getQuery', json_decode($getQuery), print_r($getQuery, true), 'getQuery');
+            logModuleCall('gofas_nfeio', 'invoice_id', $waiting->invoice_id, print_r($waiting, true), 'invoice_id');
+            logModuleCall('gofas_nfeio', 'dataInstalar', 'dataAtual: ' . $dataAtual, 'initial_date: '. $params['initial_date'], 'Data de instalação');
         }
 
         foreach ($getQuery as $invoices) {
@@ -140,14 +139,15 @@ $params = gnfe_config();
                 ];
             }
             if ($params['debug']) {
-                logModuleCall('gofas_nfeio', 'aftercronjob', $postfields, '', '', 'replaceVars');
-                save_remote_log($postfields,'aftercronjob');
+                logModuleCall('gofas_nfeio', 'postfields', print_r($postfields, true), print_r($postfields, true), '', 'postfields');
+                logModuleCall('gofas_nfeio', 'error nfe', print_r($waiting, true), print_r($nfe, true), '', 'waiting e nfe');
+                // save_remote_log($postfields,'aftercronjob');
             }
             $nfe = gnfe_issue_nfe($postfields);
-            if ($nfe->message) {
+            /*if ($nfe->message) {
                 save_error($waiting->invoice_id,$nfe->message);
                 $error .= $nfe->message;
-            }
+            }*/
             if (!$nfe->message) {
                 $gnfe_update_nfe = gnfe_update_nfe($nfe, $invoices->userid, $invoices->id, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $waiting->id);
                 if ($gnfe_update_nfe and 'success' !== $gnfe_update_nfe) {
@@ -161,6 +161,6 @@ $params = gnfe_config();
             }
         }
         if ($params['debug']) {
-            logModuleCall('gofas_nfeio', 'aftercronjob', ['$params' => $params, '$datepaid' => $datepaid, '$datepaid_to_issue' => $datepaid_to_issue], 'post', ['$processed_invoices' => $processed_invoices, '$nfe' => $nfe, 'error' => $error], 'replaceVars');
+            logModuleCall('gofas_nfeio', 'aftercronjob', ['$params' => $params, '$datepaid' => $datepaid, '$datepaid_to_issue' => $datepaid_to_issue], 'post', ['$processed_invoices' => $processed_invoices, '$nfe' => $nfe, 'error' => $error], 'DEBUG FINAL');
         }
     }
