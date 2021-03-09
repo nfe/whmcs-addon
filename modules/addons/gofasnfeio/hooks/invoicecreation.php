@@ -32,5 +32,6 @@ if (stripos($params['issue_note'], 'Gerada') && (string) $vars['status'] != 'Dra
     }
 }
 if ($params['debug']) {
+    save_remote_log($queue,'invoiceCreation');
     logModuleCall('gofas_nfeio', 'InvoiceCreation', ['vars' => $vars, 'gnfe_ibge' => gnfe_ibge(preg_replace('/[^0-9]/', '', $client['postcode'])), 'postifields' => $postifields], 'post', ['params' => $params, 'invoice' => $invoice, 'client' => $client, 'queue' => $queue, 'nfe_for_invoice' => $nfe_for_invoice, 'company' => $company], 'replaceVars');
 }

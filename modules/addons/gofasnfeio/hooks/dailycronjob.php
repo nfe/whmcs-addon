@@ -125,6 +125,7 @@ if ( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (
 
                     if ($params['debug']) {
                         logModuleCall('gofas_nfeio', 'dailycronjob', $postfields, '', '', 'replaceVars');
+                        save_remote_log($postfields,'dailycronjob');
                     }
                     $waiting = [];
                     foreach (Capsule::table('gofasnfeio')->where('status', '=', 'Waiting')->get(['invoice_id', 'status']) as $Waiting) {

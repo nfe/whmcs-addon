@@ -14,6 +14,8 @@ if ($params['cancel_invoice_cancel_nfe']) {
         }
     }
     if ($params['debug']) {
+        save_remote_log($delete_nfe,'invoiceCanceled');
+
         logModuleCall(
             'gofas_nfeio',
             'InvoiceCancelled',

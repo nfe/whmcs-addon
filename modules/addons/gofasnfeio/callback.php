@@ -5,9 +5,7 @@ use WHMCS\Database\Capsule;
 
 $post = json_decode(file_get_contents('php://input'), true);
 logModuleCall('gofas_nfeio', 'callback', $post, '', '', 'replaceVars');
-logModuleCall('gofas_nfeio', 'callback db', Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count(), '', '', 'replaceVars');
-logModuleCall('gofas_nfeio', 'callback environment', $post['environment'], '', '', 'replaceVars');
-
+save_remote_log($post,'callback');
 if ($post) {
     require_once __DIR__ . '/functions.php';
     if (Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count() == 0 || $post['environment'] != 'Production') {
@@ -46,6 +44,7 @@ if ($post) {
     }
     $invoice_id = Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->get(['invoice_id'])[0];
     if ($post['status'] == 'Error') {
+        save_error_remote_log('','',$post['flowMessage']);
         save_error($invoice_id->invoice_id,$post['flowMessage']);
     }
     if ($params['debug']) {

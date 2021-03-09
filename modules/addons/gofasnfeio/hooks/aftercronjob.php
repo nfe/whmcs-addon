@@ -139,9 +139,9 @@ $params = gnfe_config();
                     'rpsNumber' => (int) $rps_number + 1,
                 ];
             }
-
             if ($params['debug']) {
                 logModuleCall('gofas_nfeio', 'aftercronjob', $postfields, '', '', 'replaceVars');
+                save_remote_log($postfields,'aftercronjob');
             }
             $nfe = gnfe_issue_nfe($postfields);
             if ($nfe->message) {

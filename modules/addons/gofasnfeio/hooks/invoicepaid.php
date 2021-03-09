@@ -30,5 +30,6 @@ if (stripos($params['issue_note'], 'Paga') && $vars['status'] != 'Draft' && (!$p
     }
 }
 if ($params['debug']) {
+    save_remote_log($queue,'invoicePaid');
     logModuleCall('gofas_nfeio', 'InvoicePaid', ['vars' => $vars, 'gnfe_ibge' => gnfe_ibge(preg_replace('/[^0-9]/', '', $client['postcode']))], 'post', ['params' => $params, 'invoice' => $invoice, 'client' => $client, 'queue' => $queue, 'nfe_for_invoice' => $nfe_for_invoice], 'replaceVars');
 }
