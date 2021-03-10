@@ -9,10 +9,6 @@ $params = gnfe_config();
 $data = getTodaysDate(false);
 $dataAtual = toMySQLDate($data);
 
-if ($params['debug']) {
-    logModuleCall('gofas_nfeio', 'daily cron t', $params['issue_note_after'], '', 'replaceVars');
-    logModuleCall('gofas_nfeio', 'daily cron issue_note', $params['issue_note'], '', 'replaceVars');
-}
 if ( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (int) $params['issue_note_after'] > 0) {
     foreach (Capsule::table('tblinvoices')->whereBetween('date', [$params['initial_date'], $dataAtual])->where('status', '=', 'Paid')->get(['id', 'userid', 'datepaid', 'total']) as $invoices) {
         foreach (Capsule::table('gofasnfeio')->where('status', '=', 'Waiting')->where('invoice_id', '=', $invoices->id)->get(['id', 'invoice_id', 'service_code', 'monthly', 'services_amount']) as $nfeio) {
@@ -123,25 +119,18 @@ if ( $params['issue_note'] !== 'Manualmente' && $params['issue_note_after'] && (
                         ];
                     }
 
-                    if ($params['debug']) {
-                        logModuleCall('gofas_nfeio', 'dailycronjob', $postfields, '', '', 'replaceVars');
-                        save_remote_log($postfields,'dailycronjob');
-                    }
                     $waiting = [];
                     foreach (Capsule::table('gofasnfeio')->where('status', '=', 'Waiting')->get(['invoice_id', 'status']) as $Waiting) {
                         $waiting[] = $Waiting->invoice_id;
                     }
                     $queue = gnfe_queue_nfe_edit($invoices->id, $nfeio->id);
                     if ($queue !== 'success') {
-                        $error .= $queue;
-                    }
-                    if ($queue === 'success') {
+                        logModuleCall('gofas_nfeio', 'dailycronjob', ['invoice_id' => $invoices->id, 'nfeio_id' => $nfeio->id], $queue, 'ERROR', '');
+                    } else {
+                        logModuleCall('gofas_nfeio', 'dailycronjob', ['invoice_id' => $invoices->id, 'nfeio_id' => $nfeio->id], $queue, 'OK', '');
                     }
                 }
             }
         }
-    }
-    if ($params['debug']) {
-        logModuleCall('gofas_nfeio', 'dailycronjob', ['$params' => $params, '$datepaid' => $datepaid, '$datepaid_to_issue' => $datepaid_to_issue, 'gnfe_get_nfes' => gnfe_get_nfes()], 'post', ['processed_invoices' => $processed_invoices, 'queue' => $queue, 'error' => $error], 'replaceVars');
     }
 }

@@ -4,14 +4,11 @@ require_once __DIR__ . '/../../../init.php';
 use WHMCS\Database\Capsule;
 
 $post = json_decode(file_get_contents('php://input'), true);
-logModuleCall('gofas_nfeio', 'callback', $post, '', '', 'replaceVars');
-save_remote_log($post,'callback');
 if ($post) {
     require_once __DIR__ . '/functions.php';
     if (Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count() == 0 || $post['environment'] != 'Production') {
         return '';
     }
-
     $params = [];
     foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
         $params[$settings->setting] = $settings->value;
@@ -43,12 +40,11 @@ if ($post) {
         }
     }
     $invoice_id = Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->get(['invoice_id'])[0];
+
     if ($post['status'] == 'Error') {
-        save_error_remote_log('','',$post['flowMessage']);
-        save_error($invoice_id->invoice_id,$post['flowMessage']);
-    }
-    if ($params['debug']) {
-        logModuleCall('gofas_nfeio', 'receive_callback', ['post' => $post], 'post', ['nfe_local' => $nfe], 'replaceVars');
+        logModuleCall('gofas_nfeio', 'callback', '', $post, 'ERROR', '');
+    } else {
+        logModuleCall('gofas_nfeio', 'callback', '', $post, 'OK', '');
     }
 
     foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->take(1)->get(['id', 'invoice_id', 'service_code', 'services_amount']) as $waiting) {
@@ -158,10 +154,6 @@ if ($post) {
                 ];
             }
 
-            if ($params['debug']) {
-                logModuleCall('gofas_nfeio', 'callback', $postfields, '', '', 'replaceVars');
-            }
-
             $nfe = gnfe_issue_nfe($postfields);
             if ($nfe->message) {
                 $error .= $nfe->message;
@@ -176,9 +168,6 @@ if ($post) {
                     $error = $update_rps;
                 }
             }
-        }
-        if ($params['debug']) {
-            logModuleCall('gofas_nfeio', 'after_receive_callback', ['$params' => $params, '$datepaid' => $datepaid, '$datepaid_to_issue' => $datepaid_to_issue], 'post', ['$processed_invoices' => $processed_invoices, '$nfe' => $nfe, 'error' => $error], 'replaceVars');
         }
     }
 }

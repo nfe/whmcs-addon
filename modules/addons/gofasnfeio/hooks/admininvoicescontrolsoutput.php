@@ -21,12 +21,14 @@ if ($_REQUEST['gnfe_create']) {
         $customer = gnfe_customer($invoice['userid'], $client);
         $queue = gnfe_queue_nfe($vars['invoiceid'], true);
         if ($queue !== 'success') {
+            logModuleCall('gofas_nfeio', 'admininvoicecontorloutput - gnfe_create',$vars['invoiceid'], $queue, 'ERROR', '');
             header_remove();
             header('Location: ' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_error=Erro ao criar nota fiscal: ' . $queue);
 
             exit;
         }
         if ($queue === 'success') {
+            logModuleCall('gofas_nfeio', 'admininvoicecontorloutput - gnfe_create',$vars['invoiceid'], $queue, 'OK', '');
             $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #5cb85c;color: #ffffff;padding: 5px;text-align: center;">Nota Fiscal enviada para processamento</div>';
             header_remove();
             header('Location: ' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_message=' . base64_encode(urlencode($message)));
@@ -47,6 +49,7 @@ if ($_REQUEST['gnfe_cancel']) {
     foreach (Capsule::table('gofasnfeio')->where('invoice_id', '=', $_REQUEST['id'])->get(['id', 'nfe_id']) as $nfe) {
         $delete_nfe = gnfe_delete_nfe($nfe->nfe_id);
         if ($delete_nfe->message) {
+            logModuleCall('gofas_nfeio', 'admininvoicecontorloutput - gnfe_cancel',$nfe->nfe_id, $delete_nfe, 'ERROR', '');
             $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">' . $delete_nfe->message . '</div>';
             header_remove();
             header('Location: ' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_message=' . base64_encode(urlencode($message)));
@@ -55,6 +58,7 @@ if ($_REQUEST['gnfe_cancel']) {
         }
     }
     if (!$delete_nfe->message) {
+        logModuleCall('gofas_nfeio', 'admininvoicecontorloutput - gnfe_cancel',$nfe->nfe_id, $delete_nfe, 'OK', '');
         $gnfe_update_nfe = gnfe_update_nfe((object) ['id' => $nfe_for_invoice['nfe_id'], 'status' => 'Cancelled', 'servicesAmount' => $nfe_for_invoice['services_amount'], 'environment' => $nfe_for_invoice['environment'], 'flow_status' => $nfe_for_invoice['flow_status']], $nfe_for_invoice['user_id'], $vars['invoiceid'], 'n/a', $nfe_for_invoice['created_at'], date('Y-m-d H:i:s'));
         $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #5cb85c;color: #ffffff;padding: 5px;text-align: center;">Nota Fiscal Cancelada com Sucesso</div>';
         header_remove();
@@ -67,6 +71,7 @@ if ($_REQUEST['gnfe_email']) {
     foreach (Capsule::table('gofasnfeio')->where('invoice_id', '=', $_REQUEST['id'])->get(['id', 'nfe_id']) as $nfe) {
         $gnfe_email = gnfe_email_nfe($_REQUEST['gnfe_email']);
         if (!$gnfe_email->message) {
+            logModuleCall('gofas_nfeio', 'admininvoicecontorloutput - gnfe_email',$_REQUEST['gnfe_email'], $gnfe_email, 'OK', '');
             $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #5cb85c;color: #ffffff;padding: 5px;text-align: center;">Email Enviado com Sucesso</div>';
             header_remove();
             header('Location: ' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_message=' . base64_encode(urlencode($message)));
@@ -75,6 +80,7 @@ if ($_REQUEST['gnfe_email']) {
         }
     }
     if ($gnfe_email->message) {
+        logModuleCall('gofas_nfeio', 'admininvoicecontorloutput - gnfe_email',$_REQUEST['gnfe_email'], $gnfe_email, 'ERROR', '');
         $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">' . $gnfe_email->message . '</div>';
         header_remove();
         header('Location: ' . $gnfewhmcsadminurl . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_message=' . base64_encode(urlencode($message)));

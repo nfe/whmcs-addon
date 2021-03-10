@@ -20,18 +20,14 @@ if (stripos($params['issue_note'], 'Gerada') && (string) $vars['status'] != 'Dra
             $queue = gnfe_queue_nfe($vars['invoiceid'], true);
 
             if ($queue !== 'success') {
+                logModuleCall('gofas_nfeio', 'invoicecreation', $vars['invoiceid'], $queue, 'ERROR', '');
                 if ('adminarea' === $vars['source']) {
                     header('Location: ' . gnfe_whmcs_admin_url() . 'invoices.php?action=edit&id=' . $vars['invoiceid'] . '&gnfe_error=Erro ao criar nota fiscal: ' . $queue);
-
                     exit;
                 }
-            }
-            if ($queue === 'success') {
+            } else {
+                logModuleCall('gofas_nfeio', 'invoicecreation', $vars['invoiceid'], $queue, 'OK', '');
             }
         }
     }
-}
-if ($params['debug']) {
-    save_remote_log($queue,'invoiceCreation');
-    logModuleCall('gofas_nfeio', 'InvoiceCreation', ['vars' => $vars, 'gnfe_ibge' => gnfe_ibge(preg_replace('/[^0-9]/', '', $client['postcode'])), 'postifields' => $postifields], 'post', ['params' => $params, 'invoice' => $invoice, 'client' => $client, 'queue' => $queue, 'nfe_for_invoice' => $nfe_for_invoice, 'company' => $company], 'replaceVars');
 }

@@ -170,7 +170,6 @@ if (!function_exists('gnfe_ibge')) {
         curl_close($curl);
 
         if ($err) {
-            logModuleCall('gofas_nfeio', 'gnfe_ibge_error', $err, $zip, '', 'replaceVars');
         } else {
             $city = json_decode(json_encode(json_decode($response)));
             return $city->city->code;
@@ -303,7 +302,6 @@ if (!function_exists('gnfe_issue_nfe')) {
         }
 
         if (gnfe_config('debug')) {
-            logModuleCall('gofas_nfeio', 'check_webhook', $postfields, 'post', ['create_webhook' => $create_webhook, 'delete_webhook' => $delete_webhook, 'error' => $error], 'replaceVars');
         }
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices');
@@ -573,7 +571,6 @@ if (!function_exists('gnfe_check_webhook')) {
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
-        logModuleCall('gofas_nfeio', 'aftercronjob', curl_getinfo($curl), '', '', 'replaceVars');
         curl_close($curl);
 
         return json_decode(json_encode(json_decode($response)), true);
@@ -590,10 +587,8 @@ if (!function_exists('gnfe_create_webhook')) {
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(['url' => $url, 'contentType' => 'application/json', 'secret' => (string)time(), 'events' => ['issue', 'cancel', 'WaitingCalculateTaxes'], 'status' => 'Active',  ]));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             $response = curl_exec($curl);
-            logModuleCall('gofas_nfeio', 'aftercronjob', curl_getinfo($curl), '', '', 'replaceVars');
             curl_close($curl);
         } catch (Exception $th) {
-            logModuleCall('gofas_nfeio', 'Exception', $th->getMessage(), '', '', 'replaceVars');
         }
         return json_decode(json_encode(json_decode($response)), true);
     }
@@ -761,7 +756,6 @@ function get_product_invoice($invoice_id) {
             $products_details[] = $product_array;
         }
     }
-    logModuleCall('gofas_nfeio', 'products_details', $products_details, '', 'replaceVars');
 
     return $products_details;
 }
@@ -829,69 +823,16 @@ if (!function_exists('create_table_product_code')) {
             $pdo->commit();
         } catch (\Exception $e) {
             $pdo->rollBack();
-            logModuleCall('gofas_nfeio', 'create_table_product_code error', $e, '', '', 'replaceVars');
         }
     }
 }
 
 if (!function_exists('save_error')) {
     function save_error($invoice_id,$error) {
-        logModuleCall('gofas_nfeio', 'invoice_id', $invoice_id, '', '', 'replaceVars');
-        logModuleCall('gofas_nfeio', 'error', $error, '', '', 'replaceVars');
-        save_error_remote_log($invoice_id,$error);
         try {
             Capsule::table('gofasnfeio')->where('invoice_id','=',(int)$invoice_id)->update(['error' => (string)$error]);
         } catch (\Exception $e) {
             $e->getMessage();
-            logModuleCall('gofas_nfeio', 'save_error error', $e->getMessage(), '', '', 'replaceVars');
         }
-    }
-}
-
-if (!function_exists('save_error_remote_log')) {
-    function save_error_remote_log($invoice_id = '',$error = '',$body = '',$id_error = '',$script_error = '') {
-        $uri = $_SERVER['REQUEST_URI'];
-        $json = json_encode([
-            'action' => 'save_log_error',
-            'module_id' => 'gofas_nfeio_' . $uri,
-            'title' => 'error_nfe',
-            'id_error' => $id_error,
-            'code' => $script_error,
-            'body' => $body == '' ? 'invoice_id=' . $invoice_id . 'error=' . $error : $body
-        ]);
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'http://dev.linknacional.com.br/api/log_save/index.php');
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $json);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type' => 'application/json']);
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-
-        curl_close($curl);
-    }
-}
-
-if (!function_exists('save_remote_log')) {
-    function save_remote_log($body = '',$title = '') {
-        $uri = $_SERVER['HTTP_HOST'];
-        $json = json_encode([
-            'action' => 'save_log',
-            'module_id' => 'gofas_nfeio_' . $uri,
-            'title' => $title,
-            'body' => $body
-        ]);
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'http://dev.linknacional.com.br/api/log_save/index.php');
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $json);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type' => 'application/json']);
-        $response = curl_exec($curl);
-        $err = curl_error($curl);
-
-        curl_close($curl);
     }
 }
