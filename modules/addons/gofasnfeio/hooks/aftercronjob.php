@@ -80,6 +80,18 @@ $params = gnfe_config();
                 $number = preg_replace('/[^0-9]/', '', $client['address1']);
             }
 
+            $code = gnfe_ibge(preg_replace('/[^0-9]/', '', $client['postcode']));
+            //verificações
+            if ($code == 'ERROR') {
+                logModuleCall('gofas_nfeio', 'aftercronjob - gnfe_ibge', $customer, '','ERROR', '');
+                update_status_nfe($waiting->invoice_id,'Error_cep');
+                return '';
+            }
+            if ($customer == 'CPF e/ou CNPJ ausente.') {
+                logModuleCall('gofas_nfeio', 'aftercronjob - customer', $customer, '','ERROR', '');
+                return '';
+            }
+
             if (!strlen($customer['insc_municipal']) == 0) {
                 $postfields = [
                     'cityServiceCode' => $service_code,
@@ -98,7 +110,7 @@ $params = gnfe_config();
                             'additionalInformation' => '',
                             'district' => $client['address2'],
                             'city' => [
-                                'code' => gnfe_ibge(preg_replace('/[^0-9]/', '', $client['postcode'])),
+                                'code' => $code,
                                 'name' => $client['city'],
                             ],
                             'state' => $client['state'],
@@ -124,7 +136,7 @@ $params = gnfe_config();
                             'additionalInformation' => '',
                             'district' => $client['address2'],
                             'city' => [
-                                'code' => gnfe_ibge(preg_replace('/[^0-9]/', '', $client['postcode'])),
+                                'code' => $code,
                                 'name' => $client['city'],
                             ],
                             'state' => $client['state'],

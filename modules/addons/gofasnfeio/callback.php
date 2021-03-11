@@ -6,9 +6,10 @@ use WHMCS\Database\Capsule;
 $post = json_decode(file_get_contents('php://input'), true);
 if ($post) {
     require_once __DIR__ . '/functions.php';
-    if (Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count() == 0 || $post['environment'] != 'Production') {
-        return '';
-    }
+    //remover sempre que estiver na instalação de teste
+    // if (Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count() == 0 || $post['environment'] != 'Production') {
+    //     return '';
+    // }
     $params = [];
     foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
         $params[$settings->setting] = $settings->value;

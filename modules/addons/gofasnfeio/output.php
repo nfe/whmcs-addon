@@ -118,6 +118,10 @@ if (!function_exists('gofasnfeio_output')) {
                 $status = '<span style="color:#c00;">Falha ao Emitir</span>';
                 $disabled = ['a' => '', 'b' => '', 'c' => 'disabled="disabled"', 'd' => 'disabled="disabled"'];
             }
+            if ($value->status === 'Error_cep') {
+                $status = '<span style="color:#c00;">Erro no CEP do usuário</span>';
+                $disabled = ['a' => '', 'b' => '', 'c' => 'disabled="disabled"', 'd' => 'disabled="disabled"'];
+            }
             if ($value->status === 'None') {
                 $status = '<span style="color:#f0ad4e;">Nenhum</span>';
                 $disabled = ['a' => '', 'b' => '', 'c' => 'disabled="disabled"', 'd' => 'disabled="disabled"'];
@@ -165,6 +169,7 @@ if (!function_exists('gofasnfeio_output')) {
 				';
         } else {
             echo '
+            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=code_product" class="btn btn-primary" id="gnfe_cancel" title="Código de Serviços">Código de Serviços</a>
 		<div>
 			<h3>Nenhuma nota fiscal gerada até o momento</h3>
 		</div>';
