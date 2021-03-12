@@ -771,32 +771,14 @@ function dowload_doc_log() {
     $dataAtual = toMySQLDate(getTodaysDate(false)) . ' 23:59:59';
     $dataAnterior = date('Y-m-d',mktime (0, 0, 0, date('m'), date('d') - $days,  date('Y'))) . ' 23:59:59';
 
-    foreach (Capsule::table('tblmodulelog')->where('module','=','gofas_nfeio')->whereBetween('date', [$dataAnterior, $dataAtual])->get(['date', 'action', 'request', 'response', 'arrdata']) as $log) {
+    foreach (Capsule::table('tblmodulelog')->where('module','=','gofas_nfeio')->orderBy('date')->whereBetween('date', [$dataAnterior, $dataAtual])->get(['date', 'action', 'request', 'response', 'arrdata']) as $log) {
         $text .= PHP_EOL . '==========================================================================================================================================' . PHP_EOL;
         $text .= '-|date = ' . $log->date . PHP_EOL . '-|action = ' . $log->action . PHP_EOL . '-|request = ' . ($log->request) . PHP_EOL . '-|response = ' . ($log->response) . PHP_EOL . '-|status = ' . ($log->arrdata);
     }
 
-    //save file
-    $file = fopen($namefile, 'w') or die('Não foi possivel Criar o Arquivo');
-    fwrite($file, $text);
-    fclose($file);
-
-    // header download
-    register_shutdown_function('unlink', $namefile);
-    header('Content-Description: File Transfer');
-    header('Content-Type: application/octet-stream');
-    header('Content-Disposition: attachment; filename="' . $namefile . '');
-    header('Content-Transfer-Encoding: binary');
-    header('Expires: 0');
-    header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-    header('Pragma: public');
-    header('Content-Length: test.txt');
-    ignore_user_abort(true);
-    ob_clean();
-    flush();
-    if (readfile($namefile)) {
-        unlink($namefile);
-    }
+    header('Content-type: text/plain');
+    header('Content-Disposition: attachment; filename="default-filename.txt"');
+    print $text;
     exit();
 }
 
