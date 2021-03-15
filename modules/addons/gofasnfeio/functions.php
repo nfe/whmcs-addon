@@ -754,7 +754,7 @@ function get_product_invoice($invoice_id) {
 
 function dowload_doc_log() {
     $days = 5;
-    $namefile = 'log_doc.txt';
+    $namefile = 'log-whmcs-nfe.txt';
 
     $configs = [];
     foreach (Capsule::table('tbladdonmodules')->where('module','=','gofasnfeio')->get(['setting', 'value']) as $row) {
