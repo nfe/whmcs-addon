@@ -7,9 +7,8 @@ use WHMCS\Database\Capsule;
 $params = gnfe_config();
 
 logModuleCall('gofas_nfeio', 'carregou', 'aftercronjob', '', 'replaceVars');
-logModuleCall('gofas_nfeio', 'aftercronjob', $params['issue_note_after'], '', 'replaceVars');
 
-if ($params['issue_note_after'] <= 0) {
+if (!isset($params['issue_note_after']) || $params['issue_note_after'] <= 0) {
     foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->get(['id', 'invoice_id', 'services_amount']) as $waiting) {
         logModuleCall('gofas_nfeio', 'aftercronjob - checktablegofasnfeio', '', $waiting,'', '');
 

@@ -775,6 +775,7 @@ function dowload_doc_log() {
         $text .= PHP_EOL . '==========================================================================================================================================' . PHP_EOL;
         $text .= '-|date = ' . $log->date . PHP_EOL . '-|action = ' . $log->action . PHP_EOL . '-|request = ' . ($log->request) . PHP_EOL . '-|response = ' . ($log->response) . PHP_EOL . '-|status = ' . ($log->arrdata);
     }
+    $text .= PHP_EOL . '====================================================================FIM DO ARQUIVO======================================================================' . PHP_EOL;
 
     header('Content-type: text/plain');
     header('Content-Disposition: attachment; filename="default-filename.txt"');

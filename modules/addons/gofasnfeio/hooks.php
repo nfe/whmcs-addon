@@ -6,7 +6,8 @@ if (!defined('WHMCS')) {
 //InvoiceCreation
 add_hook('InvoiceCreation', 1, function ($vars) {
     require_once __DIR__ . '/functions.php';
-
+    require_once __DIR__ . '/sendNFE.php';
+    require_once __DIR__ . '/hooks/dailycronjob.php';
     require_once __DIR__ . '/hooks/invoicecreation.php';
 });
 //InvoicePaid

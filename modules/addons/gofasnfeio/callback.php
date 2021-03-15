@@ -7,7 +7,7 @@ $post = json_decode(file_get_contents('php://input'), true);
 if ($post) {
     require_once __DIR__ . '/functions.php';
     //remover sempre que estiver na instalação de teste
-    if (Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count() == 0 || $post['environment'] == 'Production') {
+    if (Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count() == 0 || $post['environment'] != 'Production') {
         return '';
     }
     $params = [];

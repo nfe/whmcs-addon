@@ -77,6 +77,12 @@ function emitNFE($invoices,$nfeio) {
         $rps_number = 0;
     }
 
+    if ($params['email_nfe']) {
+        $client_email = $client['email'];
+    } else {
+        $client_email = '';
+    }
+
     logModuleCall('gofas_nfeio', 'sendNFE - customer', $customer, '','', '');
     $code = gnfe_ibge(preg_replace('/[^0-9]/', '', $client['postcode']));
     if ($code == 'ERROR') {
@@ -85,7 +91,7 @@ function emitNFE($invoices,$nfeio) {
     } else {
         //cria o array do request
         $postfields = createRequestFromAPI($service_code,$desc,$nfeio->services_amount,$customer['document'],$customer['insc_municipal'],
-        $name,$client['email'],$client['countrycode'],$client['postcode'],$street,$number,$client['address2'],
+        $name,$client_email,$client['countrycode'],$client['postcode'],$street,$number,$client['address2'],
         $code,$client['city'],$client['state'],$rps_serial_number,$rps_number);
 
         //envia o requisição
