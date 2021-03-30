@@ -107,6 +107,11 @@ Para inserir um link da nota fiscal do PDF e XML, edite o arquivo viewinvoice.tp
 ## CHANGELOG
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
 
+### v1.2.9
+- criação de arquivo de debug
+- verificação do retorno CEP
+- validação de versão do modulo via github
+- impedir emissão duplicada de nota fiscal de fatura
 ### v1.2.7
 - envio do nome da empresa ao invés do nome pessoa física quando o CNPJ estiver definido
 - criar nota fiscal de acordo com o código de serviço de cada serviço
