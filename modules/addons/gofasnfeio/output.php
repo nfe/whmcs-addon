@@ -118,6 +118,10 @@ if (!function_exists('gofasnfeio_output')) {
                 $status = '<span style="color:#c00;">Falha ao Emitir</span>';
                 $disabled = ['a' => '', 'b' => '', 'c' => 'disabled="disabled"', 'd' => 'disabled="disabled"'];
             }
+            if ($value->status === 'Error_cep') {
+                $status = '<span style="color:#c00;">Erro no CEP do usuário</span>';
+                $disabled = ['a' => '', 'b' => '', 'c' => 'disabled="disabled"', 'd' => 'disabled="disabled"'];
+            }
             if ($value->status === 'None') {
                 $status = '<span style="color:#f0ad4e;">Nenhum</span>';
                 $disabled = ['a' => '', 'b' => '', 'c' => 'disabled="disabled"', 'd' => 'disabled="disabled"'];
@@ -165,6 +169,7 @@ if (!function_exists('gofasnfeio_output')) {
 				';
         } else {
             echo '
+            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=code_product" class="btn btn-primary" id="gnfe_cancel" title="Código de Serviços">Código de Serviços</a>
 		<div>
 			<h3>Nenhuma nota fiscal gerada até o momento</h3>
 		</div>';
@@ -173,20 +178,30 @@ if (!function_exists('gofasnfeio_output')) {
             $invoice = localAPI('GetInvoice', ['invoiceid' => $_REQUEST['invoice_id']], false);
             $client = localAPI('GetClientsDetails', ['clientid' => $invoice['userid'], 'stats' => false], false);
             $nfe_for_invoice = gnfe_get_local_nfe($_REQUEST['invoice_id'], ['invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'pdf', 'created_at', 'rpsSerialNumber']);
-            $queue = gnfe_queue_nfe($_REQUEST['invoice_id'], true);
-            if ($queue !== 'success') {
-                $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">Erro ao salvar nota fiscal no DB: ' . $queue . '</div>';
-                header_remove();
-                header('Location: ' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&gnfe_message=' . base64_encode(urlencode($message)));
+            if (!$nfe_for_invoice['id']) {
+                $queue = gnfe_queue_nfe($_REQUEST['invoice_id'], true);
+                if ($queue !== 'success') {
+                    $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">Erro ao salvar nota fiscal no DB: ' . $queue . '</div>';
+                    header_remove();
+                    header('Location: ' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&gnfe_message=' . base64_encode(urlencode($message)));
 
-                exit;
-            }
-            if ($queue === 'success') {
-                $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #5cb85c;color: #ffffff;padding: 5px;text-align: center;">Nota fiscal enviada para processamento</div>';
-                header_remove();
-                header('Location: ' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&gnfe_message=' . base64_encode(urlencode($message)));
+                    exit;
+                }
+                if ($queue === 'success') {
+                    $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #5cb85c;color: #ffffff;padding: 5px;text-align: center;">Nota fiscal enviada para processamento</div>';
+                    header_remove();
+                    header('Location: ' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&gnfe_message=' . base64_encode(urlencode($message)));
 
-                exit;
+                    exit;
+                }
+            } else {
+                if ($queue !== 'success') {
+                    $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">Erro ao salvar nota fiscal no DB: ' . 'nota fiscal já solicitada' . '</div>';
+                    header_remove();
+                    header('Location: ' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&gnfe_message=' . base64_encode(urlencode($message)));
+
+                    exit;
+                }
             }
         }
         if ($_REQUEST['gnfe_cancel']) {

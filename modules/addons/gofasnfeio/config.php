@@ -6,6 +6,7 @@ if (!defined('WHMCS')) {
 use WHMCS\Database\Capsule;
 
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/update.php';
 
 if (!function_exists('gofasnfeio_config')) {
     if (!function_exists('gnfe_customfields_dropdow')) {
@@ -29,9 +30,35 @@ if (!function_exists('gofasnfeio_config')) {
             return $dropFieldArray;
         }
     }
+    function gnfe_verify_module_updates() {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://api.github.com/repos/nfe/whmcs-addon/releases');
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-type: application/json', 'User-Agent: whmcs_nfeio']);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
+        curl_setopt($curl, CURLOPT_TIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+        $response = curl_exec($curl);
+        curl_close($curl);
+        return json_decode($response)[0]->tag_name;
+    }
     function gofasnfeio_config() {
-        $module_version = '1.2.8';
+        if ($_GET['doc_log']) {
+            dowload_doc_log();
+        }
+        $previous_version = Capsule::table('tbladdonmodules')->where('module','=','gofasnfeio')->where('setting','=','version')->get(['value'])[0]->value;
+
+        $module_version = '1.2.9';
+        // Verify available updates
+        $available_update_ = gnfe_verify_module_updates();
         $module_version_int = (int) preg_replace('/[^0-9]/', '', $module_version);
+        $available_version_int = (int) preg_replace('/[^0-9]/', '', str_replace('v','',$available_update_));
+
+        if ($available_version_int <= $module_version_int) {
+            $available_update_message = '<p style="font-size: 14px;color:green;"><i class="fas fa-check-square"></i> Você está executando a versão mais recente do módulo.</p>';
+        } else {
+            $available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Nova versão disponível no <a style="color:#CC0000;text-decoration:underline;" href="https://github.com/nfe/whmcs-addon/releases" target="_blank">Github</a></p>';
+        }
 
         /// REMOVER VERIFICAÇÃO APÓS VERSÃO 2.0
         $verificarEmail = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'gnfe_email_nfe_config')->count();
@@ -117,57 +144,15 @@ if (!function_exists('gofasnfeio_config')) {
                 }
             }
         }
-        // Verify available updates
-        $available_update_message = '<p style="font-size: 14px;color:red;"><i class="fas fa-exclamation-triangle"></i> Nova versão disponível no <a style="color:#CC0000;text-decoration:underline;" href="https://github.com/nfe/whmcs-addon/releases" target="_blank">Github</a></p>';
 
-        if (!function_exists('gnfe_verifyInstall')) {
-            function gnfe_verifyInstall() {
-                if (!Capsule::schema()->hasTable('gofasnfeio')) {
-                    try {
-                        Capsule::schema()->create('gofasnfeio', function ($table) {
-                            // incremented id
-                            $table->increments('id');
-                            // whmcs info
-                            $table->string('invoice_id');
-                            $table->string('user_id');
-                            $table->string('nfe_id');
-                            $table->string('status');
-                            $table->string('services_amount');
-                            $table->string('environment');
-                            $table->string('flow_status');
-                            $table->string('pdf');
-                            $table->string('rpsSerialNumber');
-                            $table->string('rpsNumber');
-                            $table->string('created_at');
-                            $table->string('updated_at');
-                        });
-                    } catch (\Exception $e) {
-                        $error .= "Não foi possível criar a tabela do módulo no banco de dados: {$e->getMessage()}";
-                    }
-                }
-                // Added in v 1 dot 1 dot 3
-                if (!Capsule::schema()->hasColumn('gofasnfeio', 'rpsNumber')) {
-                    try {
-                        Capsule::schema()->table('gofasnfeio', function ($table) {
-                            $table->string('rpsNumber');
-                        });
-                    } catch (\Exception $e) {
-                        $error .= "Não foi possível atualizar a tabela do módulo no banco de dados: {$e->getMessage()}";
-                    }
-                }
-
-                if (!$error) {
-                    return ['sucess' => 1];
-                }
-                if ($error) {
-                    return ['error' => $error];
-                }
-            }
-        }
+        //create tables
         gnfe_verifyInstall();
         create_table_product_code();
-        set_code_service_camp_gofasnfeio();
-        set_custom_field_ini_date();
+        //
+        if (version_compare($previous_version,'1.2.7','<')) {
+            set_code_service_camp_gofasnfeio();
+            set_custom_field_ini_date();
+        }
 
         $intro = ['intro' => [
             'FriendlyName' => '',
@@ -229,7 +214,7 @@ if (!function_exists('gofasnfeio_config')) {
             'FriendlyName' => 'Debug',
             'Type' => 'yesno',
             'Default' => 'yes',
-            'Description' => 'Marque essa opção para salvar informações de diagnóstico no <a target="_blank" style="text-decoration:underline;" href="' . $admin_url . 'systemmodulelog.php">Log de Módulo</a>',
+            'Description' => 'Marque essa opção para salvar informações de diagnóstico no <a target="_blank" style="text-decoration:underline;" href="' . $admin_url . 'systemmodulelog.php">Log de Módulo</a> | Emitir documento de log <a target="_blank" href="' . $admin_url . 'configaddonmods.php?doc_log=true" style="text-decoration:underline;">AQUI</a>',
         ]];
         $insc_municipal = ['insc_municipal' => [
             'FriendlyName' => 'Inscrição Municipal',

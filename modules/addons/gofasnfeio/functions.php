@@ -165,10 +165,17 @@ if (!function_exists('gnfe_ibge')) {
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
+        $err = curl_error($curl);
+
         curl_close($curl);
         $city = json_decode(json_encode(json_decode($response)));
 
-        return $city->city->code;
+        if ($city->message || $err) {
+            logModuleCall('gofas_nfeio', 'gnfe_ibge', $zip, $city->message, 'ERROR', '');
+            return 'ERROR';
+        } else {
+            return $city->city->code;
+        }
     }
 }
 if (!function_exists('gnfe_queue_nfe')) {
@@ -262,46 +269,41 @@ if (!function_exists('gnfe_issue_nfe')) {
             $check_webhook = gnfe_check_webhook($gnfe_webhook_id);
             $error = '';
             if ($check_webhook['message']) {
-                $error .= $check_webhook['message'];
+                logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - check_webhook', $gnfe_webhook_id, $check_webhook['message'], 'ERROR', '');
             }
         }
         if ($gnfe_webhook_id and (string) $check_webhook['hooks']['url'] !== (string) $webhook_url) {
             $create_webhook = gnfe_create_webhook($webhook_url);
             if ($create_webhook['message']) {
-                $error .= $create_webhook['message'];
+                logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - gnfe_create_webhook', $webhook_url, $create_webhook['message'], 'ERROR', '');
             }
             if ($create_webhook['hooks']['id']) {
                 try {
                     Capsule::table('tblconfiguration')->where('setting', 'gnfe_webhook_id')->update(['value' => $create_webhook['hooks']['id'], 'created_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s')]);
-                } catch (\Exception $e) {
-                    $error .= $e->getMessage();
+                } catch (Exception $e) {
+                    logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - Capsule::table(tblconfiguration) update', '', $e->getMessage(), 'ERROR', '');
                 }
             }
             $delete_webhook = gnfe_delete_webhook($gnfe_webhook_id);
             if ($delete_webhook['message']) {
-                $error .= $create_webhook['message'];
+                logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - gnfe_delete_webhook', $gnfe_webhook_id, $delete_webhook, 'ERROR', '');
             }
         }
         if (!$gnfe_webhook_id) {
             $create_webhook = gnfe_create_webhook($webhook_url);
             if ($create_webhook['message']) {
-                $error .= $create_webhook['message'];
+                logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - gnfe_create_webhook', $webhook_url, $create_webhook, 'ERROR', '');
             }
             if ($create_webhook['hooks']['id']) {
                 try {
                     Capsule::table('tblconfiguration')->insert(['setting' => 'gnfe_webhook_id', 'value' => $create_webhook['hooks']['id'], 'created_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s')]);
-                } catch (\Exception $e) {
-                    $error .= $e->getMessage();
+                } catch (Exception $e) {
+                    logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - Capsule::table(tblconfiguration) insert', '', $e->getMessage(), 'ERROR', '');
                 }
             }
         }
 
-        if (gnfe_config('debug')) {
-            logModuleCall('gofas_nfeio', 'check_webhook', $postfields, 'post', ['create_webhook' => $create_webhook, 'delete_webhook' => $delete_webhook, 'error' => $error], 'replaceVars');
-        }
         $curl = curl_init();
-        logModuleCall('gofas_nfeio', 'teste', 'teste', '', '', 'replaceVars');
-
         curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices');
         curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
@@ -309,11 +311,16 @@ if (!function_exists('gnfe_issue_nfe')) {
         curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($postfields));
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
+        $err = curl_error($curl);
         $info = curl_getinfo($curl);
         curl_close($curl);
-        logModuleCall('gofas_nfeio', 'response', $response, '', '', 'replaceVars');
-        logModuleCall('gofas_nfeio', 'info', $info, '', '', 'replaceVars');
-        return json_decode(json_encode(json_decode($response)));
+        logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - curl_init', $error, $info, '', '');
+        logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - CURLOPT_POSTFIELDS', json_encode($postfields), '', '', '');
+        if ($err) {
+            return (object) ['message' => $err, 'info' => $info];
+        } else {
+            return json_decode(json_encode(json_decode($response)));
+        }
     }
 }
 if (!function_exists('gnfe_get_nfe')) {
@@ -571,7 +578,6 @@ if (!function_exists('gnfe_check_webhook')) {
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
-        logModuleCall('gofas_nfeio', 'aftercronjob', curl_getinfo($curl), '', '', 'replaceVars');
         curl_close($curl);
 
         return json_decode(json_encode(json_decode($response)), true);
@@ -585,13 +591,11 @@ if (!function_exists('gnfe_create_webhook')) {
             curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: aplication/json', 'Authorization: ' . gnfe_config('api_key')]);
             curl_setopt($curl, CURLOPT_TIMEOUT, 30);
             curl_setopt($curl, CURLOPT_POST, 1);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(['url' => $url, 'contentType' => 'application/json', 'secret' => (string)time(), 'events' => ['issue', 'cancel'], 'status' => 'Active',  ]));
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(['url' => $url, 'contentType' => 'application/json', 'secret' => (string)time(), 'events' => ['issue', 'cancel', 'WaitingCalculateTaxes'], 'status' => 'Active',  ]));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             $response = curl_exec($curl);
-            logModuleCall('gofas_nfeio', 'aftercronjob', curl_getinfo($curl), '', '', 'replaceVars');
             curl_close($curl);
         } catch (Exception $th) {
-            logModuleCall('gofas_nfeio', 'Exception', $th->getMessage(), '', '', 'replaceVars');
         }
         return json_decode(json_encode(json_decode($response)), true);
     }
@@ -671,21 +675,6 @@ if (!function_exists('gnfe_get_company')) {
     }
 }
 
-if (!function_exists('set_custom_field_ini_date')) {
-    function set_custom_field_ini_date() {
-        $data = getTodaysDate(false);
-        $dataAtual = toMySQLDate($data);
-
-        try {
-            if (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'initial_date')->count() < 1) {
-                Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'initial_date', 'value' => $dataAtual]);
-            }
-        } catch (\Exception $e) {
-            $e->getMessage();
-        }
-    }
-}
-
 if (!function_exists('gnfe_get_company')) {
     function gnfe_get_company() {
         $curl = curl_init();
@@ -759,63 +748,46 @@ function get_product_invoice($invoice_id) {
             $products_details[] = $product_array;
         }
     }
-    logModuleCall('gofas_nfeio', 'products_details', $products_details, '', 'replaceVars');
 
     return $products_details;
 }
 
-if (!function_exists('set_code_service_camp_gofasnfeio')) {
-    function set_code_service_camp_gofasnfeio() {
-        if (!Capsule::schema()->hasColumn('gofasnfeio', 'service_code')) {
-            $pdo = Capsule::connection()->getPdo();
-            $pdo->beginTransaction();
+function dowload_doc_log() {
+    $days = 5;
+    $namefile = 'log-whmcs-nfe.txt';
 
-            try {
-                $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD service_code TEXT;');
-                $statement->execute();
-                $pdo->commit();
-            } catch (\Exception $e) {
-                $pdo->rollBack();
-            }
-        }
-        if (!Capsule::schema()->hasColumn('gofasnfeio', 'services_amount')) {
-            if (!Capsule::schema()->hasColumn('gofasnfeio', 'services_amount')) {
-                $pdo = Capsule::connection()->getPdo();
-                $pdo->beginTransaction();
-                try {
-                    $statement = $pdo->prepare('ALTER TABLE gofasnfeio ADD services_amount DECIMAL(16,2)');
-                    $statement->execute();
-                    $pdo->commit();
-                } catch (\Exception $e) {
-                    $pdo->rollBack();
-                }
-            }
-        }
+    $configs = [];
+    foreach (Capsule::table('tbladdonmodules')->where('module','=','gofasnfeio')->get(['setting', 'value']) as $row) {
+        $configs[$row->setting] = $row->value;
     }
+
+    $results = localAPI('WhmcsDetails');
+    $v = $results['whmcs']['version'];
+    $actual_link = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'];
+
+    $text = '-|date' . PHP_EOL . '-|action' . PHP_EOL . '-|request' . PHP_EOL . '-|response' . PHP_EOL . '-|status' . PHP_EOL;
+    $text .= 'version =' . $v . PHP_EOL . 'url =' . $actual_link . PHP_EOL . 'conf_module = ' . json_encode($configs) . PHP_EOL;
+
+    $dataAtual = toMySQLDate(getTodaysDate(false)) . ' 23:59:59';
+    $dataAnterior = date('Y-m-d',mktime (0, 0, 0, date('m'), date('d') - $days,  date('Y'))) . ' 23:59:59';
+
+    foreach (Capsule::table('tblmodulelog')->where('module','=','gofas_nfeio')->orderBy('date')->whereBetween('date', [$dataAnterior, $dataAtual])->get(['date', 'action', 'request', 'response', 'arrdata']) as $log) {
+        $text .= PHP_EOL . '==========================================================================================================================================' . PHP_EOL;
+        $text .= '-|date = ' . $log->date . PHP_EOL . '-|action = ' . $log->action . PHP_EOL . '-|request = ' . ($log->request) . PHP_EOL . '-|response = ' . ($log->response) . PHP_EOL . '-|status = ' . ($log->arrdata);
+    }
+    $text .= PHP_EOL . '====================================================================FIM DO ARQUIVO======================================================================' . PHP_EOL;
+
+    header('Content-type: text/plain');
+    header('Content-Disposition: attachment; filename="default-filename.txt"');
+    print $text;
+    exit();
 }
 
-if (!function_exists('create_table_product_code')) {
-    function create_table_product_code() {
-        if (Capsule::schema()->hasTable('tblproductcode')) {
-            return '';
-        }
-
-        $pdo = Capsule::connection()->getPdo();
-        $pdo->beginTransaction();
-
-        try {
-            $statement = $pdo->prepare('CREATE TABLE tblproductcode (
-                    id int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                    product_id int(10) NOT NULL,
-                    code_service int(10) NOT NULL,
-                    create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    update_at TIMESTAMP NULL,
-                    ID_user int(10) NOT NULL)');
-            $statement->execute();
-            $pdo->commit();
-        } catch (\Exception $e) {
-            $pdo->rollBack();
-            logModuleCall('gofas_nfeio', 'create_table_product_code error', $e, '', '', 'replaceVars');
-        }
+function update_status_nfe($invoice_id,$status) {
+    try {
+        $return = Capsule::table('gofasnfeio')->where('invoice_id','=',$invoice_id)->update(['status' => $status]);
+        return $return;
+    } catch (Exception $e) {
+        return $e->getMessage();
     }
 }
