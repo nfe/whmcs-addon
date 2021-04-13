@@ -77,7 +77,7 @@ function emitNFE($invoices,$nfeio) {
         $rps_number = 0;
     }
 
-    if ($params['email_nfe']) {
+    if ($params['gnfe_email_nfe_config'] == 'on') {
         $client_email = $client['email'];
     } else {
         $client_email = '';
