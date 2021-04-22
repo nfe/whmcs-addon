@@ -153,6 +153,20 @@ if (!function_exists('gofasnfeio_config')) {
             set_code_service_camp_gofasnfeio();
             set_custom_field_ini_date();
         }
+        $gnfe_get_nfes = gnfe_get_nfes();
+        $params = gnfe_config();
+
+        if ((!$params['rps_number'] || $params['rps_number'] == 'zero') && $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']) {
+            $rps_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'];
+        } elseif (($params['rps_number'] == 'zero' && !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']) || (!$params['rps_number'] && !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'])) {
+            $rps_number = 0;
+        }
+
+        if (Capsule::table('tbladdonmodules')->where('setting','=', 'rps_number')->exists() == 0) {
+            Capsule::table('tbladdonmodules')->insert(['setting' => 'rps_number', 'value' => $rps_number, 'module' => 'gofasnfeio']);
+        } else {
+            Capsule::table('tbladdonmodules')->where('setting','=', 'rps_number')->update(['value' => $rps_number]);
+        }
 
         $intro = ['intro' => [
             'FriendlyName' => '',
@@ -183,8 +197,9 @@ if (!function_exists('gofasnfeio_config')) {
         $rps_number = ['rps_number' => [
             'FriendlyName' => 'Número do RPS',
             'Type' => 'text',
-            'Default' => 'zero',
-            'Description' => 'O número RPS da NFE mais recente gerada.<br>Deixe em branco e o módulo irá preencher esse campo após a primeira emissão. Não altere o valor a menos que tenha certeza de como funciona essa opção. <a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/" target="_blank">Saiba mais.</a>',
+            'Default' => $rps_number,
+            'Disabled' => 'true',
+            'Description' => 'Para alterar o RPS acessa a nfe.io <a target="_blank" href="' . $admin_url . 'configaddonmods.php?doc_log=true" style="text-decoration:underline;">AQUI</a>.',
         ]];
         $issue_note = ['issue_note' => [
             'FriendlyName' => 'Quando emitir NFE',
@@ -232,6 +247,12 @@ if (!function_exists('gofasnfeio_config')) {
             'Type' => 'radio',
             'Options' => 'Número da fatura,Nome dos serviços',
             'Default' => 'Número da fatura',
+        ]];
+        $gnfe_email_nfe_config = ['NFEioEnvironment' => [
+            'FriendlyName' => 'Ambiente de desenvolvimento',
+            'Type' => 'yesno',
+            'Default' => '',
+            'Description' => 'Habilitar ambiente de desenvolvimento',
         ]];
         $footer = ['footer' => [
             'FriendlyName' => '',
