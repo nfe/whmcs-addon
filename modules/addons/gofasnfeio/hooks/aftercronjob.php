@@ -5,6 +5,13 @@ if (!defined('WHMCS')) {
 }
 use WHMCS\Database\Capsule;
 $params = gnfe_config();
+$dataAtual = date('Y-m-d H:i:s');
+
+if (Capsule::table('tbladdonmodules')->where('setting','=','last_cron')->count() == 0) {
+    Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'last_cron', 'value' => $dataAtual]);
+} else {
+    Capsule::table('tbladdonmodules')->where('setting','=','last_cron')->update(['value' => $dataAtual]);
+}
 
 if (!isset($params['issue_note_after']) || $params['issue_note_after'] <= 0) {
     foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->get(['id', 'invoice_id', 'services_amount']) as $waiting) {

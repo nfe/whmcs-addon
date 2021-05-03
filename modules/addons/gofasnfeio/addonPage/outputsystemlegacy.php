@@ -161,10 +161,7 @@ use WHMCS\Database\Capsule;
                 echo '<td><center>' . number_format($row['valor'], 2, ',', '.') . '</center></td>';
                 echo '<td><center><span class="label ' . $status_cor . '" title="' . $row['msg'] . '">' . $status . '</span></center></td>';
                 echo '<td><center>';
-                if ($status == 'Erro') {
-                    echo '<a alt="Tentar Novamente" title="Tentar Novamente" class="btn btn-sm btn-default" href="' . $vars['modulelink'] . '&acao=reemitir&cod=' . $row['fatura'] . '"><i class="fa fa-refresh"></i></a>&nbsp;';
-                }
-                echo '<a alt="Acessar NFe.io" title="Acessar NFe.io" class="btn btn-sm btn-primary" href="https://app.nfe.io/service-invoices/' . $vars['empresa_id'] . '" target="blank"><i class="fa fa-globe"></i></a>';
+                echo '<a alt="Acessar NFe.io" title="Acessar NFe.io" class="btn btn-sm btn-primary" href="https://app.nfe.io/service-invoices/' . $vars['company_id'] . '" target="blank"><i class="fa fa-globe"></i></a>';
                 echo '</center></tr>';
             }
         } else {

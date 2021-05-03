@@ -27,7 +27,7 @@ if (!function_exists('gofasnfeio_config')) {
                 $dropFieldArray = ['0' => 'nothing to show'];
             }
 
-            return $dropFieldArray;
+            //  return $dropFieldArray;
         }
     }
     function gnfe_verify_module_updates() {
@@ -39,8 +39,14 @@ if (!function_exists('gofasnfeio_config')) {
         curl_setopt($curl, CURLOPT_TIMEOUT, 10);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
         $response = curl_exec($curl);
+        $info = curl_getinfo($curl);
         curl_close($curl);
-        return json_decode($response)[0]->tag_name;
+        if ($info['http_code'] == 200) {
+            logModuleCall('gofas_nfeio','info', $info, '', '', '');
+            return json_decode($response)[0]->tag_name;
+        } else {
+            return '';
+        }
     }
     function gofasnfeio_config() {
         if ($_GET['doc_log']) {
@@ -48,7 +54,7 @@ if (!function_exists('gofasnfeio_config')) {
         }
         $previous_version = Capsule::table('tbladdonmodules')->where('module','=','gofasnfeio')->where('setting','=','version')->get(['value'])[0]->value;
 
-        $module_version = '1.2.9';
+        $module_version = '1.3.0';
         // Verify available updates
         $available_update_ = gnfe_verify_module_updates();
         $module_version_int = (int) preg_replace('/[^0-9]/', '', $module_version);
@@ -156,109 +162,151 @@ if (!function_exists('gofasnfeio_config')) {
         $gnfe_get_nfes = gnfe_get_nfes();
         $params = gnfe_config();
 
-        if ((!$params['rps_number'] || $params['rps_number'] == 'zero') && $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']) {
-            $rps_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'];
-        } elseif (($params['rps_number'] == 'zero' && !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']) || (!$params['rps_number'] && !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'])) {
-            $rps_number = 0;
-        }
-
-        if (Capsule::table('tbladdonmodules')->where('setting','=', 'rps_number')->exists() == 0) {
-            Capsule::table('tbladdonmodules')->insert(['setting' => 'rps_number', 'value' => $rps_number, 'module' => 'gofasnfeio']);
-        } else {
-            Capsule::table('tbladdonmodules')->where('setting','=', 'rps_number')->update(['value' => $rps_number]);
-        }
-
         $intro = ['intro' => [
             'FriendlyName' => '',
             'Description' => '<h4 style="padding-top: 5px;">Módulo Nota Fiscal NFE.io para WHMCS v' . $module_version . '</h4>
 					' . $available_update_message . '',
         ]];
+
+        if ((!$params['rps_number'] || $params['rps_number'] == 'zero') && $gnfe_get_nfes['rpsNumber']) {
+            $rps_number = $gnfe_get_nfes['rpsNumber'];
+        } elseif (($params['rps_number'] == 'zero' && !$gnfe_get_nfes['rpsNumber']) || (!$params['rps_number'] && !$gnfe_get_nfes['rpsNumber'])) {
+            $rps_number = 0;
+        }
+
+        //define o RPS number 
+        $rps_number = $gnfe_get_nfes['rpsNumber'];
+
+        if (Capsule::table('tbladdonmodules')->where('setting','=','rps_number')->count() == 0 && $rps_number != null) {
+            Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'rps_number', 'value' => $rps_number]);
+        } elseif (Capsule::table('tbladdonmodules')->where('setting','=','rps_number')->count() == 0 && $rps_number == null) {
+            Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'rps_number', 'value' => '']);
+        } else {
+            Capsule::table('tbladdonmodules')->where('setting','=','rps_number')->update(['value' => $rps_number]);
+        }
+
         $api_key = ['api_key' => [
             'FriendlyName' => 'API Key',
             'Type' => 'text',
             'Description' => '<a href="https://app.nfe.io/account/apikeys" style="text-decoration:underline;" target="_blank">Obter chave de acesso</a>',
         ]];
+
         $company_id = ['company_id' => [
             'FriendlyName' => 'ID da Empresa',
             'Type' => 'text',
             'Description' => '<a href="https://app.nfe.io/companies/" style="text-decoration:underline;" target="_blank">Obter ID da empresa</a>',
         ]];
+
         $service_code = ['service_code' => [
             'FriendlyName' => 'Código de Serviço Principal',
             'Type' => 'text',
             'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/#o-que-e-codigo-de-servico" target="_blank">O que é Código de Serviço?</a>',
         ]];
+
         $rps_serial_number = ['rps_serial_number' => [
             'FriendlyName' => 'Série do RPS',
             'Type' => 'text',
             'Default' => 'IO',
             'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/" target="_blank">Saiba mais</a>',
         ]];
-        $rps_number = ['rps_number' => [
+
+        $rps_number_camp = ['rps_number' => [
             'FriendlyName' => 'Número do RPS',
             'Type' => 'text',
-            'Default' => $rps_number,
+            // 'Default' => $rps_number,
             'Disabled' => 'true',
             'Description' => 'Para alterar o RPS acessa a nfe.io <a target="_blank" href="' . $admin_url . 'configaddonmods.php?doc_log=true" style="text-decoration:underline;">AQUI</a>.',
         ]];
+
         $issue_note = ['issue_note' => [
             'FriendlyName' => 'Quando emitir NFE',
             'Type' => 'radio',
-            'Options' => 'Manualmente, Quando a Fatura é Gerada,Quando a Fatura é Paga',
+            'Options' => 'Manualmente,Quando a Fatura é Gerada,Quando a Fatura é Paga',
             'Default' => 'Quando a Fatura é Paga',
         ]];
+
         $issue_note_after = ['issue_note_after' => [
             'FriendlyName' => 'Agendar Emissão',
             'Type' => 'text',
             'Default' => '',
             'Description' => '<br>Número de dias após o pagamento da fatura que as notas devem ser emitidas. <span style="color:#c00">Preencher essa opção desativa a opção anterior.</span>',
         ]];
+
         $gnfe_email_nfe_config = ['gnfe_email_nfe_config' => [
             'FriendlyName' => 'Disparar e-mail com a nota',
             'Type' => 'yesno',
             'Default' => 'yes',
             'Description' => 'Permitir o disparo da nota fiscal via NFE.io para o e-mail do usuário.',
         ]];
+
         $cancel_invoice_cancel_nfe = ['cancel_invoice_cancel_nfe' => [
             'FriendlyName' => 'Cancelar NFE',
             'Type' => 'yesno',
             'Default' => 'yes',
             'Description' => 'Cancela a nota fiscal quando a fatura cancelada',
         ]];
+
         $debug = ['debug' => [
             'FriendlyName' => 'Debug',
             'Type' => 'yesno',
             'Default' => 'yes',
             'Description' => 'Marque essa opção para salvar informações de diagnóstico no <a target="_blank" style="text-decoration:underline;" href="' . $admin_url . 'systemmodulelog.php">Log de Módulo</a> | Emitir documento de log <a target="_blank" href="' . $admin_url . 'configaddonmods.php?doc_log=true" style="text-decoration:underline;">AQUI</a>',
         ]];
+
         $insc_municipal = ['insc_municipal' => [
             'FriendlyName' => 'Inscrição Municipal',
             'Type' => 'dropdown',
-            'Options' => gnfe_customfields_dropdow(),
-            'Description' => 'Escolha o campo personalizado de Inscrição Municipal', ]];
+            'Options' => gnfe_customfields_dropdow('Insc_municipal'),
+            'Description' => 'Escolha o campo personalizado de Inscrição Municipal',
+        ]];
+
+        $cpf = ['cpf_camp' => [
+            'FriendlyName' => 'CPF ',
+            'Type' => 'dropdown',
+            'Options' => gnfe_customfields_dropdow('Cpf'),
+            'Description' => 'Escolha o campo personalizado do CPF',
+        ]];
+
+        $cnpj = ['cnpj_camp' => [
+            'FriendlyName' => 'CNPJ',
+            'Type' => 'dropdown',
+            'Options' => gnfe_customfields_dropdow('Cnpj'),
+            'Description' => 'Escolha o campo personalizado do CNPJ', ]];
+
         $tax = ['tax' => [
             'FriendlyName' => 'Aplicar imposto automaticamente em todos os produtos ?',
             'Type' => 'radio',
             'Options' => 'Sim,Não',
             'Default' => 'Sim',
         ]];
+
         $invoiceDetails = ['InvoiceDetails' => [
             'FriendlyName' => 'O que deve aparecer nos detalhes da fatura ?',
             'Type' => 'radio',
-            'Options' => 'Número da fatura,Nome dos serviços',
+            'Options' => 'Número da fatura,Nome dos serviços,Número da fatura + Nome dos serviços',
             'Default' => 'Número da fatura',
         ]];
-        $gnfe_email_nfe_config = ['NFEioEnvironment' => [
+
+        $desc_custom = ['descCustom' => [
+            'FriendlyName' => 'detalhes personalizados da fatura.',
+            'Type' => 'text',
+            'Default' => '',
+            'Description' => '<span style="color:#c00">Preencher essa opção desativa a opção anterior.</span>',
+        ]];
+
+        $development_ = ['NFEioEnvironment' => [
             'FriendlyName' => 'Ambiente de desenvolvimento',
             'Type' => 'yesno',
-            'Default' => '',
+            'Default' => 'no',
             'Description' => 'Habilitar ambiente de desenvolvimento',
         ]];
+
         $footer = ['footer' => [
             'FriendlyName' => '',
             'Description' => '&copy; ' . date('Y') . ' <a target="_blank" title="Para suporte utilize o github" href="https://github.com/nfe/whmcs-addon/issues">Suporte módulo</a>',
         ]];
-        $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $rps_number, $issue_note, $issue_note_after, $gnfe_email_nfe_config, $cancel_invoice_cancel_nfe, $debug, $insc_municipal, $tax, $invoiceDetails, $footer);
+
+        $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $rps_number_camp, $issue_note, $issue_note_after, $gnfe_email_nfe_config,$development_, $cancel_invoice_cancel_nfe, $debug, $insc_municipal,$cpf,$cnpj, $tax, $invoiceDetails,$desc_custom, $footer);
         $configarray = [
             'name' => 'NFE.io',
             'description' => 'Módulo Nota Fiscal NFE.io para WHMCS',
