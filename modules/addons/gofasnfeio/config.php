@@ -42,7 +42,6 @@ if (!function_exists('gofasnfeio_config')) {
         $info = curl_getinfo($curl);
         curl_close($curl);
         if ($info['http_code'] == 200) {
-            logModuleCall('gofas_nfeio','info', $info, '', '', '');
             return json_decode($response)[0]->tag_name;
         } else {
             return '';
