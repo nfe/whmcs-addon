@@ -22,37 +22,32 @@ if (!function_exists('gnfe_config')) {
 if (!function_exists('gnfe_customer')) {
     function gnfe_customer($user_id, $client) {
         //Determine custom fields id
-        $customfields = [];
-        foreach (Capsule::table('tblcustomfields')->where('type', '=', 'client')->get(['fieldname', 'id']) as $customfield) {
-            $customfield_id = $customfield->id;
-            $customfield_name = ' ' . strtolower($customfield->fieldname);
-            $insc_customfield_value = 'NF';
-            // insc_municipal
-            if ($customfield_id == gnfe_config('insc_municipal')) {
-                foreach (Capsule::table('tblcustomfieldsvalues')->where('fieldid', '=', $customfield_id)->where('relid', '=', $user_id)->get(['value']) as $customfieldvalue) {
-                    $insc_customfield_value = $customfieldvalue->value;
-                }
-            }
-            // cpf
-            if (strpos($customfield_name, 'cpf') and !strpos($customfield_name, 'cnpj')) {
-                foreach (Capsule::table('tblcustomfieldsvalues')->where('fieldid', '=', $customfield_id)->where('relid', '=', $user_id)->get(['value']) as $customfieldvalue) {
-                    $cpf_customfield_value = preg_replace('/[^0-9]/', '', $customfieldvalue->value);
-                }
-            }
-            // cnpj
-            if (strpos($customfield_name, 'cnpj') and !strpos($customfield_name, 'cpf')) {
-                foreach (Capsule::table('tblcustomfieldsvalues')->where('fieldid', '=', $customfield_id)->where('relid', '=', $user_id)->get(['value']) as $customfieldvalue) {
-                    $cnpj_customfield_value = preg_replace('/[^0-9]/', '', $customfieldvalue->value);
-                }
-            }
-            // cpf + cnpj
-            if (strpos($customfield_name, 'cpf') and strpos($customfield_name, 'cnpj')) {
-                foreach (Capsule::table('tblcustomfieldsvalues')->where('fieldid', '=', $customfield_id)->where('relid', '=', $user_id)->get(['value']) as $customfieldvalue) {
-                    $cpf_customfield_value = preg_replace('/[^0-9]/', '', $customfieldvalue->value);
-                    $cnpj_customfield_value = preg_replace('/[^0-9]/', '', $customfieldvalue->value);
-                }
+        $CPF_id = gnfe_config('cpf_camp');
+        $CNPJ_id = gnfe_config('cnpj_camp');
+        $insc_municipal_id = gnfe_config('insc_municipal');
+
+        $insc_customfield_value = 'NF';
+        // insc_municipal
+        if ($insc_municipal_id != 0) {
+            foreach (Capsule::table('tblcustomfieldsvalues')->where('fieldid', '=', $insc_municipal_id)->where('relid', '=', $user_id)->get(['value']) as $customfieldvalue) {
+                $insc_customfield_value = $customfieldvalue->value;
             }
         }
+        // cpf
+        if ($CPF_id != 0) {
+            foreach (Capsule::table('tblcustomfieldsvalues')->where('fieldid', '=', $CPF_id)->where('relid', '=', $user_id)->get(['value']) as $customfieldvalue) {
+                $cpf_customfield_value = preg_replace('/[^0-9]/', '', $customfieldvalue->value);
+            }
+        }
+        //cnpj
+        if ($CNPJ_id != 0) {
+            foreach (Capsule::table('tblcustomfieldsvalues')->where('fieldid', '=', $CNPJ_id)->where('relid', '=', $user_id)->get(['value']) as $customfieldvalue) {
+                $cnpj_customfield_value = preg_replace('/[^0-9]/', '', $customfieldvalue->value);
+            }
+        }
+        logModuleCall('gofas_nfeio', 'gnfe_customer-cpf', $cpf_customfield_value, '','', '');
+        logModuleCall('gofas_nfeio', 'gnfe_customer-cnpj', $cnpj_customfield_value, '','', '');
+        logModuleCall('gofas_nfeio', 'gnfe_customer-municipal', $insc_customfield_value, '','', '');
 
         // Cliente possui CPF e CNPJ
         // CPF com 1 nº a menos, adiciona 0 antes do documento
@@ -336,6 +331,24 @@ if (!function_exists('gnfe_get_nfe')) {
         return json_decode($response);
     }
 }
+
+if (!function_exists('gnfe_test_connection')) {
+    function gnfe_test_connection() {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices');
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        $response = curl_exec($curl);
+        $info = curl_getinfo($curl);
+        $err = curl_error($curl);
+        logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - curl_init', $err, $info, '', '');
+        curl_close($curl);
+
+        return $info;
+    }
+}
+
 if (!function_exists('gnfe_get_nfes')) {
     function gnfe_get_nfes() {
         $curl = curl_init();
@@ -345,8 +358,7 @@ if (!function_exists('gnfe_get_nfes')) {
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
         curl_close($curl);
-
-        return json_decode($response, true);
+        return json_decode($response, true)['serviceInvoices']['0'];
     }
 }
 if (!function_exists('gnfe_get_invoice_nfes')) {
@@ -754,19 +766,20 @@ function get_product_invoice($invoice_id) {
 
 function dowload_doc_log() {
     $days = 5;
-    $namefile = 'log-whmcs-nfe.txt';
 
     $configs = [];
     foreach (Capsule::table('tbladdonmodules')->where('module','=','gofasnfeio')->get(['setting', 'value']) as $row) {
         $configs[$row->setting] = $row->value;
     }
 
+    $lastCron = Capsule::table('tbladdonmodules')->where('setting', '=' ,'last_cron')->get(['value'])[0];
+
     $results = localAPI('WhmcsDetails');
     $v = $results['whmcs']['version'];
     $actual_link = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'];
 
     $text = '-|date' . PHP_EOL . '-|action' . PHP_EOL . '-|request' . PHP_EOL . '-|response' . PHP_EOL . '-|status' . PHP_EOL;
-    $text .= 'version =' . $v . PHP_EOL . 'url =' . $actual_link . PHP_EOL . 'conf_module = ' . json_encode($configs) . PHP_EOL;
+    $text .= 'version =' . $v . PHP_EOL . 'date emission =' . date('Y-m-d H:i:s') . PHP_EOL . 'url =' . $actual_link . PHP_EOL . 'conf_module = ' . json_encode($configs) . PHP_EOL . 'last_cron = ' . $lastCron->value . PHP_EOL;
 
     $dataAtual = toMySQLDate(getTodaysDate(false)) . ' 23:59:59';
     $dataAnterior = date('Y-m-d',mktime (0, 0, 0, date('m'), date('d') - $days,  date('Y'))) . ' 23:59:59';
@@ -790,4 +803,13 @@ function update_status_nfe($invoice_id,$status) {
     } catch (Exception $e) {
         return $e->getMessage();
     }
+}
+
+function verifyIssueFromUser($vars) {
+    $results = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']], false);
+    $results = localAPI('GetClientsDetails', ['clientid' => $results['userid']], '');
+    foreach ($results['customfields'] as $key => $value) {
+        $issueNfeUser = $value['value'];
+    }
+    return $issueNfeUser;
 }

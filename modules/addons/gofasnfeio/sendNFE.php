@@ -18,6 +18,8 @@ function emitNFE($invoices,$nfeio) {
 
     //  CPF/CNPJ/NAME
     $customer = gnfe_customer($invoices->userid, $client);
+    logModuleCall('gofas_nfeio', 'gnfe_customer', $customer, '','', '');
+
     if ($customer['doc_type'] == 2) {
         if ($client['companyname'] != '') {
             $name = $client['companyname'];
@@ -33,12 +35,21 @@ function emitNFE($invoices,$nfeio) {
     $service_code = $nfeio->service_code ? $nfeio->service_code : $params['service_code'];
 
     //description nfe
-    if ($params['InvoiceDetails'] == 'Número da fatura') {
+    if ($params['descCustom'] != '') {
+        $desc = $params['descCustom'];
+    } elseif ($params['InvoiceDetails'] == 'Número da fatura') {
         $gnfeWhmcsUrl = Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value'])[0]->value;
         $desc = 'Nota referente a fatura #' . $invoices->id . '  ' . $gnfeWhmcsUrl . 'viewinvoice.php?id=' . $invoices->id . '     ';
-    } else {
+    } elseif ($params['InvoiceDetails'] == 'Nome dos serviços') {
         $desc = substr(implode("\n", $line_items), 0, 600);
+    } elseif ($params['InvoiceDetails'] == 'Número da fatura + Nome dos serviços') {
+        $gnfeWhmcsUrl = Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value'])[0]->value;
+        $desc = 'Nota referente a fatura #' . $invoices->id . '  ' . $gnfeWhmcsUrl . 'viewinvoice.php?id=' . $invoices->id . ' | ' . substr(implode("\n", $line_items), 0, 600);
     }
+
+    logModuleCall('gofas_nfeio', 'description-descCustom', $params['descCustom'], '','', '');
+    logModuleCall('gofas_nfeio', 'description-InvoiceDetails', $params['InvoiceDetails'], '','', '');
+    logModuleCall('gofas_nfeio', 'description', $params, '','', '');
 
     //define address
     if (strpos($client['address1'], ',')) {
@@ -57,11 +68,11 @@ function emitNFE($invoices,$nfeio) {
         $rps_serial_number = $params['rps_serial_number'];
         $rps_serial_number_ = false;
     //se não tiver salvo no banco mas existir na API
-    } elseif (!$params['rps_serial_number'] and $gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber']) {
-        $rps_serial_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber'];
+    } elseif (!$params['rps_serial_number'] and $gnfe_get_nfes['rpsSerialNumber']) {
+        $rps_serial_number = $gnfe_get_nfes['rpsSerialNumber'];
         $rps_serial_number_ = $rps_serial_number;
     //se não tiver salvo no banco e não existir na API
-    } elseif (!$params['rps_serial_number'] and !$gnfe_get_nfes['serviceInvoices']['0']['rpsSerialNumber']) {
+    } elseif (!$params['rps_serial_number'] and !$gnfe_get_nfes['rpsSerialNumber']) {
         $rps_serial_number = 'IO';
         $rps_serial_number_ = $rps_serial_number;
     }
@@ -70,10 +81,10 @@ function emitNFE($invoices,$nfeio) {
     if ($params['rps_number'] and $params['rps_number'] != 'zero') {
         $rps_number = $params['rps_number'];
     //se não existir RPS e existir na API
-    } elseif ((!$params['rps_number'] || $params['rps_number'] == 'zero') && $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']) {
-        $rps_number = $gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'];
+    } elseif ((!$params['rps_number'] || $params['rps_number'] == 'zero') && $gnfe_get_nfes['rpsNumber']) {
+        $rps_number = $gnfe_get_nfes['rpsNumber'];
     //se não existir RPS e não existir na API
-    } elseif (($params['rps_number'] == 'zero' && !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber']) || (!$params['rps_number'] && !$gnfe_get_nfes['serviceInvoices']['0']['rpsNumber'])) {
+    } elseif (($params['rps_number'] == 'zero' && !$gnfe_get_nfes['rpsNumber']) || (!$params['rps_number'] && !$gnfe_get_nfes['rpsNumber'])) {
         $rps_number = 0;
     }
 

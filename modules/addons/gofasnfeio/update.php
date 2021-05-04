@@ -44,7 +44,6 @@ if (!function_exists('gnfe_verifyInstall')) {
                 $error .= "Não foi possível atualizar a tabela do módulo no banco de dados: {$e->getMessage()}";
             }
         }
-
         if (!$error) {
             return ['sucess' => 1];
         }

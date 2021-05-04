@@ -11,12 +11,32 @@ if (!function_exists('gofasnfeio_output')) {
         }
 
         if ($_GET['action'] === 'code_product') {
-            require_once __DIR__ . '/outputproduct.php';
-
+            require_once __DIR__ . '/addonPage/outputproduct.php';
             return '';
+        } elseif ($_GET['action'] == 'nfeio_legacy') {
+            require_once __DIR__ . '/addonPage/outputsystemlegacy.php';
+            return '';
+        } elseif ($_GET['action'] == 'test_connection') {
+            $http_code = gnfe_test_connection()['http_code']; 
+            if ($http_code == 401) {
+                ?>
+                    <div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">API Key invalida</div>
+                <?php
+            } elseif ($http_code == 400) {
+                ?>
+                    <div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">ID da Empresa invalido</div>
+                <?php
+            } elseif ($http_code == 200) {
+                ?>
+                    <div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #5cb85c;color: #ffffff;padding: 5px;text-align: center;">Conexão bem sucedida</div>
+                <?php
+            } else {
+                ?>
+                    <div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">Conexão mal sucedida</div>
+                <?php
+            }
         }
 
-        $nfes = [];
         foreach (Capsule::table('gofasnfeio')->orderBy('id', 'desc')->get(['id']) as $nfes_) {
             $nfes[] = $nfes_->id;
         }
@@ -100,7 +120,7 @@ if (!function_exists('gofasnfeio_output')) {
             $client = localAPI('GetClientsDetails', ['clientid' => $value->user_id, 'stats' => false], false);
             if ($value->status === 'Waiting') {
                 $status = '<span style="color:#f0ad4e;">Aguardando</span>';
-                $disabled = ['a' => 'disabled="disabled"', 'b' => 'disabled="disabled"', 'c' => 'disabled="disabled"', 'd' => 'disabled="disabled"'];
+                $disabled = ['a' => 'disabled="disabled"', 'b' => 'disabled="disabled"', 'c' => '', 'd' => 'disabled="disabled"'];
             }
             if ($value->status === 'Created') {
                 $status = '<span style="color:#f0ad4e;">Processando</span>';
@@ -141,8 +161,11 @@ if (!function_exists('gofasnfeio_output')) {
         }
         if ((int) $nfes_total > 0) {
             echo '
+            
             <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=code_product" class="btn btn-primary" id="gnfe_cancel" title="Código de Serviços">Código de Serviços</a>
-		<div><h3>Listagem de notas fiscais</h3>' . $nfes_total . ' Itens encontrados.<br>Exibindo de ' . $nfes_from . ' a ' . $nfes_to . '. Página ' . $nfes_page . ' de ' . $nfes_pages . '</div>
+            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=nfeio_legacy" class="btn btn-primary" title="Sistema legado">Sistema legado</a>
+            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=test_connection" class="btn btn-success" title="Sistema legado">Testar conexão</a>
+        <div><h3>Listagem de notas fiscais</h3>' . $nfes_total . ' Itens encontrados.<br>Exibindo de ' . $nfes_from . ' a ' . $nfes_to . '. Página ' . $nfes_page . ' de ' . $nfes_pages . '</div>
 		<div class="tab-content admin-tabs">
 					<table id="sortabletbl0" class="datatable" width="100%" border="0" cellspacing="1" cellpadding="3">
 						<tbody>
@@ -170,6 +193,7 @@ if (!function_exists('gofasnfeio_output')) {
         } else {
             echo '
             <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=code_product" class="btn btn-primary" id="gnfe_cancel" title="Código de Serviços">Código de Serviços</a>
+            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=nfeio_legacy" class="btn btn-primary" title="Sistema legado">Sistema legado</a>
 		<div>
 			<h3>Nenhuma nota fiscal gerada até o momento</h3>
 		</div>';
