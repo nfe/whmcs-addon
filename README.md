@@ -123,6 +123,22 @@ Para inserir uma opção personalizada de quando é emitido a NFE para cada clie
 
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
 
+### v1.3.0
+- link para relatório do sistema legado
+- botão para cancelar nota fiscal
+- log, data e hora da emissão do log
+- verificação de conexão com nfe
+- verificação automática de campo RPS
+- verificação de campo personalizado
+- campo personalizado no cliente para emissão da nota
+
+### v1.2.10 
+- correção enviar endereço de e-mail na nota
+### v1.2.9
+- criação de arquivo de debug
+- verificação do retorno CEP
+- validação de versão do modulo via github
+- impedir emissão duplicada de nota fiscal de fatura
 ### v1.2.7
 
 - envio do nome da empresa ao invés do nome pessoa física quando o CNPJ estiver definido
