@@ -62,7 +62,9 @@ use WHMCS\Database\Capsule;
 
     echo '
             <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=nfeio" class="btn btn-primary" id="gnfe_cancel" title="NFE.oi">NFE.oi</a>
-		<div class="tab-content admin-tabs">
+            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=nfeio_legacy" class="btn btn-primary" title="Sistema legado">Sistema legado</a>
+		
+            <div class="tab-content admin-tabs">
 					<table id="sortabletbl0" class="datatable" width="100%" border="0" cellspacing="1" cellpadding="3">
 						<tbody>
 							<tr>

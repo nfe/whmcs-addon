@@ -6,10 +6,22 @@ use WHMCS\Database\Capsule;
 $post = json_decode(file_get_contents('php://input'), true);
 if ($post) {
     require_once __DIR__ . '/functions.php';
-    //remover sempre que estiver na instalação de teste
-    if (Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count() == 0 || $post['environment'] != 'Production') {
+    $params = gnfe_config();
+
+    //verificar o ambiente
+    if ($params['NFEioEnvironment'] == 'on' && $post['environment'] == 'Production') {
+        return '';
+    } elseif ($params['NFEioEnvironment'] == '' && $post['environment'] == 'Development') {
         return '';
     }
+    //fim verificar o ambiente
+
+    //verificar se a nfe existe na tabela
+    if (Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->count() == 0 ) {
+        return '';
+    }
+    //fim verificar se a nfe existe na tabela
+
     $params = [];
     foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
         $params[$settings->setting] = $settings->value;
