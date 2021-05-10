@@ -123,7 +123,6 @@ Para inserir uma opção personalizada de quando é emitido a NFE para cada clie
 
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
 
-
 ### v1.3.1
 - ajuste para correção de retorno de callback.
 
@@ -138,13 +137,14 @@ Para inserir uma opção personalizada de quando é emitido a NFE para cada clie
 
 ### v1.2.10 
 - correção enviar endereço de e-mail na nota
+
 ### v1.2.9
 - criação de arquivo de debug
 - verificação do retorno CEP
 - validação de versão do modulo via github
 - impedir emissão duplicada de nota fiscal de fatura
-### v1.2.7
 
+### v1.2.7
 - envio do nome da empresa ao invés do nome pessoa física quando o CNPJ estiver definido
 - criar nota fiscal de acordo com o código de serviço de cada serviço
 - corrigido erro de caracteres especiais
@@ -155,54 +155,42 @@ Para inserir uma opção personalizada de quando é emitido a NFE para cada clie
 - ajuste de instalação do módulo
 
 ### v1.2.6
-
 - opção manual para criação de notas fiscais.
 
 ### v1.2.5
-
 - criação de link na fatura para o XML da nota fiscal.
 
 ### v1.2.4
-
 - Nova opção de configuração no disparo de nota fiscal automatica por e-mail.
 - Ajustes com informações e links de suporte.
 
 ### v1.2.3
-
 - Ajustes Garante que a nota não sera duplicada, criação de link da nota fiscal, opção de inscrição municipal.
 
 ### v1.2.2
-
 - Garante que o rpsSeraiNumber não seja alterado quando já configurado manualmente.
 
 #### v1.2.1
-
 - Corrigido erro que alterava a série do RPS nas configurações de acordo com a série RPS das NFEs já geradas.
 
 #### v1.2.0
-
 - Novo campo nas configurações para informar a Série do RPS (RPS Serial Number). Será preenchido automaticamente na próxima emissão, caso não preenchido;
 - Novo campo nas configurações para informar o número RPS (RPS Number). Caso não preenchido, será preenchido automaticamente na próxima emissão, após consultar a NFE mais recente gerada. Não sendo gerado ou configurado nenhum número RPS, o módulo irá configurar automaticamente com "1" o valor desse campo;
 
 #### v1.1.3
-
 - Agora o número RPS é obtido consultando a NFE mais recente gerada;
 
 #### v1.1.2
-
 - Melhoria na verificação de atualizações;
 
 #### v1.1.1
-
 - Obtém via API o rpsSerialNumber e rpsNumber da empresa antes de gerar cada nota fiscal;
 - O rpsNumber da nova NFE a ser gerada sempre é "último rpsNumber + 1".
 
 #### v1.0.1
-
 - Corrigido bug ao salvar NFE no banco de dados na criação da fatura.
 
 #### v1.0.0
-
 - Lançamento.
 
 © 2021 [Manutenção Link Nacional](https://www.linknacional.com.br/suporte-whmcs)
