@@ -296,7 +296,7 @@ if (!function_exists('gofasnfeio_config')) {
         $development_ = ['NFEioEnvironment' => [
             'FriendlyName' => 'Ambiente de desenvolvimento',
             'Type' => 'yesno',
-            'Default' => 'no',
+            'Default' => '',
             'Description' => 'Habilitar ambiente de desenvolvimento',
         ]];
 
