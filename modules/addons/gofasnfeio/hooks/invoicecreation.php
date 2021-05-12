@@ -38,7 +38,7 @@ if (strtolower($issueNfeUser) === 'quando a fatura é gerada') {
     logModuleCall('gofas_nfeio', 'quando a fatura é paga invoicecreation', '', '', '', '');
 
     return;
-} elseif (strtolower($issueNfeUser) === 'nenhum (padrão do whmcs) deve seguir a configuração do modulo.') {
+} else {
     logModuleCall('gofas_nfeio', 'nenhum (padrão do whmcs) deve seguir a configuração do modulo invoicecreation', '', '', '', '');
     $params = gnfe_config();
     if (stripos($params['issue_note'], 'Gerada') && (string) $vars['status'] != 'Draft' && (!$params['issue_note_after'] || 0 == $params['issue_note_after'])) {
