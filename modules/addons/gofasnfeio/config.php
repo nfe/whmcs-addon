@@ -286,7 +286,7 @@ if (!function_exists('gofasnfeio_config')) {
         ]];
 
         $desc_custom = ['descCustom' => [
-            'FriendlyName' => 'Adicione informações personalizada na nota fiscal:',
+            'FriendlyName' => 'Adicione uma informação personalizada na nota fiscal:',
             'Type' => 'text',
             'Default' => '',
             'Description' => 'Esta informação será acrescida após detalhes da fatura.',
