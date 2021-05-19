@@ -212,9 +212,8 @@ if (!function_exists('gofasnfeio_config')) {
         $rps_number_camp = ['rps_number' => [
             'FriendlyName' => 'Número do RPS',
             'Type' => 'text',
-            // 'Default' => $rps_number,
             'Disabled' => 'true',
-            'Description' => 'Para alterar o RPS acessa a nfe.io <a target="_blank" href="' . $admin_url . 'configaddonmods.php?doc_log=true" style="text-decoration:underline;">AQUI</a>.',
+            'Description' => 'RPS atualizada de acordo com última nota fiscal emitida, clique no botão salvar alterações para atualizar automaticamente.',
         ]];
 
         $issue_note = ['issue_note' => [
