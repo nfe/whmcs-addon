@@ -53,7 +53,7 @@ if (!function_exists('gofasnfeio_config')) {
         }
         $previous_version = Capsule::table('tbladdonmodules')->where('module','=','gofasnfeio')->where('setting','=','version')->get(['value'])[0]->value;
 
-        $module_version = '1.3.2';
+        $module_version = '1.3.3';
         // Verify available updates
         $available_update_ = gnfe_verify_module_updates();
         $module_version_int = (int) preg_replace('/[^0-9]/', '', $module_version);
@@ -287,7 +287,7 @@ if (!function_exists('gofasnfeio_config')) {
         ]];
 
         $desc_custom = ['descCustom' => [
-            'FriendlyName' => 'detalhes personalizados da fatura.',
+            'FriendlyName' => 'Adicione informações personalizada na nota fiscal:',
             'Type' => 'text',
             'Default' => '',
             'Description' => '<span style="color:#c00">Preencher essa opção desativa a opção anterior.</span>',
