@@ -35,16 +35,14 @@ function emitNFE($invoices,$nfeio) {
     $service_code = $nfeio->service_code ? $nfeio->service_code : $params['service_code'];
 
     //description nfe
-    if ($params['descCustom'] != '') {
-        $desc = $params['descCustom'];
-    } elseif ($params['InvoiceDetails'] == 'Número da fatura') {
+    if ($params['InvoiceDetails'] == 'Número da fatura') {
         $gnfeWhmcsUrl = Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value'])[0]->value;
-        $desc = 'Nota referente a fatura #' . $invoices->id . '  ' . $gnfeWhmcsUrl . 'viewinvoice.php?id=' . $invoices->id . '     ';
+        $desc = 'Nota referente a fatura #' . $invoices->id . '  ' . $gnfeWhmcsUrl . 'viewinvoice.php?id=' . $invoices->id . ' ' . $params['descCustom'];
     } elseif ($params['InvoiceDetails'] == 'Nome dos serviços') {
-        $desc = substr(implode("\n", $line_items), 0, 600);
+        $desc = substr(implode("\n", $line_items), 0, 600) . ' ' . $params['descCustom'];
     } elseif ($params['InvoiceDetails'] == 'Número da fatura + Nome dos serviços') {
         $gnfeWhmcsUrl = Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value'])[0]->value;
-        $desc = 'Nota referente a fatura #' . $invoices->id . '  ' . $gnfeWhmcsUrl . 'viewinvoice.php?id=' . $invoices->id . ' | ' . substr(implode("\n", $line_items), 0, 600);
+        $desc = 'Nota referente a fatura #' . $invoices->id . '  ' . $gnfeWhmcsUrl . 'viewinvoice.php?id=' . $invoices->id . ' | ' . substr(implode("\n", $line_items), 0, 600) . ' '. $params['descCustom'];
     }
 
     logModuleCall('gofas_nfeio', 'description-descCustom', $params['descCustom'], '','', '');

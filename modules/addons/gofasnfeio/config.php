@@ -287,7 +287,7 @@ if (!function_exists('gofasnfeio_config')) {
         ]];
 
         $desc_custom = ['descCustom' => [
-            'FriendlyName' => 'detalhes personalizados da fatura.',
+            'FriendlyName' => 'Adicione informações personalizada na nota fiscal:',
             'Type' => 'text',
             'Default' => '',
             'Description' => '<span style="color:#c00">Preencher essa opção desativa a opção anterior.</span>',
