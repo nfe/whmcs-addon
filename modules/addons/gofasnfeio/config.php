@@ -290,7 +290,7 @@ if (!function_exists('gofasnfeio_config')) {
             'FriendlyName' => 'Adicione informações personalizada na nota fiscal:',
             'Type' => 'text',
             'Default' => '',
-            'Description' => '<span style="color:#c00">Preencher essa opção desativa a opção anterior.</span>',
+            'Description' => 'Esta informação será acrescida após detalhes da fatura.',
         ]];
 
         $development_ = ['NFEioEnvironment' => [
