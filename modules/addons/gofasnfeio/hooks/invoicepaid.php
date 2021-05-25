@@ -32,7 +32,7 @@ if (strtolower($issueNfeUser) === 'quando a fatura é paga') {
     }
 } elseif (strtolower($issueNfeUser) === 'quando a fatura é gerada') {
     return;
-} elseif (strtolower($issueNfeUser) === 'nenhum (padrão do whmcs) deve seguir a configuração do modulo.') {
+} else {
     if (stripos($params['issue_note'], 'Paga') && $vars['status'] != 'Draft' && (!$params['issue_note_after'] || 0 == $params['issue_note_after'] || stripos(strtolower($issueNfeUser),'paga'))) {
         $invoice = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']], false);
 
