@@ -361,6 +361,20 @@ if (!function_exists('gnfe_get_nfes')) {
         return json_decode($response, true)['serviceInvoices']['0'];
     }
 }
+if (!function_exists('gnfe_get_rps')) {
+    function gnfe_get_rps() {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') );
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        $response = curl_exec($curl);
+        curl_close($curl);
+        //print_r($response);
+        return json_decode($response, true)['rpsNumber'];
+    }
+}
+
 if (!function_exists('gnfe_get_invoice_nfes')) {
     function gnfe_get_invoice_nfes($invoice_id) {
         $nfes = [];

@@ -96,7 +96,7 @@ Dentro do admin do WHMCS é possível gerenciar a nota fiscal manualmente.
 
 Os produtos podem ter configurações de código de serviço individuais:
 
-Em Addons>NFE.oi>código dos Produtos é possivel configurar um código de serviço para cada produto/serviço cadastrado.
+Em Addons>NFE.io>código dos Produtos é possivel configurar um código de serviço para cada produto/serviço cadastrado.
 
 **_o código individual vai ter prioridade sobre o definido nas configurações do módulo._**
 
