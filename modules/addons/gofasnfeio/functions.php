@@ -5,7 +5,9 @@ if (!defined('WHMCS')) {
 }
 use WHMCS\Database\Capsule;
 
-// Get config
+/**
+ * Pega os dados da tabela tbladdonmodules do banco de dados da WHMCS.
+ */
 if (!function_exists('gnfe_config')) {
     function gnfe_config($set = false) {
         $setting = [];
@@ -332,6 +334,125 @@ if (!function_exists('gnfe_get_nfe')) {
     }
 }
 
+/**
+ * Retorna os dados necessários na função gnfe_put_rps().
+ * 
+ * @return array
+ */
+if (!function_exists('gnfe_get_company_info')) {
+    function gnfe_get_company_info() {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'));
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+        $response = json_decode(curl_exec($curl), true);
+        $response = $response['companies'];
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        curl_close($curl);
+
+        if ($httpCode === 200) {
+            return array(
+                'name' => $response['name'],
+                'federalTaxNumber' => $response['federalTaxNumber'],
+                'address' => $response['address'],
+                'rpsNumber' => $response['rpsNumber']
+            );
+        } else {
+            return array(
+                'error' => true,
+                'response' =>
+                    'Erro: ' . $httpCode . '|'
+                    . ' Resposta: ' . $response . '|'
+                    . ' Consulte: https://nfe.io/docs/desenvolvedores/rest-api/nota-fiscal-de-servico-v1/#/Companies/Companies_Get'
+            );
+        }
+    }
+}
+
+/**
+ * Responsável por enviar o último RPS para a NFe.
+ * Os parâmetros vem da função gnfe_get_company_info().
+ * 
+ * @param int $rpsNumber
+ * 
+ * @return void
+ */
+if (!function_exists('gnfe_put_rps')) {
+    function gnfe_put_rps($company, $rpsNumber) {
+        $requestBody = [
+            "name"=>$company['name'],
+            "federalTaxNumber"=> $company['federalTaxNumber'],
+            "address"=> [
+                "country"=> $company['address']['country'],
+                "postalCode"=> $company['address']['postalCode'],
+                "street"=> $company['address']['street'],
+                "number"=> $company['address']['number'],
+                "additionalInformation"=> $company['address']['additionalInformation'],
+                "district"=> $company['address']['district'],
+                "city"=> [
+                    "code"=> $company['address']['city']['code'],
+                    "name"=> $company['address']['city']['name']
+                ],
+                "state"=> $company['address']['state']
+            ],
+            "rpsNumber"=> $rpsNumber
+        ];
+        $requestBody = json_encode($requestBody);
+
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'));
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBody);
+        $response = json_decode(curl_exec($curl), true);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        if ($httpCode !== 200) {
+            $response =
+                'Erro: ' . $httpCode . '|' .
+                ' Resposta: ' . $response . '|' .
+                ' Consulte: https://nfe.io/docs/desenvolvedores/rest-api/nota-fiscal-de-servico-v1/#/Companies/Companies_Put';
+            logModuleCall('gofas_nfeio', 'gnfe_put_rps', $requestBody, $response, '', '');
+        } else {
+            Capsule::table('tbladdonmodules')->where('module', 'gofasnfeio')->where('setting', 'rps_number')->update(['value' => '-1']);
+            echo 'RPS ATUALIZADO.';
+        }
+    }
+}
+
+/**
+ * Pega o RPS da última nota fiscal emitida.
+ * Se o RPS da última nota fiscal emitida for igual a 0,
+ * quer dizer que a nota está aguardando algum processo interno da NFe,
+ * portanto a função retornará o RPS da penúltima nota fiscal emitida e soma mais um.
+ */
+if (!function_exists('gnfe_get_rps')) {
+    function gnfe_get_rps() {
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices?pageCount=1&pageIndex=1');
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        $invoices = curl_exec($curl);
+        $invoices = json_decode($invoices, true)['serviceInvoices'];
+        curl_close($curl);
+
+        $lastInvoiceRPS = $invoices[0]['rpsNumber'];
+
+        if ($lastInvoiceRPS === 0) {
+            $lastInvoiceRPS = $invoices[1]['rpsNumber'] + 1;
+        }
+
+        return $lastInvoiceRPS;
+    }
+}
+
 if (!function_exists('gnfe_test_connection')) {
     function gnfe_test_connection() {
         $curl = curl_init();
@@ -348,7 +469,9 @@ if (!function_exists('gnfe_test_connection')) {
         return $info;
     }
 }
-
+/**
+ * Pega o JSON da última nota fiscal emitida do banco de dados da NFe.
+ */
 if (!function_exists('gnfe_get_nfes')) {
     function gnfe_get_nfes() {
         $curl = curl_init();
@@ -359,19 +482,6 @@ if (!function_exists('gnfe_get_nfes')) {
         $response = curl_exec($curl);
         curl_close($curl);
         return json_decode($response, true)['serviceInvoices']['0'];
-    }
-}
-if (!function_exists('gnfe_get_rps')) {
-    function gnfe_get_rps() {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') );
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        $response = curl_exec($curl);
-        curl_close($curl);
-        //print_r($response);
-        return json_decode($response, true)['rpsNumber'];
     }
 }
 
@@ -569,6 +679,7 @@ if (!function_exists('gnfe_update_nfe')) {
 }
 if (!function_exists('gnfe_update_rps')) {
     function gnfe_update_rps($rps_serial_number, $rps_number) {
+        // Para que serve este array?
         $setting = [];
         foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
             $setting[$settings->setting] = $settings->value;
@@ -684,20 +795,6 @@ if (!function_exists('gnfe_nfe_flowStatus')) {
         }
 
         return $status;
-    }
-}
-
-if (!function_exists('gnfe_get_company')) {
-    function gnfe_get_company() {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'));
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        $response = curl_exec($curl);
-        curl_close($curl);
-
-        return json_decode($response, true);
     }
 }
 
