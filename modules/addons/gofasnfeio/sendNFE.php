@@ -149,8 +149,7 @@ $name,$email,$countrycode,$postcode,$street,$number,$address2,$code,$city,$state
                 'state' => $state,
             ],
         ],
-        'rpsSerialNumber' => $rps_serial_number,
-        'rpsNumber' => (int) $rps_number + 1,
+        'rpsSerialNumber' => $rps_serial_number
     ];
     strlen($insc_municipal) == 0 ? '' : $postfields['borrower']['municipalTaxNumber'] = $insc_municipal;
     return $postfields;
