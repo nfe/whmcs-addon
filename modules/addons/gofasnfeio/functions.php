@@ -398,7 +398,7 @@ if (!function_exists('gnfe_put_rps')) {
                 ],
                 "state"=> $company['address']['state']
             ],
-            "rpsNumber"=> $rpsNumber
+            "rpsNumber"=> $rpsNumber + 1
         ];
         $requestBody = json_encode($requestBody);
 
@@ -415,13 +415,19 @@ if (!function_exists('gnfe_put_rps')) {
 
         if ($httpCode !== 200) {
             $response =
-                'Erro: ' . $httpCode . '|' .
+                ' Http code: ' . $httpCode . '|' .
                 ' Resposta: ' . $response . '|' .
                 ' Consulte: https://nfe.io/docs/desenvolvedores/rest-api/nota-fiscal-de-servico-v1/#/Companies/Companies_Put';
             logModuleCall('gofas_nfeio', 'gnfe_put_rps', $requestBody, $response, '', '');
         } else {
-            Capsule::table('tbladdonmodules')->where('module', 'gofasnfeio')->where('setting', 'rps_number')->update(['value' => '-1']);
-            echo 'RPS ATUALIZADO.';
+            $nfe_rps = gnfe_get_nfes()['rpsNumber'];
+            $whmcs_rps = Capsule::table('tbladdonmodules')->where('module','=','gofasnfeio')->where('setting','=','module_version')->get(['value'])[0]->value;
+
+            if ($nfe_rps >= $whmcs_rps) {
+                Capsule::table('tbladdonmodules')->where('module', 'gofasnfeio')->where('setting', 'rps_number')->update(['value' => '-1']);
+            } else {
+                logModuleCall('gofas_nfeio', 'gnfe_put_rps', $requestBody, 'Erro ao tentar passar tratativa de RPS para NFe. ' . $response, '', '');
+            }
         }
     }
 }
