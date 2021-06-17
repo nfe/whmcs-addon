@@ -101,7 +101,7 @@ function emitNFE($invoices,$nfeio) {
         //cria o array do request
         $postfields = createRequestFromAPI($service_code,$desc,$nfeio->services_amount,$customer['document'],$customer['insc_municipal'],
         $name,$client_email,$client['countrycode'],$client['postcode'],$street,$number,$client['address2'],
-        $code,$client['city'],$client['state'],$rps_serial_number,$rps_number);
+        $code,$client['city'],$client['state'],$rps_serial_number);
 
         //envia o requisição
         $nfe = gnfe_issue_nfe($postfields);
@@ -125,7 +125,7 @@ function emitNFE($invoices,$nfeio) {
 }
 
 function createRequestFromAPI($service_code,$desc,$services_amount,$document,$insc_municipal = '',
-$name,$email,$countrycode,$postcode,$street,$number,$address2,$code,$city,$state,$rps_serial_number,$rps_number) {
+$name,$email,$countrycode,$postcode,$street,$number,$address2,$code,$city,$state,$rps_serial_number) {
     $postfields = [
         'cityServiceCode' => $service_code,
         'description' => $desc,

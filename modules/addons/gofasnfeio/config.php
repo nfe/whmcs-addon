@@ -56,17 +56,46 @@ if (!function_exists('gofasnfeio_config')) {
 
         // --------------------------------------------------------------------------------------------
 
-        // Versão do módulo instalado.
+        // Versão do módulo deste arquivo.
         $module_version = '1.4.0';
         $module_version_int = (int) preg_replace('/[^0-9]/', '', $module_version);
 
         // Versão do módulo que consta no banco de dados.
-        // Ou seja, se module_version e previous_version não
-        // forem iguais, quer dizer que houve uma atualização do módulo.
-        $previous_version = Capsule::table('tbladdonmodules')->where('module','=','gofasnfeio')->where('setting','=','module_version')->get(['value'])[0]->value;
+        $previous_version = gnfe_config('module_version');
+
+        // A versão do módulo precisa ser inserida no tabela do banco de dados, porque ela não existia no banco de dados até agora.
+        if (!$previous_version) {
+            Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'module_version', 'value' => $module_version]);
+            $previous_version = $module_version;
+        }
         $previous_version_int = (int) preg_replace('/[^0-9]/', '', $previous_version);
 
-        
+        $update_denied = '';
+        // Se module_version e previous_version não forem iguais, quer dizer que houve uma atualização do módulo.
+        if ($module_version_int !== $previous_version_int) {
+            // Pega apenas as versões MAJOR.MINOR do módulo instalado e da versão do módulo no banco de dados.
+            $previous_major_minor_version = intval(substr($previous_version_int, 0, 2));
+            $module_major_minor_version = intval(substr($module_version_int, 0, 2));
+            
+            // Atende a diretriz "Exclusivamente a partir da versão 1.5.0 não será permitido atualização do modulo por versões inferiores a 1.4.0.".
+            // Se a versão do módulo for igual a versão do módulo no
+            // banco de dados mais 1, então a atualização é permitida, ou se a versão do módulo no banco for maior igual a 15.
+            if ($module_major_minor_version === $previous_major_minor_version + 1 || $previous_major_minor_version >= 15) {
+                Capsule::table('tbladdonmodules')->where('module', 'gofasnfeio')->where('setting', 'module_version')->update(['value' => $module_version]);
+            } else {
+                $update_denied = <<<EOT
+                    <p style="font-size: 14px; color: red;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Você está tentando instalar a versão $module_version e a versão anteriormente instalada foi a $previous_version
+                    </p>
+                    <p style="font-size: 14px; color: red;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Entretanto, só é permitida a atualização do módulo para frente e de uma em uma versão. Ex.: 1.3.0 para 1.4.0, 1.4.3 para 1.5.0
+                    </p>
+                EOT;
+                $module_version = $previous_version;
+            }
+        }
 
         // --------------------------------------------------------------------------------------------
 
@@ -81,58 +110,32 @@ if (!function_exists('gofasnfeio_config')) {
         }
 
         // --------------------------------------------------------------------------------------------
-        // 1º Verificar se o RPS no WHMCS tá diferente de -1
-            // Verificar se a row do campo rps_number_change_nfe está no banco.
 
-        // 2º Verificar se o campo de configuração tá igual a true
-            // Se tiver, atualizar a RPS de acordo com o número do WHMCS
-
-        // 3º Verificar se foi concluído com sucesso
-
-        // 4º Verificar se o RPS na NFe tá maior ou igual ao WHMCS
-            // Se tiver alterar o campo do WHMCS para -1
-
-        if ($module_version_int < 150) {
-            $gnfe_get_nfes = gnfe_get_nfes();
-            $rps_number = $gnfe_get_nfes['rpsNumber'];
+        // Atende à diretriz "Na versão superior a 1.4.0, ou seja na 1.5.0 este recurso de migração deve esta desabilitado."
+        // e a "Exclusivamente na versão 1.4.0 será realizada a migração da RPS do módulo para a NFE."
+        // Verifica se a versão dos arquivos do módulo corresponde a versão do módulo no banco de dados.
+        if ($module_version_int >= 140 && $module_version_int < 150 && $previous_version_int >= 140 && $previous_version_int < 150) {
+            $nfe_rps = gnfe_get_nfes()['rpsNumber'];
 
             // Verifica se a configuração rps_number existe no banco de dados.
             if (Capsule::table('tbladdonmodules')->where('setting','=','rps_number')->count() == 0) {
-                echo 'RPS FALTANDO FOI INSERIDO NO DB';
-                Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'rps_number', 'value' => $rps_number]);
+                Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'rps_number', 'value' => $nfe_rps]);
             }
 
-            $whmcsRPS = gnfe_config()['rps_number'];
+            $whmcs_rps = gnfe_config()['rps_number'];
 
-            if ($whmcsRPS != -1)  {
-                $companyData = gnfe_get_company_info();
+            if (is_numeric($whmcs_rps)) {
+                $company_data = gnfe_get_company_info();
 
-                if (isset($companyData['error'])) {
-                    logModuleCall('gofas_nfeio', 'gnfe_get_company_info', '', $companyData['response'], '', '');
-                    echo 'ERRO AO PEGAR OS DADOS DA EMPRESA';
+                if (isset($company_data['error'])) {
+                    logModuleCall('gofas_nfeio', 'gnfe_get_company_info', '', $company_data['error'], '', '');
                 } else {
-                    // Transfere a tratativa do RPS para a NFe.
-                    gnfe_put_rps($companyData, $whmcsRPS);
+                    gnfe_put_rps($company_data, $whmcs_rps); // Transfere a tratativa do RPS para a NFe.
                 }
+            } else {
             }
         }
 
-        /**
-         * Versão do Davi, com o campo rps_number_change_nfe nas configurações do módulo.
-         * $whmcsRPS = gnfe_config()['rps_number'];
-         * $rpsNumberChangeNfe = Capsule::table('tbladdonmodules')->where('module','=','gofasnfeio')->where('setting','=','rps_number_change_nfe')->get(['value'])[0]->value;
-         * if ($whmcsRPS !== -1 && $rpsNumberChangeNfe)  {
-         *     $companyData = gnfe_get_company_info();
-         *     if (isset($companyData['error'])) {
-         *         logModuleCall('gofas_nfeio', 'gnfe_get_company_info', '', $companyData['response'], '', '');
-         *         echo 'ERRO AO PEGAR OS DADOS DA EMPRESA';
-         *     } else {
-         *         gnfe_put_rps($companyData, $whmcsRPS); // Atualiza a RPS.
-         *         Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'rps_number', 'value' => -1]);
-         *         echo 'RPS ATUALIZADO.';
-         *     }
-         * }
-        */
         // --------------------------------------------------------------------------------------------
 
         /// REMOVER VERIFICAÇÃO APÓS VERSÃO 2.0
@@ -260,20 +263,20 @@ if (!function_exists('gofasnfeio_config')) {
             'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/" target="_blank">Saiba mais</a>',
         ]];
 
+        $rps_number = gnfe_config()['rps_number'];
+
+        if (is_numeric($rps_number)) {
+            $rps_number_camp_description = 'RPS atualizada de acordo com última nota fiscal emitida, clique no botão salvar alterações para atualizar automaticamente.';
+        } else {
+            $rps_number_camp_description = '<a style="text-decoration:underline;" href="https://app.nfe.io/companies/edit/fiscal/' . gnfe_config('company_id') . '" target="_blank">Consultar RPS</a>';
+        }
+
         $rps_number_camp = ['rps_number' => [
             'FriendlyName' => 'Número do RPS',
             'Type' => 'text',
             'Disabled' => 'true',
-            'Description' => 'RPS atualizada de acordo com última nota fiscal emitida, clique no botão salvar alterações para atualizar automaticamente.',
+            'Description' => $rps_number_camp_description
         ]];
-
-        // $rps_number_change_nfe = ['rps_number_change_nfe' => [
-        //     'FriendlyName' => 'Alterar a tratativa de RPS',
-        //     'Type' => 'radio',
-        //     'Options' => 'true',
-        //     'Default' => 'false',
-        //     'Description' => 'Ao selecionar esta opção, a tratativa da RPS será realizada pela NFe.io em defintiivo.'
-        // ]];
 
         $issue_note = ['issue_note' => [
             'FriendlyName' => 'Quando emitir NFE',
@@ -364,7 +367,6 @@ if (!function_exists('gofasnfeio_config')) {
         ]];
 
         $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $rps_number_camp, $issue_note, $issue_note_after, $gnfe_email_nfe_config,$development_, $cancel_invoice_cancel_nfe, $debug, $insc_municipal,$cpf,$cnpj, $tax, $invoiceDetails,$desc_custom, $footer);
-        // $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $rps_number_camp, $rps_number_change_nfe, $issue_note, $issue_note_after, $gnfe_email_nfe_config,$development_, $cancel_invoice_cancel_nfe, $debug, $insc_municipal,$cpf,$cnpj, $tax, $invoiceDetails,$desc_custom, $footer);
         $configarray = [
             'name' => 'NFE.io',
             'description' => 'Módulo Nota Fiscal NFE.io para WHMCS',

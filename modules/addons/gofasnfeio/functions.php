@@ -362,8 +362,7 @@ if (!function_exists('gnfe_get_company_info')) {
             );
         } else {
             return array(
-                'error' => true,
-                'response' =>
+                'error' =>
                     'Erro: ' . $httpCode . '|'
                     . ' Resposta: ' . $response . '|'
                     . ' Consulte: https://nfe.io/docs/desenvolvedores/rest-api/nota-fiscal-de-servico-v1/#/Companies/Companies_Get'
@@ -374,7 +373,6 @@ if (!function_exists('gnfe_get_company_info')) {
 
 /**
  * Responsável por enviar o último RPS para a NFe.
- * Os parâmetros vem da função gnfe_get_company_info().
  * 
  * @param int $rpsNumber
  * 
@@ -420,42 +418,16 @@ if (!function_exists('gnfe_put_rps')) {
                 ' Consulte: https://nfe.io/docs/desenvolvedores/rest-api/nota-fiscal-de-servico-v1/#/Companies/Companies_Put';
             logModuleCall('gofas_nfeio', 'gnfe_put_rps', $requestBody, $response, '', '');
         } else {
-            $nfe_rps = gnfe_get_nfes()['rpsNumber'];
-            $whmcs_rps = Capsule::table('tbladdonmodules')->where('module','=','gofasnfeio')->where('setting','=','module_version')->get(['value'])[0]->value;
+            $nfe_rps = intval(gnfe_get_nfes()['rpsNumber']);
+            $whmcs_rps = intval(gnfe_config('rps_number'));
 
+            // Verifica se o RPS na NFe é maior ou igual ao RPS no WHMCS para garantir que a ação foi efetivada.
             if ($nfe_rps >= $whmcs_rps) {
-                Capsule::table('tbladdonmodules')->where('module', 'gofasnfeio')->where('setting', 'rps_number')->update(['value' => '-1']);
+                Capsule::table('tbladdonmodules')->where('module', 'gofasnfeio')->where('setting', 'rps_number')->update(['value' => 'RPS administrado pela NFe.']);
             } else {
                 logModuleCall('gofas_nfeio', 'gnfe_put_rps', $requestBody, 'Erro ao tentar passar tratativa de RPS para NFe. ' . $response, '', '');
             }
         }
-    }
-}
-
-/**
- * Pega o RPS da última nota fiscal emitida.
- * Se o RPS da última nota fiscal emitida for igual a 0,
- * quer dizer que a nota está aguardando algum processo interno da NFe,
- * portanto a função retornará o RPS da penúltima nota fiscal emitida e soma mais um.
- */
-if (!function_exists('gnfe_get_rps')) {
-    function gnfe_get_rps() {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices?pageCount=1&pageIndex=1');
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        $invoices = curl_exec($curl);
-        $invoices = json_decode($invoices, true)['serviceInvoices'];
-        curl_close($curl);
-
-        $lastInvoiceRPS = $invoices[0]['rpsNumber'];
-
-        if ($lastInvoiceRPS === 0) {
-            $lastInvoiceRPS = $invoices[1]['rpsNumber'] + 1;
-        }
-
-        return $lastInvoiceRPS;
     }
 }
 
@@ -477,6 +449,8 @@ if (!function_exists('gnfe_test_connection')) {
 }
 /**
  * Pega o JSON da última nota fiscal emitida do banco de dados da NFe.
+ * 
+ * @return array;
  */
 if (!function_exists('gnfe_get_nfes')) {
     function gnfe_get_nfes() {
