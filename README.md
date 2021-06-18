@@ -123,6 +123,10 @@ Para inserir uma opção personalizada de quando é emitido a NFE para cada clie
 
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
 
+### v1.4.0
+
+- Migração da tratativa do RPS para a NFe realizada
+
 ### v1.3.3
 
 - Ajuste na descrição da nota fiscal.
