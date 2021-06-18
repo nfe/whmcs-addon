@@ -79,8 +79,8 @@ if (!function_exists('gofasnfeio_config')) {
             
             // Atende a diretriz "Exclusivamente a partir da versão 1.5.0 não será permitido atualização do modulo por versões inferiores a 1.4.0.".
             // Se a versão do módulo for igual a versão do módulo no
-            // banco de dados mais 1, então a atualização é permitida, ou se a versão do módulo no banco for maior igual a 15.
-            if ($module_major_minor_version === $previous_major_minor_version + 1 || $previous_major_minor_version >= 15) {
+            // banco de dados mais 1, então a atualização é permitida.
+            if ($module_major_minor_version === $previous_major_minor_version + 1) {
                 Capsule::table('tbladdonmodules')->where('module', 'gofasnfeio')->where('setting', 'module_version')->update(['value' => $module_version]);
             } else {
                 $update_denied = <<<EOT
@@ -132,7 +132,6 @@ if (!function_exists('gofasnfeio_config')) {
                 } else {
                     gnfe_put_rps($company_data, $whmcs_rps); // Transfere a tratativa do RPS para a NFe.
                 }
-            } else {
             }
         }
 
