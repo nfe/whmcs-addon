@@ -9,27 +9,26 @@ require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/update.php';
 
 if (!function_exists('gofasnfeio_config')) {
-    if (!function_exists('gnfe_customfields_dropdow')) {
-        function gnfe_customfields_dropdow() {
-            $customfields_array = [];
-            foreach (Capsule::table('tblcustomfields')->where('type', '=', 'client')->get(['fieldname', 'id']) as $customfield) {
-                $customfields_array[] = $customfield;
-            }
-            $customfields = json_decode(json_encode($customfields_array), true);
-            if (!$customfields) {
-                $dropFieldArray = ['0' => 'database error'];
-            } elseif (count($customfields) >= 1) {
-                $dropFieldArray = ['0' => 'selecione um campo'];
-                foreach ($customfields as $key => $value) {
-                    $dropFieldArray[$value['id']] = $value['fieldname'];
-                }
-            } else {
-                $dropFieldArray = ['0' => 'nothing to show'];
-            }
-
-            //  return $dropFieldArray;
-        }
-    }
+    // if (!function_exists('gnfe_customfields_dropdow')) {
+    //     function gnfe_customfields_dropdow() {
+    //         $customfields_array = [];
+    //         foreach (Capsule::table('tblcustomfields')->where('type', '=', 'client')->get(['fieldname', 'id']) as $customfield) {
+    //             $customfields_array[] = $customfield;
+    //         }
+    //         $customfields = json_decode(json_encode($customfields_array), true);
+    //         if (!$customfields) {
+    //             $dropFieldArray = ['0' => 'database error'];
+    //         } elseif (count($customfields) >= 1) {
+    //             $dropFieldArray = ['0' => 'selecione um campo'];
+    //             foreach ($customfields as $key => $value) {
+    //                 $dropFieldArray[$value['id']] = $value['fieldname'];
+    //             }
+    //         } else {
+    //             $dropFieldArray = ['0' => 'nothing to show'];
+    //         }
+    //         //  return $dropFieldArray;
+    //     }
+    // }
 
     function gnfe_verify_module_updates() {
         $curl = curl_init();
@@ -346,6 +345,13 @@ if (!function_exists('gofasnfeio_config')) {
             'Default' => 'Número da fatura',
         ]];
 
+        $send_invoice_url = ['send_invoice_url' => [
+            'FriendlyName' => 'Enviar o link da fatura na nota fiscal?',
+            'Type' => 'radio',
+            'Options' => 'Sim,Não',
+            'Default' => 'Não'
+        ]];
+
         $desc_custom = ['descCustom' => [
             'FriendlyName' => 'Adicione uma informação personalizada na nota fiscal:',
             'Type' => 'text',
@@ -365,7 +371,7 @@ if (!function_exists('gofasnfeio_config')) {
             'Description' => '&copy; ' . date('Y') . ' <a target="_blank" title="Para suporte utilize o github" href="https://github.com/nfe/whmcs-addon/issues">Suporte módulo</a>',
         ]];
 
-        $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $rps_number_camp, $issue_note, $issue_note_after, $gnfe_email_nfe_config,$development_, $cancel_invoice_cancel_nfe, $debug, $insc_municipal,$cpf,$cnpj, $tax, $invoiceDetails,$desc_custom, $footer);
+        $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $rps_number_camp, $issue_note, $issue_note_after, $gnfe_email_nfe_config,$development_, $cancel_invoice_cancel_nfe, $debug, $insc_municipal,$cpf,$cnpj, $tax, $invoiceDetails, $send_invoice_url,$desc_custom, $footer);
         $configarray = [
             'name' => 'NFE.io',
             'description' => 'Módulo Nota Fiscal NFE.io para WHMCS',
