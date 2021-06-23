@@ -71,33 +71,6 @@ function emitNFE($invoices,$nfeio) {
         $number = preg_replace('/[^0-9]/', '', $client['address1']);
     }
 
-    //define o RPS number 
-    $gnfe_get_nfes = gnfe_get_nfes();
-    //rps_serial_number
-    if ($params['rps_serial_number']) {
-        $rps_serial_number = $params['rps_serial_number'];
-        $rps_serial_number_ = false;
-    //se não tiver salvo no banco mas existir na API
-    } elseif (!$params['rps_serial_number'] and $gnfe_get_nfes['rpsSerialNumber']) {
-        $rps_serial_number = $gnfe_get_nfes['rpsSerialNumber'];
-        $rps_serial_number_ = $rps_serial_number;
-    //se não tiver salvo no banco e não existir na API
-    } elseif (!$params['rps_serial_number'] and !$gnfe_get_nfes['rpsSerialNumber']) {
-        $rps_serial_number = 'IO';
-        $rps_serial_number_ = $rps_serial_number;
-    }
-
-    //rps_number
-    if ($params['rps_number'] and $params['rps_number'] != 'zero') {
-        $rps_number = $params['rps_number'];
-    //se não existir RPS e existir na API
-    } elseif ((!$params['rps_number'] || $params['rps_number'] == 'zero') && $gnfe_get_nfes['rpsNumber']) {
-        $rps_number = $gnfe_get_nfes['rpsNumber'];
-    //se não existir RPS e não existir na API
-    } elseif (($params['rps_number'] == 'zero' && !$gnfe_get_nfes['rpsNumber']) || (!$params['rps_number'] && !$gnfe_get_nfes['rpsNumber'])) {
-        $rps_number = 0;
-    }
-
     if ($params['gnfe_email_nfe_config'] == 'on') {
         $client_email = $client['email'];
     } else {
@@ -113,7 +86,7 @@ function emitNFE($invoices,$nfeio) {
         //cria o array do request
         $postfields = createRequestFromAPI($service_code,$desc,$nfeio->services_amount,$customer['document'],$customer['insc_municipal'],
         $name,$client_email,$client['countrycode'],$client['postcode'],$street,$number,$client['address2'],
-        $code,$client['city'],$client['state'],$rps_serial_number);
+        $code,$client['city'],$client['state']);
 
         //envia o requisição
         $nfe = gnfe_issue_nfe($postfields);
@@ -128,16 +101,12 @@ function emitNFE($invoices,$nfeio) {
             if ($gnfe_update_nfe && $gnfe_update_nfe !== 'success') {
                 logModuleCall('gofas_nfeio', 'sendNFE - gnfe_update_nfe', [$nfe, $invoices->userid, $invoices->id, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $waiting->id], $gnfe_update_nfe, 'ERROR', '');
             }
-
-            if ($update_rps && $update_rps !== 'success') {
-                logModuleCall('gofas_nfeio', 'sendNFE - update_rps', [$rps_serial_number_, $rps_number], $update_rps, 'ERROR', '');
-            }
         }
     }
 }
 
 function createRequestFromAPI($service_code,$desc,$services_amount,$document,$insc_municipal = '',
-$name,$email,$countrycode,$postcode,$street,$number,$address2,$code,$city,$state,$rps_serial_number) {
+$name,$email,$countrycode,$postcode,$street,$number,$address2,$code,$city,$state) {
     $postfields = [
         'cityServiceCode' => $service_code,
         'description' => $desc,
@@ -160,8 +129,7 @@ $name,$email,$countrycode,$postcode,$street,$number,$address2,$code,$city,$state
                 ],
                 'state' => $state,
             ],
-        ],
-        'rpsSerialNumber' => $rps_serial_number
+        ]
     ];
     strlen($insc_municipal) == 0 ? '' : $postfields['borrower']['municipalTaxNumber'] = $insc_municipal;
     return $postfields;

@@ -657,28 +657,6 @@ if (!function_exists('gnfe_update_nfe')) {
         }
     }
 }
-if (!function_exists('gnfe_update_rps')) {
-    function gnfe_update_rps($rps_serial_number, $rps_number) {
-        // Para que serve este array?
-        $setting = [];
-        foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
-            $setting[$settings->setting] = $settings->value;
-        }
-
-        try {
-            if ($rps_serial_number) {
-                $update_rps_serial_number = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'rps_serial_number')->update(['value' => $rps_serial_number]);
-            }
-            if ($rps_number) {
-                $update_serial_number = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'rps_number')->update(['value' => $rps_number + 1]);
-            }
-
-            return 'success';
-        } catch (\Exception $e) {
-            return $e->getMessage();
-        }
-    }
-}
 
 /**
  * Returns the data of a invoice from the local WHMCS database.
@@ -914,7 +892,7 @@ function gnfe_get_issue_invoice_condition($vars) {
     $invoiceClientId = gnfe_get_local_nfe($vars['invoiceid'], 'user_id');
     // $invoiceClientId = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']])['userid'];
 
-    $clientCondition = Capsule::table('tblcustomfieldsvalues')->where('fieldid', '=', '21')->where('relid', '=', $invoiceClientId)->get(['value']);
+    $clientCondition = Capsule::table('tblcustomfieldsvalues')->where('fieldname', '=', 'Emitir Nota Fiscal')->where('relid', '=', $invoiceClientId)->get(['value']);
     $clientCondition = strtolower($clientCondition[0]->value);
 
     return !empty($clientCondition) ? $clientCondition : $whmcsCondition;
