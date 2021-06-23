@@ -4,7 +4,8 @@ if (!defined('WHMCS')) {
     exit();
 }
 
-$issueNfeUser = verifyIssueFromUser($vars);
+$issueInvoiceCondition = gnfe_get_issue_invoice_condition($vars);
+
 
 if (strtolower($issueNfeUser) === 'quando a fatura é gerada') {
     logModuleCall('gofas_nfeio', 'quando a fatura é gerada invoicecreation', strtolower($issueNfeUser) , '', '', '');

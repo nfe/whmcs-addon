@@ -679,6 +679,13 @@ if (!function_exists('gnfe_update_rps')) {
         }
     }
 }
+
+/**
+ * Returns the data of a invoice from the local WHMCS database.
+ * @var $invoice_id
+ * @var $values
+ * @return string
+ */
 if (!function_exists('gnfe_get_local_nfe')) {
     function gnfe_get_local_nfe($invoice_id, $values) {
         foreach (Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->orderBy('id', 'desc')->get($values) as $key => $value) {
@@ -687,6 +694,7 @@ if (!function_exists('gnfe_get_local_nfe')) {
         return $nfe_for_invoice['0'];
     }
 }
+
 if (!function_exists('gnfe_check_webhook')) {
     function gnfe_check_webhook($id) {
         $curl = curl_init();
@@ -896,11 +904,18 @@ function update_status_nfe($invoice_id,$status) {
     }
 }
 
-function verifyIssueFromUser($vars) {
-    $results = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']], false);
-    $results = localAPI('GetClientsDetails', ['clientid' => $results['userid']], '');
-    foreach ($results['customfields'] as $key => $value) {
-        $issueNfeUser = $value['value'];
-    }
-    return $issueNfeUser;
+/**
+ * @var $vars vem do arquivo hooks.php.
+ * @return string
+ */
+function gnfe_get_issue_invoice_condition($vars) {
+    $whmcsCondition = strtolower(gnfe_config('issue_note'));
+
+    $invoiceClientId = gnfe_get_local_nfe($vars['invoiceid'], 'user_id');
+    // $invoiceClientId = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']])['userid'];
+
+    $clientCondition = Capsule::table('tblcustomfieldsvalues')->where('fieldid', '=', '21')->where('relid', '=', $invoiceClientId)->get(['value']);
+    $clientCondition = strtolower($clientCondition[0]->value);
+
+    return !empty($clientCondition) ? $clientCondition : $whmcsCondition;
 }

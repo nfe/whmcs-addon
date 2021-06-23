@@ -53,6 +53,8 @@ if (!function_exists('gofasnfeio_config')) {
             dowload_doc_log();
         }
 
+        require_once 'test.php';
+
         // --------------------------------------------------------------------------------------------
 
         // Versão do módulo deste arquivo.
@@ -346,7 +348,7 @@ if (!function_exists('gofasnfeio_config')) {
         ]];
 
         $send_invoice_url = ['send_invoice_url' => [
-            'FriendlyName' => 'Enviar o link da fatura na nota fiscal?',
+            'FriendlyName' => 'Exibir link da fatura na nota fiscal?',
             'Type' => 'radio',
             'Options' => 'Sim,Não',
             'Default' => 'Não'
