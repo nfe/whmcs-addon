@@ -8,7 +8,7 @@ use WHMCS\Database\Capsule;
  */
 
 // function gnfe_get_issue_invoice_condition($vars) {
-//     $whmcsCondition = strtolower(gnfe_config('issue_note'));
+//     $whmcsCondition = strtolower(gnfe_config('issue_note_default_cond'));
 
 //     $invoiceClientId = gnfe_get_local_nfe($vars['invoiceid'], 'user_id');
 //     // $invoiceClientId = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']])['userid'];

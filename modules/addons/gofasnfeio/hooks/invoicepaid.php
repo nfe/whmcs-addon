@@ -5,8 +5,8 @@ if (!defined('WHMCS')) {
 }
 $params = gnfe_config();
 $issueInvoiceCondition = gnfe_get_issue_invoice_condition($vars);
-
-if (strtolower($issueNfeUser) === 'quando a fatura é paga') {
+// Uma fatura é paga
+if ($issueInvoiceCondition === 'quando a fatura é paga') {
     $invoice = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']], false);
 
     if ((float) $invoice['total'] > 0.00 and $invoice['status'] != 'Draft') {
@@ -30,10 +30,10 @@ if (strtolower($issueNfeUser) === 'quando a fatura é paga') {
             }
         }
     }
-} elseif (strtolower($issueNfeUser) === 'quando a fatura é gerada') {
+} elseif ($issueInvoiceCondition === 'quando a fatura é gerada') {
     return;
 } else {
-    if (stripos($params['issue_note'], 'Paga') && $vars['status'] != 'Draft' && (!$params['issue_note_after'] || 0 == $params['issue_note_after'] || stripos(strtolower($issueNfeUser),'paga'))) {
+    if (stripos($params['issue_note_default_cond'], 'Paga') && $vars['status'] != 'Draft' && (!$params['issue_note_after'] || 0 == $params['issue_note_after'] || stripos(strtolower($issueNfeUser),'paga'))) {
         $invoice = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']], false);
 
         if ((float) $invoice['total'] > 0.00 and $invoice['status'] != 'Draft') {

@@ -42,7 +42,7 @@ if (strtolower($issueNfeUser) === 'quando a fatura é gerada') {
 } else {
     logModuleCall('gofas_nfeio', 'nenhum (padrão do whmcs) deve seguir a configuração do modulo invoicecreation', '', '', '', '');
     $params = gnfe_config();
-    if (stripos($params['issue_note'], 'Gerada') && (string) $vars['status'] != 'Draft' && (!$params['issue_note_after'] || 0 == $params['issue_note_after'])) {
+    if (stripos($params['issue_note_default_cond'], 'Gerada') && (string) $vars['status'] != 'Draft' && (!$params['issue_note_after'] || 0 == $params['issue_note_after'])) {
         $invoice = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']], false);
 
         if ((float) $invoice['total'] > (float) '0.00' and $invoice['status'] != 'Draft') {

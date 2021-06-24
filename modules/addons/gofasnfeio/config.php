@@ -9,27 +9,6 @@ require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/update.php';
 
 if (!function_exists('gofasnfeio_config')) {
-    // if (!function_exists('gnfe_customfields_dropdow')) {
-    //     function gnfe_customfields_dropdow() {
-    //         $customfields_array = [];
-    //         foreach (Capsule::table('tblcustomfields')->where('type', '=', 'client')->get(['fieldname', 'id']) as $customfield) {
-    //             $customfields_array[] = $customfield;
-    //         }
-    //         $customfields = json_decode(json_encode($customfields_array), true);
-    //         if (!$customfields) {
-    //             $dropFieldArray = ['0' => 'database error'];
-    //         } elseif (count($customfields) >= 1) {
-    //             $dropFieldArray = ['0' => 'selecione um campo'];
-    //             foreach ($customfields as $key => $value) {
-    //                 $dropFieldArray[$value['id']] = $value['fieldname'];
-    //             }
-    //         } else {
-    //             $dropFieldArray = ['0' => 'nothing to show'];
-    //         }
-    //         //  return $dropFieldArray;
-    //     }
-    // }
-
     function gnfe_verify_module_updates() {
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, 'https://api.github.com/repos/nfe/whmcs-addon/releases');
@@ -53,7 +32,7 @@ if (!function_exists('gofasnfeio_config')) {
             dowload_doc_log();
         }
 
-        require_once 'test.php';
+        // insert_issue_nfe_cond_in_database();
 
         // --------------------------------------------------------------------------------------------
 
@@ -123,7 +102,7 @@ if (!function_exists('gofasnfeio_config')) {
                 Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'rps_number', 'value' => $nfe_rps]);
             }
 
-            $whmcs_rps = gnfe_config()['rps_number'];
+            $whmcs_rps = gnfe_config('rps_number');
 
             if (is_numeric($whmcs_rps)) {
                 $company_data = gnfe_get_company_info();
@@ -278,11 +257,11 @@ if (!function_exists('gofasnfeio_config')) {
             'Description' => $rps_number_camp_description
         ]];
 
-        $issue_note = ['issue_note' => [
+        $issue_note_default_cond = ['issue_note_default_cond' => [
             'FriendlyName' => 'Quando emitir NFE',
             'Type' => 'radio',
-            'Options' => 'Manualmente,Quando a Fatura é Gerada,Quando a Fatura é Paga',
-            'Default' => 'Quando a Fatura é Paga',
+            'Options' => 'Quando a fatura é gerada,Quando a fatura é paga,Seguir padrão do WHMCS',
+            'Default' => 'Quando a fatura é paga',
         ]];
 
         $issue_note_after = ['issue_note_after' => [
@@ -373,7 +352,7 @@ if (!function_exists('gofasnfeio_config')) {
             'Description' => '&copy; ' . date('Y') . ' <a target="_blank" title="Para suporte utilize o github" href="https://github.com/nfe/whmcs-addon/issues">Suporte módulo</a>',
         ]];
 
-        $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $rps_number_camp, $issue_note, $issue_note_after, $gnfe_email_nfe_config,$development_, $cancel_invoice_cancel_nfe, $debug, $insc_municipal,$cpf,$cnpj, $tax, $invoiceDetails, $send_invoice_url,$desc_custom, $footer);
+        $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $rps_number_camp, $issue_note_default_cond, $issue_note_after, $gnfe_email_nfe_config,$development_, $cancel_invoice_cancel_nfe, $debug, $insc_municipal,$cpf,$cnpj, $tax, $invoiceDetails, $send_invoice_url,$desc_custom, $footer);
         $configarray = [
             'name' => 'NFE.io',
             'description' => 'Módulo Nota Fiscal NFE.io para WHMCS',

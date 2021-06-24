@@ -7,6 +7,8 @@ use WHMCS\Database\Capsule;
 
 /**
  * Pega os dados da tabela tbladdonmodules do banco de dados da WHMCS.
+ * @var $set string|boolean
+ * @return array|string
  */
 if (!function_exists('gnfe_config')) {
     function gnfe_config($set = false) {
@@ -21,6 +23,7 @@ if (!function_exists('gnfe_config')) {
         return $setting;
     }
 }
+
 if (!function_exists('gnfe_customer')) {
     function gnfe_customer($user_id, $client) {
         //Determine custom fields id
@@ -887,7 +890,7 @@ function update_status_nfe($invoice_id,$status) {
  * @return string
  */
 function gnfe_get_issue_invoice_condition($vars) {
-    $whmcsCondition = strtolower(gnfe_config('issue_note'));
+    $whmcsCondition = strtolower(gnfe_config('issue_note_default_cond'));
 
     $invoiceClientId = gnfe_get_local_nfe($vars['invoiceid'], 'user_id');
     // $invoiceClientId = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']])['userid'];
@@ -896,4 +899,69 @@ function gnfe_get_issue_invoice_condition($vars) {
     $clientCondition = strtolower($clientCondition[0]->value);
 
     return !empty($clientCondition) ? $clientCondition : $whmcsCondition;
+}
+
+// ------------------------------------------------- NOVAS FUNÇÕES
+
+/**
+ * Returns a <select> HTML and is used only by the AdminClientProfileTabFields hook
+ * in the file hooks.php.
+ */
+function show_issue_invoice_conds() {
+    $conditions = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'issue_note_conditions')->get(['value']);
+    $conditions = explode(',', $conditions[0]->value);
+
+    $select = '<select name="issue_note_cond" class="form-control select-inline">';
+
+    foreach ($conditions as $cond) {
+        $select .= '<option value="' . $cond . '">' . $cond . '</option>';
+    }
+
+    $select .= '</select>';
+
+    return $select;
+}
+
+/**
+ * Insert the clientId and his condition of sending invoice in the table tblcustomfieldsvalues.
+ * @var $client int
+ * @var $invoiceCond string
+ */
+function save_client_issue_invoice_cond($clientId, $newCond) {
+    $previousCond = Capsule::table('tblcustomfieldsvalues')->where('fieldid', '=', 'issue_note_conditions')->where('relid', '=', 'gofas_' . $clientId)->get(['value']);
+
+    $log = 
+    "clientId: $clientId\n"
+    . "newCond: $newCond\n"
+    . "previousCond: " . $previousCond;
+
+    if ($previousCond !== $newCond) {
+        if ($previousCond) {
+            Capsule::table('tblcustomfieldsvalues')->insert(['fieldid' => 'issue_note_condition', 'relid' => 'gofas_' . $clientId, 'value' => $newCond]);
+            $log .= 'PERSONALIAÇÃO DO CLIENTE __INSERIDA.';
+        } else {
+            Capsule::table('tblcustomfieldsvalues')->where('fieldid', 'issue_note_condition')->where('relid', 'gofas_' . $clientId)->update(['value' => $newCond]);
+            $log .= 'PERSONALIZAÇÃO DO CLIENTE __ATUALIZADA.';
+        }
+    }
+
+    error_log($log, 1, 'ferreira.bruno@linknacional.com');
+}
+
+/**
+ * Inserts the conditions of sending invoices in the database.
+ */
+if (!function_exists('insert_issue_nfe_cond_in_database')) {
+    function insert_issue_nfe_cond_in_database() {
+        $conditions = 'Quando a fatura é gerada,Quando a fatura é paga,Seguir padrão do WHMCS';
+
+        Capsule::table('tblcustomfields')
+            ->insert(['module' => 'gofasnfeio',
+            'type' => 'client',
+            'fieldname' => 'Quando emitir nota fiscal',
+            'fieldtype' => 'dropdown',
+            'fieldoptions' => $conditions]);
+        
+        Capsule::table('tblcustomfields');
+    }
 }
