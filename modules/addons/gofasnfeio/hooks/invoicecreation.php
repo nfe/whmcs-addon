@@ -1,14 +1,16 @@
 <?php
 
-if (!defined('WHMCS')) {
-    exit();
-}
+defined('WHMCS') or exit;
 
-$issueInvoiceCondition = gnfe_get_issue_invoice_condition($vars);
+$issueInvoiceCondition = gnfe_get_client_issue_invoice_cond_from_invoice_id($vars['invoiceid']);
+// logModuleCall(
+//     'gofas_nfeio',
+//     'quando a fatura é gerada invoicecreation',
+//     'invoiceid: ' . $vars['user'] . ' | Condition: ' . $issueInvoiceCondition, '', '', '');
+// error_log($issueInvoiceCondition, 1, 'ferreira.bruno@linknacional.com');
 
-
-if (strtolower($issueNfeUser) === 'quando a fatura é gerada') {
-    logModuleCall('gofas_nfeio', 'quando a fatura é gerada invoicecreation', strtolower($issueNfeUser) , '', '', '');
+if ($issueInvoiceCondition === 'quando a fatura é gerada') {
+    logModuleCall('gofas_nfeio', 'quando a fatura é gerada invoicecreation', $issueInvoiceCondition , '', '', '');
 
     $params = gnfe_config();
     $invoice = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']], false);
@@ -35,12 +37,12 @@ if (strtolower($issueNfeUser) === 'quando a fatura é gerada') {
             }
         }
     }
-} elseif (strtolower($issueNfeUser) === 'quando a fatura é paga') {
+} elseif ($issueInvoiceCondition === 'quando a fatura é paga') {
     logModuleCall('gofas_nfeio', 'quando a fatura é paga invoicecreation', '', '', '', '');
 
     return;
 } else {
-    logModuleCall('gofas_nfeio', 'nenhum (padrão do whmcs) deve seguir a configuração do modulo invoicecreation', '', '', '', '');
+    logModuleCall('gofas_nfeio', 'seguir padrão do WHMCS invoicecreation', '', '', '', '');
     $params = gnfe_config();
     if (stripos($params['issue_note_default_cond'], 'Gerada') && (string) $vars['status'] != 'Draft' && (!$params['issue_note_after'] || 0 == $params['issue_note_after'])) {
         $invoice = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']], false);

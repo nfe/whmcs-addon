@@ -4,7 +4,8 @@ if (!defined('WHMCS')) {
     exit();
 }
 $params = gnfe_config();
-$issueInvoiceCondition = gnfe_get_issue_invoice_condition($vars);
+$issueInvoiceCondition = gnfe_get_client_issue_invoice_cond_from_invoice_id($vars['invoiceid']);
+
 // Uma fatura é paga
 if ($issueInvoiceCondition === 'quando a fatura é paga') {
     $invoice = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']], false);

@@ -7,7 +7,7 @@ use WHMCS\Database\Capsule;
  * @return string
  */
 
-// function gnfe_get_issue_invoice_condition($vars) {
+// function gnfe_get_client_issue_invoice_cond($vars) {
 //     $whmcsCondition = strtolower(gnfe_config('issue_note_default_cond'));
 
 //     $invoiceClientId = gnfe_get_local_nfe($vars['invoiceid'], 'user_id');
@@ -20,7 +20,7 @@ use WHMCS\Database\Capsule;
 // }
 
 // $vars['invoiceid'] = '1003';
-// $issueInvoiceCondition = gnfe_get_issue_invoice_condition($vars);
+// $issueInvoiceCondition = gnfe_get_client_issue_invoice_cond($vars);
 
 // echo '<pre>';
 // print_r($issueInvoiceCondition);

@@ -43,12 +43,10 @@ add_hook('ProductDelete', 1, function ($vars) {
 
 add_hook('AdminClientProfileTabFields', 1, function($vars) {
     require_once __DIR__ . '/functions.php';
-    return [
-        'Emitir nota fiscal quando' => show_issue_invoice_conds(),
-    ];
+    return ['Emitir nota fiscal quando' => gnfe_show_issue_invoice_conds($vars['userid'])];
 });
 
 add_hook('AdminClientProfileTabFieldsSave', 1, function($vars) {
     require_once __DIR__ . '/functions.php';
-    save_client_issue_invoice_cond($vars['userid'], $_REQUEST['issue_note_cond']);
+    gnfe_save_client_issue_invoice_cond($vars['userid'], $_REQUEST['issue_note_cond']);
 });

@@ -32,7 +32,8 @@ if (!function_exists('gofasnfeio_config')) {
             dowload_doc_log();
         }
 
-        // insert_issue_nfe_cond_in_database();
+        // gnfe_insert_issue_nfe_cond_in_database();
+        var_dump(gnfe_get_client_issue_invoice_cond_from_invoice_id('1000'));
 
         // --------------------------------------------------------------------------------------------
 
@@ -260,8 +261,8 @@ if (!function_exists('gofasnfeio_config')) {
         $issue_note_default_cond = ['issue_note_default_cond' => [
             'FriendlyName' => 'Quando emitir NFE',
             'Type' => 'radio',
-            'Options' => 'Quando a fatura é gerada,Quando a fatura é paga,Seguir padrão do WHMCS',
-            'Default' => 'Quando a fatura é paga',
+            'Options' => gnfe_config('issue_note_conditions'),
+            'Default' => gnfe_config('issue_note_default_cond'),
         ]];
 
         $issue_note_after = ['issue_note_after' => [
