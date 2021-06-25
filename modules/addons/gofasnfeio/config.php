@@ -32,8 +32,9 @@ if (!function_exists('gofasnfeio_config')) {
             dowload_doc_log();
         }
 
-        // gnfe_insert_issue_nfe_cond_in_database();
-        var_dump(gnfe_get_client_issue_invoice_cond_from_invoice_id('1'));
+        if (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'issue_note_conditions')->count() == 0) {
+            gnfe_insert_issue_nfe_cond_in_database();
+        }
 
         // --------------------------------------------------------------------------------------------
 
@@ -239,6 +240,7 @@ if (!function_exists('gofasnfeio_config')) {
         $rps_serial_number = ['rps_serial_number' => [
             'FriendlyName' => 'Série do RPS',
             'Type' => 'text',
+            'Disabled' => 'true',
             'Default' => 'IO',
             'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/" target="_blank">Saiba mais</a>',
         ]];

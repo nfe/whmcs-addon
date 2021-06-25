@@ -127,8 +127,8 @@ $name,$email,$countrycode,$postcode,$street,$number,$address2,$code,$city,$state
                     'code' => $code,
                     'name' => $city,
                 ],
-                'state' => $state,
-            ],
+                'state' => $state
+            ]
         ]
     ];
     strlen($insc_municipal) == 0 ? '' : $postfields['borrower']['municipalTaxNumber'] = $insc_municipal;
