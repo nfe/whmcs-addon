@@ -33,7 +33,7 @@ if (!function_exists('gofasnfeio_config')) {
         }
 
         // gnfe_insert_issue_nfe_cond_in_database();
-        var_dump(gnfe_get_client_issue_invoice_cond_from_invoice_id('1000'));
+        var_dump(gnfe_get_client_issue_invoice_cond_from_invoice_id('1'));
 
         // --------------------------------------------------------------------------------------------
 

@@ -894,28 +894,16 @@ if (!function_exists('gnfe_get_client_issue_invoice_cond_from_invoice_id')) {
     function gnfe_get_client_issue_invoice_cond_from_invoice_id($invoiceId) {
         $whmcsCondition = strtolower(gnfe_config('issue_note_default_cond'));
 
-        // $invoiceClientId = gnfe_get_local_nfe($invoiceId, 'user_id');
-        $invoiceClientId = localAPI('GetInvoice', ['invoiceid' => $invoiceId]);
+        $clientInvoiceId = localAPI('GetInvoice', ['invoiceid' => $invoiceId])['userid'];
 
-        // $invoiceClientId = localAPI('GetInvoice', ['invoiceid' => $invoiceId]);
-        // error_log(json_decode($invoiceClientId), 1, 'ferreira.bruno@linknacional.com');
-        // logModuleCall('gofasnfe','a', 'a', print_r($invoiceClientId));
+        $clientCond = Capsule::table('gofas_when_send_nfe')->where('client_id', '=', $clientInvoiceId)->get(['value'])[0]->value;
+        $clientCond = strtolower($clientCond);
 
-        $previousClientCond = Capsule::table('gofas_when_send_nfe')->where('client_id', '=', $invoiceClientId)->get(['value'])[0]->value;
-        $previousClientCond = strtolower($previousClientCond, true);
+        if ($clientCond !== null && $clientCond !== 'seguir padrão do whmcs') {
+            return $clientCond;
+        }
 
-        // logModuleCall('gofasnfe','', 'INVOICE ID: ' . $invoiceId, 'INVOICE CLIENT ID: ' . var_dump($invoiceClientId));
-
-        // logModuleCall(
-        //     'gofasnfe',
-        //     'gnfe_get_client_issue_invoice_cond_from_invoice_id',
-        //     '|--- PREVIOUS COND: ' . $previousClientCond
-        //     . '|--- INVOICE ID: ' . $invoiceId
-        //     . '|--- INVOICE CLIENT ID: ' . $invoiceClientId
-        //     . '|--- WHMCS COND: ' . $whmcsCondition, json_decode($invoiceClientId), '', '');
-
-        // return $previousClientCond != null ? $previousClientCond : $whmcsCondition;
-        return $invoiceClientId;
+        return $whmcsCondition;
     }
 }
 

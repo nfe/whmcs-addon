@@ -3,11 +3,6 @@
 defined('WHMCS') or exit;
 
 $issueInvoiceCondition = gnfe_get_client_issue_invoice_cond_from_invoice_id($vars['invoiceid']);
-// logModuleCall(
-//     'gofas_nfeio',
-//     'quando a fatura é gerada invoicecreation',
-//     'invoiceid: ' . $vars['user'] . ' | Condition: ' . $issueInvoiceCondition, '', '', '');
-// error_log($issueInvoiceCondition, 1, 'ferreira.bruno@linknacional.com');
 
 if ($issueInvoiceCondition === 'quando a fatura é gerada') {
     logModuleCall('gofas_nfeio', 'quando a fatura é gerada invoicecreation', $issueInvoiceCondition , '', '', '');
