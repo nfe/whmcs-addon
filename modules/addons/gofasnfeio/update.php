@@ -34,7 +34,20 @@ if (!function_exists('gnfe_verifyInstall')) {
                 $error .= "Não foi possível criar a tabela do módulo no banco de dados: {$e->getMessage()}";
             }
         }
-        // Added in v 1 dot 1 dot 3
+
+        if (!Capsule::schema()->hasTable('gofas_when_send_nfe')) {
+            try {
+                Capsule::schema()->table('gofas_when_send_nfe', function ($table) {
+                    $table->increments('id');
+                    $table->integer('client_id');
+                    $table->string('value');
+                });
+            } catch (\Exception $e) {
+                $error .= "Não foi possível atualizar a tabela do módulo no banco de dados: {$e->getMessage()}";
+            }
+        }
+
+        // Added in v1.1.3
         if (!Capsule::schema()->hasColumn('gofasnfeio', 'rpsNumber')) {
             try {
                 Capsule::schema()->table('gofasnfeio', function ($table) {
