@@ -32,9 +32,15 @@ if (!function_exists('gofasnfeio_config')) {
             dowload_doc_log();
         }
 
-        if (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'issue_note_conditions')->count() == 0) {
-            gnfe_insert_issue_nfe_cond_in_database();
-        }
+        gnfe_verifyInstall();
+
+        try {
+            if (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'issue_note_conditions')->count() == 0) {
+                try {
+                    gnfe_insert_issue_nfe_cond_in_database();
+                } catch (\Throwable $th) {}
+            }
+        } catch (\Throwable $th) {}
 
         // --------------------------------------------------------------------------------------------
 
@@ -101,7 +107,9 @@ if (!function_exists('gofasnfeio_config')) {
 
             // Verifica se a configuração rps_number existe no banco de dados.
             if (Capsule::table('tbladdonmodules')->where('setting','=','rps_number')->count() == 0) {
-                Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'rps_number', 'value' => $nfe_rps]);
+                try {
+                    Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'rps_number', 'value' => $nfe_rps]);
+                } catch (\Throwable $th) {}
             }
 
             $whmcs_rps = gnfe_config('rps_number');
@@ -205,7 +213,6 @@ if (!function_exists('gofasnfeio_config')) {
         }
 
         //create tables
-        gnfe_verifyInstall();
         create_table_product_code();
 
         if (version_compare($previous_version,'1.2.7','<')) {
@@ -237,11 +244,13 @@ if (!function_exists('gofasnfeio_config')) {
             'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/#o-que-e-codigo-de-servico" target="_blank">O que é Código de Serviço?</a>',
         ]];
 
+        try {
+            Capsule::table('tbladdonmodules')->where('module', 'gofasnfeio')->where('setting', 'rps_serial_number')->update(['value' => gnfe_get_company_info()['rpsSerialNumber']]);
+        } catch (\Throwable $th) {}
         $rps_serial_number = ['rps_serial_number' => [
             'FriendlyName' => 'Série do RPS',
             'Type' => 'text',
             'Disabled' => 'true',
-            'Default' => 'IO',
             'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/" target="_blank">Saiba mais</a>',
         ]];
 
@@ -263,8 +272,9 @@ if (!function_exists('gofasnfeio_config')) {
         $issue_note_default_cond = ['issue_note_default_cond' => [
             'FriendlyName' => 'Quando emitir NFE',
             'Type' => 'radio',
+            'Default' => 'Seguir padrão do WHMCS',
             'Options' => gnfe_config('issue_note_conditions'),
-            'Default' => gnfe_config('issue_note_default_cond'),
+            'Default' => gnfe_config('issue_note_default_cond')?? 'Seguir padrão do WHMCS',
         ]];
 
         $issue_note_after = ['issue_note_after' => [
