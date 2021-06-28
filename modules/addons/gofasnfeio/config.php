@@ -58,7 +58,7 @@ if (!function_exists('gofasnfeio_config')) {
             // Pega apenas as versões MAJOR.MINOR do módulo instalado e da versão do módulo no banco de dados.
             $previous_major_minor_version = intval(substr($previous_version_int, 0, 2));
             $module_major_minor_version = intval(substr($module_version_int, 0, 2));
-            
+
             // Atende a diretriz "Exclusivamente a partir da versão 1.5.0 não será permitido atualização do modulo por versões inferiores a 1.4.0.".
             // Se a versão do módulo for igual a versão do módulo no
             // banco de dados mais 1, então a atualização é permitida.
@@ -106,7 +106,7 @@ if (!function_exists('gofasnfeio_config')) {
 
             $whmcs_rps = gnfe_config('rps_number');
 
-            if (is_numeric($whmcs_rps)) {
+            if (is_numeric($whmcs_rps) || $whmcs_rps == '') {
                 $company_data = gnfe_get_company_info();
 
                 if (isset($company_data['error'])) {
@@ -212,7 +212,7 @@ if (!function_exists('gofasnfeio_config')) {
             set_code_service_camp_gofasnfeio();
             set_custom_field_ini_date();
         }
-        
+
         $intro = ['intro' => [
             'FriendlyName' => '',
             'Description' => '<h4 style="padding-top: 5px;">Módulo Nota Fiscal NFE.io para WHMCS v' . $module_version . '</h4>

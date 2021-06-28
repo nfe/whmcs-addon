@@ -339,16 +339,22 @@ if (!function_exists('gnfe_get_nfe')) {
 
 /**
  * Retorna os dados necessários na função gnfe_put_rps().
- * 
+ *
  * @return array
  */
 if (!function_exists('gnfe_get_company_info')) {
     function gnfe_get_company_info() {
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'));
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt_array($curl, [
+            CURLOPT_URL => 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'),
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: ' . gnfe_config('api_key')
+            ]
+        ]);
 
         $response = json_decode(curl_exec($curl), true);
         $response = $response['companies'];
@@ -357,12 +363,7 @@ if (!function_exists('gnfe_get_company_info')) {
         curl_close($curl);
 
         if ($httpCode === 200) {
-            return array(
-                'name' => $response['name'],
-                'federalTaxNumber' => $response['federalTaxNumber'],
-                'address' => $response['address'],
-                'rpsNumber' => $response['rpsNumber']
-            );
+            return $response;
         } else {
             return array(
                 'error' =>
@@ -376,40 +377,28 @@ if (!function_exists('gnfe_get_company_info')) {
 
 /**
  * Responsável por enviar o último RPS para a NFe.
- * 
+ *
  * @param int $rpsNumber
- * 
+ *
  * @return void
  */
 if (!function_exists('gnfe_put_rps')) {
     function gnfe_put_rps($company, $rpsNumber) {
-        $requestBody = [
-            "name"=>$company['name'],
-            "federalTaxNumber"=> $company['federalTaxNumber'],
-            "address"=> [
-                "country"=> $company['address']['country'],
-                "postalCode"=> $company['address']['postalCode'],
-                "street"=> $company['address']['street'],
-                "number"=> $company['address']['number'],
-                "additionalInformation"=> $company['address']['additionalInformation'],
-                "district"=> $company['address']['district'],
-                "city"=> [
-                    "code"=> $company['address']['city']['code'],
-                    "name"=> $company['address']['city']['name']
-                ],
-                "state"=> $company['address']['state']
-            ],
-            "rpsNumber"=> $rpsNumber + 1
-        ];
-        $requestBody = json_encode($requestBody);
+        $company['rpsNumber'] = $rpsNumber + 1;
+        $requestBody = json_encode($company);
 
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'));
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $requestBody);
+        curl_setopt_array($curl, [
+            CURLOPT_URL => 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'),
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CUSTOMREQUEST => 'PUT',
+            CURLOPT_POSTFIELDS => $requestBody,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: ' . gnfe_config('api_key')
+            ]
+        ]);
         $response = json_decode(curl_exec($curl), true);
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
@@ -452,7 +441,7 @@ if (!function_exists('gnfe_test_connection')) {
 }
 /**
  * Pega o JSON da última nota fiscal emitida do banco de dados da NFe.
- * 
+ *
  * @return array;
  */
 if (!function_exists('gnfe_get_nfes')) {
@@ -811,7 +800,7 @@ function get_product_invoice($invoice_id) {
 
         if ($item['type'] == 'Hosting') {
             $query = 'SELECT tblhosting.billingcycle ,tblhosting.id,tblproductcode.code_service ,tblhosting.packageid,tblhosting.id FROM tblhosting
-            LEFT JOIN tblproducts ON tblproducts.id = tblhosting.packageid 
+            LEFT JOIN tblproducts ON tblproducts.id = tblhosting.packageid
             LEFT JOIN tblproductcode ON tblhosting.packageid = tblproductcode.product_id
             WHERE tblhosting.id = :HOSTING';
 
@@ -922,7 +911,7 @@ if (!function_exists('gnfe_show_issue_invoice_conds')) {
         $previousClientCond = Capsule::table('gofas_when_send_nfe')->where('client_id', '=', $clientId)->get(['value'])[0]->value;
 
         $select = '<select name="issue_note_cond" class="form-control select-inline">';
-        
+
         // Sets the previous issue condition in the first index of array $conditions.
         // in order to the previous condition be showed in the client prifile.
         if ($previousClientCond != null) {
