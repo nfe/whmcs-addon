@@ -35,11 +35,12 @@ if (!function_exists('gnfe_verifyInstall')) {
             }
         }
 
-        if (!Capsule::schema()->hasTable('gofas_when_send_nfe')) {
+        if (!Capsule::schema()->hasTable('mod_nfeio_custom_configs')) {
             try {
-                Capsule::schema()->table('gofas_when_send_nfe', function ($table) {
+                Capsule::schema()->create('mod_nfeio_custom_configs', function ($table) {
                     $table->increments('id');
                     $table->integer('client_id');
+                    $table->string('key');
                     $table->string('value');
                 });
             } catch (\Exception $e) {

@@ -881,18 +881,16 @@ if (!function_exists('gnfe_get_client_issue_invoice_cond_from_invoice_id')) {
      * @return string
      */
     function gnfe_get_client_issue_invoice_cond_from_invoice_id($invoiceId) {
-        $whmcsCondition = strtolower(gnfe_config('issue_note_default_cond'));
-
         $clientInvoiceId = localAPI('GetInvoice', ['invoiceid' => $invoiceId])['userid'];
 
-        $clientCond = Capsule::table('gofas_when_send_nfe')->where('client_id', '=', $clientInvoiceId)->get(['value'])[0]->value;
+        $clientCond = Capsule::table('mod_nfeio_custom_configs')->where('client_id', '=', $clientInvoiceId)->get(['value'])[0]->value;
         $clientCond = strtolower($clientCond);
 
         if ($clientCond !== null && $clientCond !== 'seguir padrão do whmcs') {
             return $clientCond;
         }
 
-        return $whmcsCondition;
+        return 'seguir padrão do whmcs';
     }
 }
 
@@ -908,7 +906,7 @@ if (!function_exists('gnfe_show_issue_invoice_conds')) {
         $conditions = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'issue_note_conditions')->get(['value'])[0]->value;
         $conditions = explode(',', $conditions);
 
-        $previousClientCond = Capsule::table('gofas_when_send_nfe')->where('client_id', '=', $clientId)->get(['value'])[0]->value;
+        $previousClientCond = Capsule::table('mod_nfeio_custom_configs')->where('client_id', '=', $clientId)->get(['value'])[0]->value;
 
         $select = '<select name="issue_note_cond" class="form-control select-inline">';
 
@@ -936,21 +934,21 @@ if (!function_exists('gnfe_show_issue_invoice_conds')) {
 
 if (!function_exists('gnfe_save_client_issue_invoice_cond')) {
     /**
-     * Insert the clientId and his condition of sending invoice in the table gofas_when_send_nfe.
+     * Insert the clientId and his condition of sending invoice in the table mod_nfeio_custom_configs.
      * @var $client int
      * @var $invoiceCond string
      */
     function gnfe_save_client_issue_invoice_cond($clientId, $newCond) {
-        $previousClientCond = Capsule::table('gofas_when_send_nfe')->where('client_id', '=', $clientId)->get(['value'])[0]->value;
+        $previousClientCond = Capsule::table('mod_nfeio_custom_configs')->where('client_id', '=', $clientId)->get(['value'])[0]->value;
 
         if ($newCond !== $previousClientCond) {
             if ($previousClientCond == null) {
-                Capsule::table('gofas_when_send_nfe')->insert([
+                Capsule::table('mod_nfeio_custom_configs')->insert([
                     'client_id' => $clientId,
                     'value' => $newCond
                 ]);
             } else {
-                Capsule::table('gofas_when_send_nfe')
+                Capsule::table('mod_nfeio_custom_configs')
                     ->where('client_id', '=', $clientId)
                     ->update(['value' => $newCond]);
             }
@@ -963,7 +961,7 @@ if (!function_exists('gnfe_save_client_issue_invoice_cond')) {
  */
 if (!function_exists('gnfe_insert_issue_nfe_cond_in_database')) {
     function gnfe_insert_issue_nfe_cond_in_database() {
-        $conditions = 'Quando a fatura é gerada,Quando a fatura é paga,Seguir padrão do WHMCS';
+        $conditions = 'Quando a fatura é gerada,Quando a fatura é paga,Seguir configuração do módulo NFE.io';
 
         Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio','setting' => 'issue_note_conditions','value' => $conditions]);
     }

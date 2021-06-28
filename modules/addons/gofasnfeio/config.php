@@ -272,9 +272,8 @@ if (!function_exists('gofasnfeio_config')) {
         $issue_note_default_cond = ['issue_note_default_cond' => [
             'FriendlyName' => 'Quando emitir NFE',
             'Type' => 'radio',
-            'Default' => 'Seguir padrão do WHMCS',
-            'Options' => gnfe_config('issue_note_conditions'),
-            'Default' => gnfe_config('issue_note_default_cond')?? 'Seguir padrão do WHMCS',
+            'Options' => 'Quando a fatura é gerada,Quando a fatura é paga,Manualmente',
+            'Default' => 'Manualmente',
         ]];
 
         $issue_note_after = ['issue_note_after' => [
