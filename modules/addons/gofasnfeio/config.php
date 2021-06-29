@@ -254,7 +254,7 @@ if (!function_exists('gofasnfeio_config')) {
             'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/" target="_blank">Saiba mais</a>',
         ]];
 
-        $rps_number = gnfe_config()['rps_number'];
+        $rps_number = gnfe_config('rps_number');
 
         if (is_numeric($rps_number)) {
             $rps_number_camp_description = 'RPS atualizada de acordo com última nota fiscal emitida, clique no botão salvar alterações para atualizar automaticamente.';

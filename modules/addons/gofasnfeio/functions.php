@@ -12,15 +12,20 @@ use WHMCS\Database\Capsule;
  */
 if (!function_exists('gnfe_config')) {
     function gnfe_config($set = false) {
-        $setting = [];
-        foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
-            $setting[$settings->setting] = $settings->value;
-        }
-        if ($set) {
-            return $setting[$set];
+        if (!$set) {
+            $setting = [];
+
+            foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
+                $setting[$settings->setting] = $settings->value;
+            }
+
+            return $setting;
         }
 
-        return $setting;
+        return Capsule::table('tbladdonmodules')
+                    ->where('module', '=', 'gofasnfeio')
+                    ->where('setting', '=', $set)
+                    ->get(['value'])[0]->value;
     }
 }
 
@@ -338,7 +343,7 @@ if (!function_exists('gnfe_get_nfe')) {
 }
 
 /**
- * Retorna os dados necessários na função gnfe_put_rps().
+ * Retorna os dados da compahia na NFE.
  *
  * @return array
  */
@@ -355,6 +360,10 @@ if (!function_exists('gnfe_get_company_info')) {
                 'Authorization: ' . gnfe_config('api_key')
             ]
         ]);
+
+        echo '<pre>';
+        print_r(gnfe_config('api_key'));
+        echo '</pre><hr>';
 
         $response = json_decode(curl_exec($curl), true);
         $response = $response['companies'];
