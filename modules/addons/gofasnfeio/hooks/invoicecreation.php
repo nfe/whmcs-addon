@@ -37,7 +37,7 @@ if ($issueInvoiceCondition === 'quando a fatura é gerada') {
 
     return;
 } else {
-    logModuleCall('gofas_nfeio', 'seguir padrão do WHMCS invoicecreation', '', '', '', '');
+    logModuleCall('gofas_nfeio', 'seguir configuração do módulo nfe.io invoicecreation', '', '', '', '');
     $params = gnfe_config();
     if (stripos($params['issue_note_default_cond'], 'Gerada') && (string) $vars['status'] != 'Draft' && (!$params['issue_note_after'] || 0 == $params['issue_note_after'])) {
         $invoice = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']], false);
@@ -65,4 +65,4 @@ if ($issueInvoiceCondition === 'quando a fatura é gerada') {
             }
         }
     }
-} 
+}

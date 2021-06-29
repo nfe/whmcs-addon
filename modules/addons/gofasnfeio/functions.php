@@ -897,7 +897,6 @@ if (!function_exists('gnfe_get_client_issue_invoice_cond_from_invoice_id')) {
     }
 }
 
-
 if (!function_exists('gnfe_show_issue_invoice_conds')) {
     /**
      * Returns a <select> HTML which is used only by the AdminClientProfileTabFields hook
