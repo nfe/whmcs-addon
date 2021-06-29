@@ -35,11 +35,7 @@ if (!function_exists('gofasnfeio_config')) {
         gnfe_verifyInstall();
 
         try {
-            if (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'issue_note_conditions')->count() == 0) {
-                try {
-                    gnfe_insert_issue_nfe_cond_in_database();
-                } catch (\Throwable $th) {}
-            }
+            gnfe_insert_issue_nfe_cond_in_database();
         } catch (\Throwable $th) {}
 
         // --------------------------------------------------------------------------------------------

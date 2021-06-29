@@ -361,10 +361,6 @@ if (!function_exists('gnfe_get_company_info')) {
             ]
         ]);
 
-        echo '<pre>';
-        print_r(gnfe_config('api_key'));
-        echo '</pre><hr>';
-
         $response = json_decode(curl_exec($curl), true);
         $response = $response['companies'];
         $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
@@ -976,6 +972,18 @@ if (!function_exists('gnfe_insert_issue_nfe_cond_in_database')) {
     function gnfe_insert_issue_nfe_cond_in_database() {
         $conditions = 'Quando a fatura é gerada,Quando a fatura é paga,Seguir configuração do módulo NFE.io';
 
-        Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio','setting' => 'issue_note_conditions','value' => $conditions]);
+        $previousConditions = Capsule::table('tbladdonmodules')
+                            ->where('module', '=', 'gofasnfeio')
+                            ->where('setting', '=', 'issue_note_conditions')
+                            ->count() > 0;
+
+        if ($previousConditions) {
+            Capsule::table('tbladdonmodules')
+                ->where('module', '=', 'gofasnfeio')
+                ->where('setting', '=', 'issue_note_conditions')
+                ->update(['value' => $conditions]);
+        } else {
+            Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio','setting' => 'issue_note_conditions','value' => $conditions]);
+        }
     }
 }

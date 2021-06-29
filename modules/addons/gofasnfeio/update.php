@@ -21,6 +21,7 @@ if (!function_exists('gnfe_verifyInstall')) {
                     $table->string('status');
                     $table->decimal('services_amount',$precision = 16,$scale = 2);
                     $table->string('environment');
+                    $table->string('issue_note_conditions');
                     $table->string('flow_status');
                     $table->string('pdf');
                     $table->string('rpsSerialNumber');

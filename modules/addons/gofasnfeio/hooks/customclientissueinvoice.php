@@ -2,14 +2,14 @@
 
 use WHMCS\Database\Capsule;
 
-if (
-    gnfe_config('issue_note_default_cond') !== 'Manualmente'
-    && Capsule::schema()->hasTable('mod_nfeio_custom_configs')
-) {
-    return ['Emitir nota fiscal quando' => gnfe_show_issue_invoice_conds($vars['userid'])];
-}
+if (gnfe_config('issue_note_default_cond') !== 'Manualmente') {
+    gnfe_insert_issue_nfe_cond_in_database();
 
-return [
-    'Módulo NFE.io' =>
-        'Acesse a configuração do modulo para habilitar a emissão personalizada de nota fiscal por usuário.'
-];
+    if (Capsule::schema()->hasTable('mod_nfeio_custom_configs')) {
+        return ['Emitir nota fiscal quando' => gnfe_show_issue_invoice_conds($vars['userid'])];
+    } else {
+        return [
+            'Módulo NFE.io' => 'Atualize a página para exibir as informações.'
+        ];
+    }
+}
