@@ -883,14 +883,17 @@ if (!function_exists('gnfe_get_client_issue_invoice_cond_from_invoice_id')) {
     function gnfe_get_client_issue_invoice_cond_from_invoice_id($invoiceId) {
         $clientInvoiceId = localAPI('GetInvoice', ['invoiceid' => $invoiceId])['userid'];
 
-        $clientCond = Capsule::table('mod_nfeio_custom_configs')->where('client_id', '=', $clientInvoiceId)->get(['value'])[0]->value;
+        $clientCond = Capsule::table('mod_nfeio_custom_configs')
+            ->where('client_id', '=', $clientInvoiceId)
+            ->where('key', '=', 'issue_nfe_cond')
+            ->get(['value'])[0]->value;
         $clientCond = strtolower($clientCond);
 
-        if ($clientCond !== null && $clientCond !== 'seguir padrão do whmcs') {
+        if ($clientCond !== null && $clientCond !== 'seguir configuração do módulo nfe.io') {
             return $clientCond;
         }
 
-        return 'seguir padrão do whmcs';
+        return 'seguir configuração do módulo nfe.io';
     }
 }
 
@@ -917,10 +920,10 @@ if (!function_exists('gnfe_show_issue_invoice_conds')) {
             unset($conditions[$previousCondKey]);
             $select .= '<option value="' . $previousClientCond . '">' . $previousClientCond . '</option>';
         } else {
-            $defaultCond = 'Seguir padrão do WHMCS';
+            $defaultCond = 'Seguir configuração do módulo NFE.io';
             $defaultCondKey = array_search($defaultCond, $conditions);
             unset($conditions[$defaultCondKey]);
-            $select .= '<option value="Seguir padrão do WHMCS">Seguir padrão do WHMCS</option>';
+            $select .= '<option value="Seguir configuração do módulo NFE.io">Seguir configuração do módulo NFE.io</option>';
         }
 
         foreach ($conditions as $cond) {
@@ -944,12 +947,14 @@ if (!function_exists('gnfe_save_client_issue_invoice_cond')) {
         if ($newCond !== $previousClientCond) {
             if ($previousClientCond == null) {
                 Capsule::table('mod_nfeio_custom_configs')->insert([
+                    'key' => 'issue_nfe_cond',
                     'client_id' => $clientId,
                     'value' => $newCond
                 ]);
             } else {
                 Capsule::table('mod_nfeio_custom_configs')
                     ->where('client_id', '=', $clientId)
+                    ->where('key', '=', 'issue_nfe_cond')
                     ->update(['value' => $newCond]);
             }
         }
