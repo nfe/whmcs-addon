@@ -1,13 +1,11 @@
 <?php
 
-if (!defined('WHMCS')) {
-    exit();
-}
+defined('WHMCS') or exit;
 
-$issueNfeUser = verifyIssueFromUser($vars);
+$issueInvoiceCondition = gnfe_get_client_issue_invoice_cond_from_invoice_id($vars['invoiceid']);
 
-if (strtolower($issueNfeUser) === 'quando a fatura é gerada') {
-    logModuleCall('gofas_nfeio', 'quando a fatura é gerada invoicecreation', strtolower($issueNfeUser) , '', '', '');
+if ($issueInvoiceCondition === 'quando a fatura é gerada') {
+    logModuleCall('gofas_nfeio', 'quando a fatura é gerada invoicecreation', $issueInvoiceCondition , '', '', '');
 
     $params = gnfe_config();
     $invoice = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']], false);
@@ -34,14 +32,14 @@ if (strtolower($issueNfeUser) === 'quando a fatura é gerada') {
             }
         }
     }
-} elseif (strtolower($issueNfeUser) === 'quando a fatura é paga') {
+} elseif ($issueInvoiceCondition === 'quando a fatura é paga') {
     logModuleCall('gofas_nfeio', 'quando a fatura é paga invoicecreation', '', '', '', '');
 
     return;
 } else {
-    logModuleCall('gofas_nfeio', 'nenhum (padrão do whmcs) deve seguir a configuração do modulo invoicecreation', '', '', '', '');
+    logModuleCall('gofas_nfeio', 'seguir configuração do módulo nfe.io invoicecreation', '', '', '', '');
     $params = gnfe_config();
-    if (stripos($params['issue_note'], 'Gerada') && (string) $vars['status'] != 'Draft' && (!$params['issue_note_after'] || 0 == $params['issue_note_after'])) {
+    if (stripos($params['issue_note_default_cond'], 'Gerada') && (string) $vars['status'] != 'Draft' && (!$params['issue_note_after'] || 0 == $params['issue_note_after'])) {
         $invoice = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']], false);
 
         if ((float) $invoice['total'] > (float) '0.00' and $invoice['status'] != 'Draft') {
@@ -67,4 +65,4 @@ if (strtolower($issueNfeUser) === 'quando a fatura é gerada') {
             }
         }
     }
-} 
+}

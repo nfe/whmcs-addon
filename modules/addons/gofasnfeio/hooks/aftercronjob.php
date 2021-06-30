@@ -20,7 +20,7 @@ if (!isset($params['issue_note_after']) || $params['issue_note_after'] <= 0) {
         $data = getTodaysDate(false);
         $dataAtual = toMySQLDate($data);
 
-        if ($params['issue_note'] !== 'Manualmente') {
+        if ($params['issue_note_default_cond'] !== 'Manualmente') {
             $getQuery = Capsule::table('tblinvoices')->whereBetween('date', [$params['initial_date'], $dataAtual])->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
             logModuleCall('gofas_nfeio', 'aftercronjob - getQuery', ['date' => [$params['initial_date'], $dataAtual], 'where' => 'id=' . $waiting->invoice_id], $getQuery,'', '');
         } else {
