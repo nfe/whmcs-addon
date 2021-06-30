@@ -218,13 +218,6 @@ if (!function_exists('gofasnfeio_config')) {
             set_custom_field_ini_date();
         }
 
-        $rps_number = gnfe_config('rps_number');
-        if (is_numeric($rps_number)) {
-            $rpsDescription = 'RPS atualizada de acordo com última nota fiscal emitida, clique no botão salvar alterações para atualizar automaticamente.';
-        } else {
-            $rpsDescription = '<a style="text-decoration:underline;" href="https://app.nfe.io/companies/edit/fiscal/' . gnfe_config('company_id') . '" target="_blank">Consultar RPS</a>';
-        }
-
         $intro = ['intro' => [
             'FriendlyName' => '',
             'Description' => '<h4 style="padding-top: 5px;">Módulo Nota Fiscal NFE.io para WHMCS v' . $module_version . '</h4>'
@@ -232,7 +225,11 @@ if (!function_exists('gofasnfeio_config')) {
 
         $intro['intro']['Description'] .= '<p>'. $available_update_message .'</p>';
         $intro['intro']['Description'] .= '<p>'. $update_denied .'</p>';
-        $intro['intro']['Description'] .= '<p>'. $rpsDescription .'</p>';
+
+        $intro['intro']['Description'] .=
+            '<a style="text-decoration:underline;" href="https://app.nfe.io/companies/edit/fiscal/' . gnfe_config('company_id') . '" target="_blank">
+                Consultar: RPS | Série
+            </a>';
 
         $api_key = ['api_key' => [
             'FriendlyName' => 'API Key',
@@ -266,13 +263,6 @@ if (!function_exists('gofasnfeio_config')) {
                     ->update(['value' => gnfe_get_company_info()['rpsSerialNumber']]);
             } catch (\Throwable $th) {}
         }
-
-        $rps_serial_number = ['rps_serial_number' => [
-            'FriendlyName' => 'Série do RPS',
-            'Type' => 'text',
-            'Disabled' => 'true',
-            'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/" target="_blank">Saiba mais</a>',
-        ]];
 
         $issue_note_default_cond = ['issue_note_default_cond' => [
             'FriendlyName' => 'Quando emitir NFE',
@@ -369,7 +359,7 @@ if (!function_exists('gofasnfeio_config')) {
             'Description' => '&copy; ' . date('Y') . ' <a target="_blank" title="Para suporte utilize o github" href="https://github.com/nfe/whmcs-addon/issues">Suporte módulo</a>',
         ]];
 
-        $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $issue_note_default_cond, $issue_note_after, $gnfe_email_nfe_config,$development_, $cancel_invoice_cancel_nfe, $debug, $insc_municipal,$cpf,$cnpj, $tax, $invoiceDetails, $send_invoice_url,$desc_custom, $footer);
+        $fields = array_merge($intro, $api_key, $company_id, $service_code, $issue_note_default_cond, $issue_note_after, $gnfe_email_nfe_config,$development_, $cancel_invoice_cancel_nfe, $debug, $insc_municipal,$cpf,$cnpj, $tax, $invoiceDetails, $send_invoice_url,$desc_custom, $footer);
         $configarray = [
             'name' => 'NFE.io',
             'description' => 'Módulo Nota Fiscal NFE.io para WHMCS',
