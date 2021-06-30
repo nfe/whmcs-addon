@@ -12,7 +12,7 @@ use WHMCS\Database\Capsule;
  */
 if (!function_exists('gnfe_config')) {
     function gnfe_config($set = false) {
-        if (!$set) {
+        if ($set === false) {
             $setting = [];
 
             foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
@@ -20,12 +20,12 @@ if (!function_exists('gnfe_config')) {
             }
 
             return $setting;
-        }
-
-        return Capsule::table('tbladdonmodules')
+        } else {
+            return Capsule::table('tbladdonmodules')
                     ->where('module', '=', 'gofasnfeio')
                     ->where('setting', '=', $set)
                     ->get(['value'])[0]->value;
+        }
     }
 }
 
@@ -348,7 +348,7 @@ if (!function_exists('gnfe_get_nfe')) {
  * @return array
  */
 if (!function_exists('gnfe_get_company_info')) {
-    function gnfe_get_company_info() {
+    function gnfe_get_company_info($set = false) {
         $curl = curl_init();
         curl_setopt_array($curl, [
             CURLOPT_URL => 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'),
@@ -368,7 +368,7 @@ if (!function_exists('gnfe_get_company_info')) {
         curl_close($curl);
 
         if ($httpCode === 200) {
-            return $response;
+            return $set ? $response[$set] : $response;
         } else {
             return array(
                 'error' =>
@@ -389,7 +389,7 @@ if (!function_exists('gnfe_get_company_info')) {
  */
 if (!function_exists('gnfe_put_rps')) {
     function gnfe_put_rps($company, $rpsNumber) {
-        $company['rpsNumber'] = $rpsNumber + 1;
+        $company['rpsNumber'] = intval($rpsNumber) + 1;
         $requestBody = json_encode($company);
 
         $curl = curl_init();
@@ -415,12 +415,15 @@ if (!function_exists('gnfe_put_rps')) {
                 ' Consulte: https://nfe.io/docs/desenvolvedores/rest-api/nota-fiscal-de-servico-v1/#/Companies/Companies_Put';
             logModuleCall('gofas_nfeio', 'gnfe_put_rps', $requestBody, $response, '', '');
         } else {
-            $nfe_rps = intval(gnfe_get_nfes()['rpsNumber']);
+            $nfe_rps = intval(gnfe_get_company_info('rpsNumber'));
             $whmcs_rps = intval(gnfe_config('rps_number'));
 
             // Verifica se o RPS na NFe é maior ou igual ao RPS no WHMCS para garantir que a ação foi efetivada.
             if ($nfe_rps >= $whmcs_rps) {
-                Capsule::table('tbladdonmodules')->where('module', 'gofasnfeio')->where('setting', 'rps_number')->update(['value' => 'RPS administrado pela NFe.']);
+                Capsule::table('tbladdonmodules')
+                    ->where('module', '=', 'gofasnfeio')
+                    ->where('setting', '=', 'rps_number')
+                    ->update(['value' => 'RPS administrado pela NFe.']);
             } else {
                 logModuleCall('gofas_nfeio', 'gnfe_put_rps', $requestBody, 'Erro ao tentar passar tratativa de RPS para NFe. ' . $response, '', '');
             }
@@ -975,14 +978,16 @@ if (!function_exists('gnfe_insert_issue_nfe_cond_in_database')) {
         $previousConditions = Capsule::table('tbladdonmodules')
                             ->where('module', '=', 'gofasnfeio')
                             ->where('setting', '=', 'issue_note_conditions')
-                            ->count() > 0;
+                            ->get(['value'])[0]->value;
 
-        if ($previousConditions) {
+        if (count($previousConditions) <= 0 || $previousConditions != $conditions) {
             Capsule::table('tbladdonmodules')
                 ->where('module', '=', 'gofasnfeio')
                 ->where('setting', '=', 'issue_note_conditions')
                 ->update(['value' => $conditions]);
-        } else {
+        }
+
+        if (count($previousConditions) <= 0) {
             Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio','setting' => 'issue_note_conditions','value' => $conditions]);
         }
     }

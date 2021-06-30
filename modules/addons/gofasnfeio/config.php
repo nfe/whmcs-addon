@@ -99,13 +99,15 @@ if (!function_exists('gofasnfeio_config')) {
         // e a "Exclusivamente na versão 1.4.0 será realizada a migração da RPS do módulo para a NFE."
         // Verifica se a versão dos arquivos do módulo corresponde a versão do módulo no banco de dados.
         if ($module_version_int >= 140 && $module_version_int < 150 && $previous_version_int >= 140 && $previous_version_int < 150) {
-            $nfe_rps = gnfe_get_nfes()['rpsNumber'];
 
             // Verifica se a configuração rps_number existe no banco de dados.
-            if (Capsule::table('tbladdonmodules')->where('setting','=','rps_number')->count() == 0) {
+            if (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting','=','rps_number')->count() == 0) {
                 try {
+                    $nfe_rps = gnfe_get_nfes()['rpsNumber'];
                     Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'rps_number', 'value' => $nfe_rps]);
-                } catch (\Throwable $th) {}
+                } catch (Exception $e) {
+                    logModuleCall('gofas_nfeio', 'gofasnfeio_config', '', $e->getMessage(), '', '');
+                }
             }
 
             $whmcs_rps = gnfe_config('rps_number');
@@ -216,11 +218,21 @@ if (!function_exists('gofasnfeio_config')) {
             set_custom_field_ini_date();
         }
 
+        $rps_number = gnfe_config('rps_number');
+        if (is_numeric($rps_number)) {
+            $rpsDescription = 'RPS atualizada de acordo com última nota fiscal emitida, clique no botão salvar alterações para atualizar automaticamente.';
+        } else {
+            $rpsDescription = '<a style="text-decoration:underline;" href="https://app.nfe.io/companies/edit/fiscal/' . gnfe_config('company_id') . '" target="_blank">Consultar RPS</a>';
+        }
+
         $intro = ['intro' => [
             'FriendlyName' => '',
-            'Description' => '<h4 style="padding-top: 5px;">Módulo Nota Fiscal NFE.io para WHMCS v' . $module_version . '</h4>
-					' . $available_update_message . $update_denied,
+            'Description' => '<h4 style="padding-top: 5px;">Módulo Nota Fiscal NFE.io para WHMCS v' . $module_version . '</h4>'
         ]];
+
+        $intro['intro']['Description'] .= '<p>'. $available_update_message .'</p>';
+        $intro['intro']['Description'] .= '<p>'. $update_denied .'</p>';
+        $intro['intro']['Description'] .= '<p>'. $rpsDescription .'</p>';
 
         $api_key = ['api_key' => [
             'FriendlyName' => 'API Key',
@@ -239,30 +251,27 @@ if (!function_exists('gofasnfeio_config')) {
             'Type' => 'text',
             'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/#o-que-e-codigo-de-servico" target="_blank">O que é Código de Serviço?</a>',
         ]];
+        $nfeSerialNumber = gnfe_get_company_info()['rpsSerialNumber'];
 
-        try {
-            Capsule::table('tbladdonmodules')->where('module', 'gofasnfeio')->where('setting', 'rps_serial_number')->update(['value' => gnfe_get_company_info()['rpsSerialNumber']]);
-        } catch (\Throwable $th) {}
+        if (
+            Capsule::table('tbladdonmodules')
+                ->where('module', '=', 'gofasnfeio')
+                ->where('setting', '=', 'rps_serial_number')
+                ->get(['value'])[0]->value != $nfeSerialNumber
+        ) {
+            try {
+                Capsule::table('tbladdonmodules')
+                    ->where('module', '=', 'gofasnfeio')
+                    ->where('setting', '=', 'rps_serial_number')
+                    ->update(['value' => gnfe_get_company_info()['rpsSerialNumber']]);
+            } catch (\Throwable $th) {}
+        }
+
         $rps_serial_number = ['rps_serial_number' => [
             'FriendlyName' => 'Série do RPS',
             'Type' => 'text',
             'Disabled' => 'true',
             'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/" target="_blank">Saiba mais</a>',
-        ]];
-
-        $rps_number = gnfe_config('rps_number');
-
-        if (is_numeric($rps_number)) {
-            $rps_number_camp_description = 'RPS atualizada de acordo com última nota fiscal emitida, clique no botão salvar alterações para atualizar automaticamente.';
-        } else {
-            $rps_number_camp_description = '<a style="text-decoration:underline;" href="https://app.nfe.io/companies/edit/fiscal/' . gnfe_config('company_id') . '" target="_blank">Consultar RPS</a>';
-        }
-
-        $rps_number_camp = ['rps_number' => [
-            'FriendlyName' => 'Número do RPS',
-            'Type' => 'text',
-            'Disabled' => 'true',
-            'Description' => $rps_number_camp_description
         ]];
 
         $issue_note_default_cond = ['issue_note_default_cond' => [
@@ -360,7 +369,7 @@ if (!function_exists('gofasnfeio_config')) {
             'Description' => '&copy; ' . date('Y') . ' <a target="_blank" title="Para suporte utilize o github" href="https://github.com/nfe/whmcs-addon/issues">Suporte módulo</a>',
         ]];
 
-        $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $rps_number_camp, $issue_note_default_cond, $issue_note_after, $gnfe_email_nfe_config,$development_, $cancel_invoice_cancel_nfe, $debug, $insc_municipal,$cpf,$cnpj, $tax, $invoiceDetails, $send_invoice_url,$desc_custom, $footer);
+        $fields = array_merge($intro, $api_key, $company_id, $service_code, $rps_serial_number, $issue_note_default_cond, $issue_note_after, $gnfe_email_nfe_config,$development_, $cancel_invoice_cancel_nfe, $debug, $insc_municipal,$cpf,$cnpj, $tax, $invoiceDetails, $send_invoice_url,$desc_custom, $footer);
         $configarray = [
             'name' => 'NFE.io',
             'description' => 'Módulo Nota Fiscal NFE.io para WHMCS',

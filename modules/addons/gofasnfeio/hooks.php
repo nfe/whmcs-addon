@@ -43,6 +43,7 @@ add_hook('ProductDelete', 1, function ($vars) {
 
 add_hook('AdminClientProfileTabFields', 1, function($vars) {
     require_once __DIR__ . '/functions.php';
+    require_once __DIR__ . '/update.php';
     return require_once __DIR__ . '/hooks/customclientissueinvoice.php';
 });
 
