@@ -248,21 +248,6 @@ if (!function_exists('gofasnfeio_config')) {
             'Type' => 'text',
             'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/#o-que-e-codigo-de-servico" target="_blank">O que é Código de Serviço?</a>',
         ]];
-        $nfeSerialNumber = gnfe_get_company_info()['rpsSerialNumber'];
-
-        if (
-            Capsule::table('tbladdonmodules')
-                ->where('module', '=', 'gofasnfeio')
-                ->where('setting', '=', 'rps_serial_number')
-                ->get(['value'])[0]->value != $nfeSerialNumber
-        ) {
-            try {
-                Capsule::table('tbladdonmodules')
-                    ->where('module', '=', 'gofasnfeio')
-                    ->where('setting', '=', 'rps_serial_number')
-                    ->update(['value' => gnfe_get_company_info()['rpsSerialNumber']]);
-            } catch (\Throwable $th) {}
-        }
 
         $issue_note_default_cond = ['issue_note_default_cond' => [
             'FriendlyName' => 'Quando emitir NFE',
