@@ -8,8 +8,6 @@ use WHMCS\Database\Capsule;
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/update.php';
 
-require_once __DIR__ . '/tests.php';
-
 if (!function_exists('gofasnfeio_config')) {
 	function gnfe_verify_module_updates() {
 		$curl = curl_init();

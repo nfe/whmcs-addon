@@ -121,6 +121,23 @@ if (!function_exists('gnfe_customer')) {
 		}
 	}
 }
+
+if (!function_exists('nfeio_user_owns_invoice')) {
+	/**
+	 * Checks if a user owns an invoice based on its id on the databse.
+	 *
+	 * @param string $userId
+	 * @return bool
+	 */
+	function nfeio_user_owns_invoice($userId, $invoice_id) {
+		$databaseUserId = Capsule::table('gofasnfeio')
+			->where('invoice_id', '=', $invoice_id)
+			->get(['user_id'])[0]->user_id;
+
+		return $databaseUserId == $userId;
+	}
+}
+
 if (!function_exists('gnfe_customfields')) {
 	function gnfe_customfields() {
 		//Determine custom fields id
