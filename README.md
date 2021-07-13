@@ -81,7 +81,8 @@ Dentro do admin do WHMCS é possível gerenciar a nota fiscal manualmente.
 2. ID da Empresa: (Obrigatório) Nesse campo você deve indicar o ID da empresa ao qual serão associadas as notas fiscais geradas pelo WHMCS. (Obter ID da empresa);
 3. Código de Serviço Principal: (Obrigatório) O código de serviço varia de acordo com a categoria de tributação do negócio. Saiba mais sobre o código de serviço aqui;
 4. Série do RPS: Valor padrão `IO`. Saiba mais em https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/;
-5. Número do RPS: O número RPS da NFE mais recente gerada. Deixe em branco e o módulo irá preencher esse campo após a primeira emissão. Não altere o valor a menos que tenha certeza de como funciona essa opção. Saiba mais em https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/;
+5. Número do RPS: O número RPS da NFE mais recente gerada. A partir da versão 1.4.0, este valor passou a ser tratado pela
+NFe e não pelo módulo. Saiba mais em https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/;
 6. Quando emitir NFE: Selecione se deseja que as notas fiscais sejam geradas quando a fatura é publicada ou quando a fatura é paga;
 7. Agendar Emissão: Número de dias após o pagamento da fatura que as notas devem ser emitidas. Preencher essa opção desativa a opção anterior;
 8. Cancelar NFE: Se essa opção está ativada, o módulo cancela a nota fiscal quando a fatura cancelada;
@@ -96,7 +97,7 @@ Dentro do admin do WHMCS é possível gerenciar a nota fiscal manualmente.
 
 Os produtos podem ter configurações de código de serviço individuais:
 
-Em Addons>NFE.oi>código dos Produtos é possivel configurar um código de serviço para cada produto/serviço cadastrado.
+Em Addons>NFE.io>código dos Produtos é possivel configurar um código de serviço para cada produto/serviço cadastrado.
 
 **_o código individual vai ter prioridade sobre o definido nas configurações do módulo._**
 
@@ -116,12 +117,17 @@ Para inserir um link da nota fiscal do PDF e XML, edite o arquivo viewinvoice.tp
 
 ## EMISSÃO PERSONALIZADA DE NOTAS PARA CLIENTE
 
-Para inserir uma opção personalizada de quando é emitido a NFE para cada cliente crie um campo personalizado em `Configurações > Campos Personalizados dos Clientes` com o nome `Emitir Nota Fiscal`,Tipos de campo `Lista de Opção` e em Selecionar Opções `nenhum (padrão do WHMCS) deve seguir a configuração do modulo.,Quando a Fatura é Gerada,Quando a Fatura é Paga`,como no exemplo:
+Para inserir uma opção personalizada de quando é emitido a NFE para cada cliente, acesse o perfil do cliente e selecione umas das opções de emissão listadas, como mostra a imagem abaixo.
 [![](http://whmcs.linknacional.com.br/prints/campo_personalizado.png)](http://whmcs.linknacional.com.br/prints/campo_personalizado.png)
 
 ## CHANGELOG
 
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
+
+### v1.4.0
+
+- Migração da tratativa do RPS para a NFe realizada
+- Funcionalidade de emissão personalizada automatizada
 
 ### v1.3.3
 - Ajuste na descrição da nota fiscal.

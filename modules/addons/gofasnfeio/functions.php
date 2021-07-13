@@ -5,20 +5,30 @@ if (!defined('WHMCS')) {
 }
 use WHMCS\Database\Capsule;
 
-// Get config
+/**
+ * Pega os dados da tabela tbladdonmodules do banco de dados da WHMCS.
+ * @var $set string|boolean
+ * @return array|string
+ */
 if (!function_exists('gnfe_config')) {
     function gnfe_config($set = false) {
-        $setting = [];
-        foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
-            $setting[$settings->setting] = $settings->value;
-        }
-        if ($set) {
-            return $setting[$set];
-        }
+        if ($set === false) {
+            $setting = [];
 
-        return $setting;
+            foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
+                $setting[$settings->setting] = $settings->value;
+            }
+
+            return $setting;
+        } else {
+            return Capsule::table('tbladdonmodules')
+                    ->where('module', '=', 'gofasnfeio')
+                    ->where('setting', '=', $set)
+                    ->get(['value'])[0]->value;
+        }
     }
 }
+
 if (!function_exists('gnfe_customer')) {
     function gnfe_customer($user_id, $client) {
         //Determine custom fields id
@@ -332,6 +342,95 @@ if (!function_exists('gnfe_get_nfe')) {
     }
 }
 
+/**
+ * Retorna os dados da compahia na NFE.
+ *
+ * @return array
+ */
+if (!function_exists('gnfe_get_company_info')) {
+    function gnfe_get_company_info($set = false) {
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'),
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: ' . gnfe_config('api_key')
+            ]
+        ]);
+
+        $response = json_decode(curl_exec($curl), true);
+        $response = $response['companies'];
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        curl_close($curl);
+
+        if ($httpCode === 200) {
+            return $set ? $response[$set] : $response;
+        } else {
+            return array(
+                'error' =>
+                    'Erro: ' . $httpCode . '|'
+                    . ' Resposta: ' . $response . '|'
+                    . ' Consulte: https://nfe.io/docs/desenvolvedores/rest-api/nota-fiscal-de-servico-v1/#/Companies/Companies_Get'
+            );
+        }
+    }
+}
+
+/**
+ * Responsável por enviar o último RPS para a NFe.
+ *
+ * @param int $rpsNumber
+ *
+ * @return void
+ */
+if (!function_exists('gnfe_put_rps')) {
+    function gnfe_put_rps($company, $rpsNumber) {
+        $company['rpsNumber'] = intval($rpsNumber) + 1;
+        $requestBody = json_encode($company);
+
+        $curl = curl_init();
+        curl_setopt_array($curl, [
+            CURLOPT_URL => 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'),
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CUSTOMREQUEST => 'PUT',
+            CURLOPT_POSTFIELDS => $requestBody,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: ' . gnfe_config('api_key')
+            ]
+        ]);
+        $response = json_decode(curl_exec($curl), true);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        if ($httpCode !== 200) {
+            $response =
+                ' Http code: ' . $httpCode . '|' .
+                ' Resposta: ' . $response . '|' .
+                ' Consulte: https://nfe.io/docs/desenvolvedores/rest-api/nota-fiscal-de-servico-v1/#/Companies/Companies_Put';
+            logModuleCall('gofas_nfeio', 'gnfe_put_rps', $requestBody, $response, '', '');
+        } else {
+            $nfe_rps = intval(gnfe_get_company_info('rpsNumber'));
+            $whmcs_rps = intval(gnfe_config('rps_number'));
+
+            // Verifica se o RPS na NFe é maior ou igual ao RPS no WHMCS para garantir que a ação foi efetivada.
+            if ($nfe_rps >= $whmcs_rps) {
+                Capsule::table('tbladdonmodules')
+                    ->where('module', '=', 'gofasnfeio')
+                    ->where('setting', '=', 'rps_number')
+                    ->update(['value' => 'RPS administrado pela NFe.']);
+            } else {
+                logModuleCall('gofas_nfeio', 'gnfe_put_rps', $requestBody, 'Erro ao tentar passar tratativa de RPS para NFe. ' . $response, '', '');
+            }
+        }
+    }
+}
+
 if (!function_exists('gnfe_test_connection')) {
     function gnfe_test_connection() {
         $curl = curl_init();
@@ -348,7 +447,11 @@ if (!function_exists('gnfe_test_connection')) {
         return $info;
     }
 }
-
+/**
+ * Pega o JSON da última nota fiscal emitida do banco de dados da NFe.
+ *
+ * @return array;
+ */
 if (!function_exists('gnfe_get_nfes')) {
     function gnfe_get_nfes() {
         $curl = curl_init();
@@ -361,6 +464,7 @@ if (!function_exists('gnfe_get_nfes')) {
         return json_decode($response, true)['serviceInvoices']['0'];
     }
 }
+
 if (!function_exists('gnfe_get_invoice_nfes')) {
     function gnfe_get_invoice_nfes($invoice_id) {
         $nfes = [];
@@ -553,27 +657,13 @@ if (!function_exists('gnfe_update_nfe')) {
         }
     }
 }
-if (!function_exists('gnfe_update_rps')) {
-    function gnfe_update_rps($rps_serial_number, $rps_number) {
-        $setting = [];
-        foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
-            $setting[$settings->setting] = $settings->value;
-        }
 
-        try {
-            if ($rps_serial_number) {
-                $update_rps_serial_number = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'rps_serial_number')->update(['value' => $rps_serial_number]);
-            }
-            if ($rps_number) {
-                $update_serial_number = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'rps_number')->update(['value' => $rps_number + 1]);
-            }
-
-            return 'success';
-        } catch (\Exception $e) {
-            return $e->getMessage();
-        }
-    }
-}
+/**
+ * Returns the data of a invoice from the local WHMCS database.
+ * @var $invoice_id
+ * @var $values
+ * @return string
+ */
 if (!function_exists('gnfe_get_local_nfe')) {
     function gnfe_get_local_nfe($invoice_id, $values) {
         foreach (Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->orderBy('id', 'desc')->get($values) as $key => $value) {
@@ -582,6 +672,7 @@ if (!function_exists('gnfe_get_local_nfe')) {
         return $nfe_for_invoice['0'];
     }
 }
+
 if (!function_exists('gnfe_check_webhook')) {
     function gnfe_check_webhook($id) {
         $curl = curl_init();
@@ -687,20 +778,6 @@ if (!function_exists('gnfe_get_company')) {
     }
 }
 
-if (!function_exists('gnfe_get_company')) {
-    function gnfe_get_company() {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'));
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        $response = curl_exec($curl);
-        curl_close($curl);
-
-        return json_decode($response, true);
-    }
-}
-
 if (!function_exists('gnfe_customer_service_code')) {
     function gnfe_customer_service_code($item_id) {
         $customfields = [];
@@ -731,7 +808,7 @@ function get_product_invoice($invoice_id) {
 
         if ($item['type'] == 'Hosting') {
             $query = 'SELECT tblhosting.billingcycle ,tblhosting.id,tblproductcode.code_service ,tblhosting.packageid,tblhosting.id FROM tblhosting
-            LEFT JOIN tblproducts ON tblproducts.id = tblhosting.packageid 
+            LEFT JOIN tblproducts ON tblproducts.id = tblhosting.packageid
             LEFT JOIN tblproductcode ON tblhosting.packageid = tblproductcode.product_id
             WHERE tblhosting.id = :HOSTING';
 
@@ -805,11 +882,113 @@ function update_status_nfe($invoice_id,$status) {
     }
 }
 
-function verifyIssueFromUser($vars) {
-    $results = localAPI('GetInvoice', ['invoiceid' => $vars['invoiceid']], false);
-    $results = localAPI('GetClientsDetails', ['clientid' => $results['userid']], '');
-    foreach ($results['customfields'] as $key => $value) {
-        $issueNfeUser = $value['value'];
+// ------------------------------------------------- NOVAS FUNÇÕES
+if (!function_exists('gnfe_get_client_issue_invoice_cond_from_invoice_id')) {
+    /**
+     * @var $vars vem do arquivo hooks.php.
+     * @return string
+     */
+    function gnfe_get_client_issue_invoice_cond_from_invoice_id($invoiceId) {
+        $clientInvoiceId = localAPI('GetInvoice', ['invoiceid' => $invoiceId])['userid'];
+
+        $clientCond = Capsule::table('mod_nfeio_custom_configs')
+            ->where('client_id', '=', $clientInvoiceId)
+            ->where('key', '=', 'issue_nfe_cond')
+            ->get(['value'])[0]->value;
+        $clientCond = strtolower($clientCond);
+
+        if ($clientCond !== null && $clientCond !== 'seguir configuração do módulo nfe.io') {
+            return $clientCond;
+        }
+
+        return 'seguir configuração do módulo nfe.io';
     }
-    return $issueNfeUser;
+}
+
+if (!function_exists('gnfe_show_issue_invoice_conds')) {
+    /**
+     * Returns a <select> HTML which is used only by the AdminClientProfileTabFields hook
+     * in the file hooks.php.
+     * @var int
+     * @return string
+     */
+    function gnfe_show_issue_invoice_conds($clientId) {
+        $conditions = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'issue_note_conditions')->get(['value'])[0]->value;
+        $conditions = explode(',', $conditions);
+
+        $previousClientCond = Capsule::table('mod_nfeio_custom_configs')->where('client_id', '=', $clientId)->get(['value'])[0]->value;
+
+        $select = '<select name="issue_note_cond" class="form-control select-inline">';
+
+        // Sets the previous issue condition in the first index of array $conditions.
+        // in order to the previous condition be showed in the client prifile.
+        if ($previousClientCond != null) {
+            $previousCondKey = array_search($previousClientCond, $conditions);
+            unset($conditions[$previousCondKey]);
+            $select .= '<option value="' . $previousClientCond . '">' . $previousClientCond . '</option>';
+        } else {
+            $defaultCond = 'Seguir configuração do módulo NFE.io';
+            $defaultCondKey = array_search($defaultCond, $conditions);
+            unset($conditions[$defaultCondKey]);
+            $select .= '<option value="Seguir configuração do módulo NFE.io">Seguir configuração do módulo NFE.io</option>';
+        }
+
+        foreach ($conditions as $cond) {
+            $select .= '<option value="' . $cond . '">' . $cond . '</option>';
+        }
+        $select .= '</select>';
+
+        return $select;
+    }
+}
+
+if (!function_exists('gnfe_save_client_issue_invoice_cond')) {
+    /**
+     * Insert the clientId and his condition of sending invoice in the table mod_nfeio_custom_configs.
+     * @var $client int
+     * @var $invoiceCond string
+     */
+    function gnfe_save_client_issue_invoice_cond($clientId, $newCond) {
+        $previousClientCond = Capsule::table('mod_nfeio_custom_configs')->where('client_id', '=', $clientId)->get(['value'])[0]->value;
+
+        if ($newCond !== $previousClientCond) {
+            if ($previousClientCond == null) {
+                Capsule::table('mod_nfeio_custom_configs')->insert([
+                    'key' => 'issue_nfe_cond',
+                    'client_id' => $clientId,
+                    'value' => $newCond
+                ]);
+            } else {
+                Capsule::table('mod_nfeio_custom_configs')
+                    ->where('client_id', '=', $clientId)
+                    ->where('key', '=', 'issue_nfe_cond')
+                    ->update(['value' => $newCond]);
+            }
+        }
+    }
+}
+
+/**
+ * Inserts the conditions of sending invoices in the database.
+ */
+if (!function_exists('gnfe_insert_issue_nfe_cond_in_database')) {
+    function gnfe_insert_issue_nfe_cond_in_database() {
+        $conditions = 'Quando a fatura é gerada,Quando a fatura é paga,Seguir configuração do módulo NFE.io';
+
+        $previousConditions = Capsule::table('tbladdonmodules')
+                            ->where('module', '=', 'gofasnfeio')
+                            ->where('setting', '=', 'issue_note_conditions')
+                            ->get(['value'])[0]->value;
+
+        if (count($previousConditions) <= 0 || $previousConditions != $conditions) {
+            Capsule::table('tbladdonmodules')
+                ->where('module', '=', 'gofasnfeio')
+                ->where('setting', '=', 'issue_note_conditions')
+                ->update(['value' => $conditions]);
+        }
+
+        if (count($previousConditions) <= 0) {
+            Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio','setting' => 'issue_note_conditions','value' => $conditions]);
+        }
+    }
 }

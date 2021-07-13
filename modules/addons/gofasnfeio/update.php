@@ -21,6 +21,7 @@ if (!function_exists('gnfe_verifyInstall')) {
                     $table->string('status');
                     $table->decimal('services_amount',$precision = 16,$scale = 2);
                     $table->string('environment');
+                    $table->string('issue_note_conditions');
                     $table->string('flow_status');
                     $table->string('pdf');
                     $table->string('rpsSerialNumber');
@@ -34,7 +35,21 @@ if (!function_exists('gnfe_verifyInstall')) {
                 $error .= "Não foi possível criar a tabela do módulo no banco de dados: {$e->getMessage()}";
             }
         }
-        // Added in v 1 dot 1 dot 3
+
+        if (!Capsule::schema()->hasTable('mod_nfeio_custom_configs')) {
+            try {
+                Capsule::schema()->create('mod_nfeio_custom_configs', function ($table) {
+                    $table->increments('id');
+                    $table->integer('client_id');
+                    $table->string('key');
+                    $table->string('value');
+                });
+            } catch (\Exception $e) {
+                $error .= "Não foi possível atualizar a tabela do módulo no banco de dados: {$e->getMessage()}";
+            }
+        }
+
+        // Added in v1.1.3
         if (!Capsule::schema()->hasColumn('gofasnfeio', 'rpsNumber')) {
             try {
                 Capsule::schema()->table('gofasnfeio', function ($table) {
