@@ -124,10 +124,14 @@ Para inserir uma opção personalizada de quando é emitido a NFE para cada clie
 
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
 
+### v1.4.1
+
+- Acesso restrito na geração de XML e PDF.
+
 ### v1.4.0
 
-- Migração da tratativa do RPS para a NFe realizada
-- Funcionalidade de emissão personalizada automatizada
+- Migração da tratativa do RPS para a NFe realizada.
+- Funcionalidade de emissão personalizada automatizada.
 
 ### v1.3.3
 
@@ -143,32 +147,32 @@ Para inserir uma opção personalizada de quando é emitido a NFE para cada clie
 
 ### v1.3.0
 
-- link para relatório do sistema legado
-- botão para cancelar nota fiscal
-- log, data e hora da emissão do log
-- verificação de conexão com nfe
-- verificação automática de campo RPS
-- verificação de campo personalizado
-- campo personalizado no cliente para emissão da nota
+- link para relatório do sistema legado.
+- botão para cancelar nota fiscal.
+- log, data e hora da emissão do log.
+- verificação de conexão com nfe.
+- verificação automática de campo RPS.
+- verificação de campo personalizado.
+- campo personalizado no cliente para emissão da nota.
 
 ### v1.2.10
 
-- correção enviar endereço de e-mail na nota
+- correção enviar endereço de e-mail na nota.
 
 ### v1.2.9
 
-- criação de arquivo de debug
-- verificação do retorno CEP
-- validação de versão do modulo via github
-- impedir emissão duplicada de nota fiscal de fatura
+- criação de arquivo de debug.
+- verificação do retorno CEP.
+- validação de versão do modulo via github.
+- impedir emissão duplicada de nota fiscal de fatura.
 
 ### v1.2.7
 
-- envio do nome da empresa ao invés do nome pessoa física quando o CNPJ estiver definido
-- criar nota fiscal de acordo com o código de serviço de cada serviço
-- corrigido erro de caracteres especiais
-- opção de criar nota individualmente por tipo de serviço
-- emissão de nota fiscal a partir da data de instalação do módulo
+- envio do nome da empresa ao invés do nome pessoa física quando o CNPJ estiver definido.
+- criar nota fiscal de acordo com o código de serviço de cada serviço.
+- corrigido erro de caracteres especiais.
+- opção de criar nota individualmente por tipo de serviço.
+- emissão de nota fiscal a partir da data de instalação do módulo.
 - opção de descrição do serviço na nota: referente a fatura ou nome do serviço.
 - ajuste de link das notas fiscais na fatura para abrir todas as notas.
 - ajuste de instalação do módulo
