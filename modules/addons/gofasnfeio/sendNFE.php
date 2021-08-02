@@ -36,7 +36,7 @@ function emitNFE($invoices,$nfeio) {
 
     //description nfe
     if ($params['InvoiceDetails'] == 'Número da fatura') {
-        $gnfeWhmcsUrl = Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value'])[0]->value;
+        $gnfeWhmcsUrl = Capsule::table('tblconfiguration')->where('setting', '=', 'SystemURL')->get(['value'])[0]->value;
 
         $desc = 'Nota referente a fatura #' . $invoices->id . '  ';
         if ($params['send_invoice_url'] === 'Sim') {
@@ -44,12 +44,12 @@ function emitNFE($invoices,$nfeio) {
         }
         $desc .= ' ' . $params['descCustom'];
 
-        $gnfeWhmcsUrl = Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value'])[0]->value;
+        $gnfeWhmcsUrl = Capsule::table('tblconfiguration')->where('setting', '=', 'SystemURL')->get(['value'])[0]->value;
 
     } elseif ($params['InvoiceDetails'] == 'Nome dos serviços') {
         $desc = substr(implode("\n", $line_items), 0, 600) . ' ' . $params['descCustom'];
     } elseif ($params['InvoiceDetails'] == 'Número da fatura + Nome dos serviços') {
-        $gnfeWhmcsUrl = Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value'])[0]->value;
+        $gnfeWhmcsUrl = Capsule::table('tblconfiguration')->where('setting', '=', 'SystemURL')->get(['value'])[0]->value;
         $desc = 'Nota referente a fatura #' . $invoices->id . '  ';
         if ($params['send_invoice_url'] === 'Sim') {
             $desc .= $gnfeWhmcsUrl . 'viewinvoice.php?id=' . $invoices->id;
