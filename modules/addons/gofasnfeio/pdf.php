@@ -6,7 +6,7 @@ use WHMCS\Database\Capsule;
 $invoice_id = $_GET['invoice_id'];
 
 if ($invoice_id) {
-    foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value']) as $gnfewhmcsadminurl_) {
+    foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'SystemURL')->get(['value']) as $gnfewhmcsadminurl_) {
         $gnfewhmcsadminurl = $gnfewhmcsadminurl_->value;
     }
     foreach (Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->get(['id', 'invoice_id']) as $nfe) {
