@@ -1,17 +1,49 @@
 
 <?php
-require_once __DIR__.'/../../../init.php';
+require_once __DIR__ . '/../../../init.php';
+require_once __DIR__ . '/functions.php';
+
 use WHMCS\Database\Capsule;
 
+isset($_SESSION['uid']) or exit.
+
 $invoice_id = $_GET['invoice_id'];
+$userId = $_SESSION['uid'];
+
+nfeio_user_owns_invoice($userId, $invoice_id) or exit;
 
 if ($invoice_id) {
     foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'Domain')->get(['value']) as $gnfewhmcsadminurl_) {
         $gnfewhmcsadminurl = $gnfewhmcsadminurl_->value;
     }
     foreach (Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->get(['id', 'invoice_id']) as $nfe) {
-        $url = $gnfewhmcsadminurl.'modules/addons/gofasnfeio/createxml.php?nfe_id='.$nfe->id;
-        echo "<script type='text/javascript' language='Javascript'>window.open('".$url."');</script>";
+
+        $row = Capsule::table('gofasnfeio')->where('id', '=', $nfe->id)->get(['invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'flow_status', 'pdf', 'created_at', 'updated_at', 'id']);
+        $nfe = $row[0];
+
+        if ((string) $nfe->status === (string) 'Issued') {
+            $nfe_xml_for_invoice = gnfe_xml_nfe($nfe->nfe_id);
+            header('Content-Type: text/xml');
+            echo $nfe_xml_for_invoice;
+        } else {
+            echo 'Sem permissão';
+        }
+
+        exit();
     }
 }
-echo "<script type='text/javascript' language='Javascript'>window.location.href = '".$gnfewhmcsadminurl.'viewinvoice.php?id='.$invoice_id."';</script>";
+
+function gnfe_xml_nfe($nf) {
+    $curl = curl_init();
+    curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices/' . $nf . '/xml');
+    curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-type: application/xml', 'Authorization: ' . gnfe_config('api_key')]);
+    curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 10);
+    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+    $result = curl_exec($curl);
+    curl_close($curl);
+
+    return $result;
+}
