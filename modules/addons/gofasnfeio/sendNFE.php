@@ -96,10 +96,10 @@ function emitNFE($invoices,$nfeio) {
         }
         if (!$nfe->message) {
             logModuleCall('gofas_nfeio', 'sendNFE', $postfields, $nfe, 'OK', '');
-            $gnfe_update_nfe = gnfe_update_nfe($nfe, $invoices->userid, $invoices->id, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $waiting->id);
+            $gnfe_update_nfe = gnfe_update_nfe($nfe, $invoices->userid, $invoices->id, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $nfeio->id);
 
             if ($gnfe_update_nfe && $gnfe_update_nfe !== 'success') {
-                logModuleCall('gofas_nfeio', 'sendNFE - gnfe_update_nfe', [$nfe, $invoices->userid, $invoices->id, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $waiting->id], $gnfe_update_nfe, 'ERROR', '');
+                logModuleCall('gofas_nfeio', 'sendNFE - gnfe_update_nfe', [$nfe, $invoices->userid, $invoices->id, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $nfeio->id], $gnfe_update_nfe, 'ERROR', '');
             }
         }
     }
