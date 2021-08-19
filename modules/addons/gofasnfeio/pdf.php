@@ -11,7 +11,7 @@ if ($invoice_id) {
     }
     foreach (Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->get(['id', 'invoice_id']) as $nfe) {
         $url = $gnfewhmcsadminurl.'modules/addons/gofasnfeio/createpdf.php?nfe_id='.$nfe->id;
-        echo "<script type='text/javascript' language='Javascript'>window.open('".$url."');</script>";
+        echo "<script type='text/javascript' language='Javascript'>window.open('".$url."','_self');</script>";
     }
 }
 echo "<script type='text/javascript' language='Javascript'>window.location.href = '".$gnfewhmcsadminurl.'viewinvoice.php?id='.$invoice_id."';</script>";
