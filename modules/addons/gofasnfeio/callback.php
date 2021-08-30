@@ -22,10 +22,6 @@ if ($post) {
     }
     //fim verificar se a nfe existe na tabela
 
-    $params = [];
-    foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
-        $params[$settings->setting] = $settings->value;
-    }
     foreach (Capsule::table('gofasnfeio')->where('nfe_id', '=', $post['id'])->
     get(['id', 'invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'flow_status', 'pdf', 'created_at', 'updated_at']) as $key => $value) {
         $nfe_for_invoice[$key] = json_decode(json_encode($value), true);
