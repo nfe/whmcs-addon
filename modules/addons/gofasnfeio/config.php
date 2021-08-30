@@ -42,7 +42,7 @@ if (!function_exists('gofasnfeio_config')) {
 		// --------------------------------------------------------------------------------------------
 
 		// Versão do módulo deste arquivo.
-		$module_version = '1.4.0';
+		$module_version = '1.4.2';
 		$module_version_int = (int) preg_replace('/[^0-9]/', '', $module_version);
 
 		// Versão do módulo que consta no banco de dados.
@@ -65,7 +65,7 @@ if (!function_exists('gofasnfeio_config')) {
 			// Atende a diretriz "Exclusivamente a partir da versão 1.5.0 não será permitido atualização do modulo por versões inferiores a 1.4.0.".
 			// Se a versão do módulo for igual a versão do módulo no
 			// banco de dados mais 1, então a atualização é permitida.
-			if ($module_major_minor_version === $previous_major_minor_version + 1) {
+			if ($module_major_minor_version === $previous_major_minor_version + 1 || $module_major_minor_version === $previous_major_minor_version) {
 				Capsule::table('tbladdonmodules')->where('module', 'gofasnfeio')->where('setting', 'module_version')->update(['value' => $module_version]);
 			} else {
 				$update_denied = <<<EOT
