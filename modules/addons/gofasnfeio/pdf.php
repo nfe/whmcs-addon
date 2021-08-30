@@ -28,7 +28,7 @@ if ($invoice_id) {
         } else {
             echo 'Not Found';
         }
-        echo "<script type='text/javascript' language='Javascript'>window.open('" . $url . "');</script>";
+        echo "<script type='text/javascript' language='Javascript'>window.open('" . $url . "', '_self');</script>";
     }
 }
 
