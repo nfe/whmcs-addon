@@ -125,8 +125,6 @@ Para inserir uma opção personalizada de quando é emitido a NFE para cada clie
 #### IMPORTANTE: Ao atualizar, após substituir os arquivos pelos mais recentes, acesse as configurações do módulo no menu `Opções > Módulos Addon > Gofas NFE.io` do painel administrativo do WHMCS e clique em "Salvar Alterações". Isso garente que os novos parâmetros serão gravados corretamente no banco de dados.
 
 
-
-1.4.3 - Corrigido mensagem de erro de versão
 ### 1.4.3
 - Corrigido mensagem de erro de versão
 
