@@ -39,8 +39,6 @@ if (!function_exists('gofasnfeio_config')) {
 		} catch (\Throwable $th) {
 		}
 
-		// --------------------------------------------------------------------------------------------
-
 		// Versão do módulo deste arquivo.
 		$module_version = '1.4.3';
 		$module_version_int = (int) preg_replace('/[^0-9]/', '', $module_version);
