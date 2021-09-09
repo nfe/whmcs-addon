@@ -348,7 +348,7 @@ if (!function_exists('gofasnfeio_config')) {
 			'name' => 'NFE.io',
 			'description' => 'Módulo Nota Fiscal NFE.io para WHMCS',
 			'version' => $module_version,
-			'author' => '<a title="NFE.io Nota Fiscal WHMCS" href="https://github.com/nfe/whmcs-addon/" target="_blank" ><img src="' . $whmcs_url . 'modules/addons/gofasnfeio/lib/logo.png"></a>',
+			'author' => '<a title="NFE.io Nota Fiscal WHMCS" href="https://github.com/nfe/whmcs-addon/" target="_blank" ><img src="../modules/addons/gofasnfeio/lib/logo.png"></a>',
 			'fields' => $fields,
 		];
 

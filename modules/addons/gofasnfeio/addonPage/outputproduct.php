@@ -48,10 +48,10 @@ use WHMCS\Database\Capsule;
         $created_at = $product->created_at ? date('d/m/Y', strtotime($product->created_at)) : '';
         $update_at = $product->update_at ? date('d/m/Y', strtotime($product->update_at)) : '';
 
-        $html_table .= '<tr><td><a href="' . $gnfewhmcsadminurl . 'configproducts.php?action=edit&id=' . $product->id . '" target="blank">#' . $product->id . '</a></td>
+        $html_table .= '<tr><td><a href="configproducts.php?action=edit&id=' . $product->id . '" target="blank">#' . $product->id . '</a></td>
                 <td style="text-align: center; vertical-align: middle;">' . $created_at . '</td>
                 <td style="text-align: center; vertical-align: middle;">' . $update_at . '</td>
-                <td><a href="' . $gnfewhmcsadminurl . 'configproducts.php?action=edit&id=' . $product->id . '" target="blank">' . $product->name . '</a></td>
+                <td><a href="configproducts.php?action=edit&id=' . $product->id . '" target="blank">' . $product->name . '</a></td>
                 <form action="" method="post">
                 <td><input type="text" name="code" value="' . $product->code_service . '" style="width: 100%;"></td>
                 
@@ -61,8 +61,8 @@ use WHMCS\Database\Capsule;
     }
 
     echo '
-            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=nfeio" class="btn btn-primary" id="gnfe_cancel" title="NFE.io">NFE.io</a>
-            <a href="' . $gnfewhmcsadminurl . 'addonmodules.php?module=gofasnfeio&action=nfeio_legacy" class="btn btn-primary" title="Sistema legado">Sistema legado</a>
+            <a href="addonmodules.php?module=gofasnfeio&action=nfeio" class="btn btn-primary" id="gnfe_cancel" title="NFE.io">NFE.io</a>
+            <a href="addonmodules.php?module=gofasnfeio&action=nfeio_legacy" class="btn btn-primary" title="Sistema legado">Sistema legado</a>
 		
             <div class="tab-content admin-tabs">
 					<table id="sortabletbl0" class="datatable" width="100%" border="0" cellspacing="1" cellpadding="3">
