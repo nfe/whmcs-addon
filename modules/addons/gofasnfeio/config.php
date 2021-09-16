@@ -76,7 +76,7 @@ if (!function_exists('gofasnfeio_config')) {
                         <i class="fas fa-exclamation-triangle"></i>
                         Entretanto, só é permitida a atualização do módulo para frente e de uma em uma versão. Ex.: 1.3.0 para 1.4.0, 1.4.3 para 1.5.0
                     </p>
-                EOT;
+EOT;
                 $module_version = $previous_version;
             }
         }
