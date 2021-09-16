@@ -916,7 +916,7 @@ if (!function_exists('gnfe_show_issue_invoice_conds')) {
         $conditions = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'issue_note_conditions')->get(['value'])[0]->value;
         $conditions = explode(',', $conditions);
 
-        $previousClientCond = Capsule::table('mod_nfeio_custom_configs')->where('client_id', '=', $clientId)->get(['value'])[0]->value;
+        $previousClientCond = Capsule::table('mod_nfeio_custom_configs')->where('client_id', '=', $clientId)->first()->value;
 
         $select = '<select name="issue_note_cond" class="form-control select-inline">';
 
@@ -949,7 +949,7 @@ if (!function_exists('gnfe_save_client_issue_invoice_cond')) {
      * @var $invoiceCond string
      */
     function gnfe_save_client_issue_invoice_cond($clientId, $newCond) {
-        
+
         // pega o primeiro registro disponível em mod_nfeio_custom_configs para o ID do cliente
         $clientCustomConfig = Capsule::table('mod_nfeio_custom_configs')->where('client_id', $clientId)->first();
 
