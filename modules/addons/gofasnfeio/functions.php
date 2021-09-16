@@ -973,7 +973,7 @@ if (!function_exists('gnfe_save_client_issue_invoice_cond')) {
  */
 if (!function_exists('gnfe_insert_issue_nfe_cond_in_database')) {
     function gnfe_insert_issue_nfe_cond_in_database() {
-        $conditions = 'Seguir configuração do módulo NFE.io,Quando a fatura é gerada,Quando a fatura é paga,Manualmente';
+        $conditions = 'Seguir configuração do módulo NFE.io,Quando a fatura é gerada,Quando a fatura é paga';
 
         $previousConditions = Capsule::table('tbladdonmodules')
                             ->where('module', '=', 'gofasnfeio')
