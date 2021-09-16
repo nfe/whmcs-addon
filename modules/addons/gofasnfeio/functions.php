@@ -916,7 +916,7 @@ if (!function_exists('gnfe_show_issue_invoice_conds')) {
         $conditions = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'issue_note_conditions')->get(['value'])[0]->value;
         $conditions = explode(',', $conditions);
 
-        $previousClientCond = Capsule::table('mod_nfeio_custom_configs')->where('client_id', '=', $clientId)->get(['value'])[0]->value;
+        $previousClientCond = Capsule::table('mod_nfeio_custom_configs')->where('client_id', '=', $clientId)->first()->value;
 
         $select = '<select name="issue_note_cond" class="form-control select-inline">';
 
@@ -949,22 +949,28 @@ if (!function_exists('gnfe_save_client_issue_invoice_cond')) {
      * @var $invoiceCond string
      */
     function gnfe_save_client_issue_invoice_cond($clientId, $newCond) {
-        $previousClientCond = Capsule::table('mod_nfeio_custom_configs')->where('client_id', '=', $clientId)->get(['value'])[0]->value;
 
-        if ($newCond !== $previousClientCond) {
-            if ($previousClientCond == null) {
-                Capsule::table('mod_nfeio_custom_configs')->insert([
-                    'key' => 'issue_nfe_cond',
-                    'client_id' => $clientId,
-                    'value' => $newCond
-                ]);
-            } else {
-                Capsule::table('mod_nfeio_custom_configs')
-                    ->where('client_id', '=', $clientId)
-                    ->where('key', '=', 'issue_nfe_cond')
-                    ->update(['value' => $newCond]);
-            }
+        // pega o primeiro registro disponível em mod_nfeio_custom_configs para o ID do cliente
+        $clientCustomConfig = Capsule::table('mod_nfeio_custom_configs')->where('client_id', $clientId)->first();
+
+        // caso cliente já possua uma configuração personalizada, atualiza baseado no ID do registro já encontrado
+        // na tabela mod_nfeio_custom_configs
+        if ($clientCustomConfig) {
+
+            Capsule::table('mod_nfeio_custom_configs')
+                ->where('id', $clientCustomConfig->id)
+                ->update(['value' => $newCond]);
+
+        } else {
+            // senão insere um novo
+            Capsule::table('mod_nfeio_custom_configs')->insert([
+                'key' => 'issue_nfe_cond',
+                'client_id' => $clientId,
+                'value' => $newCond
+            ]);
+
         }
+
     }
 }
 
