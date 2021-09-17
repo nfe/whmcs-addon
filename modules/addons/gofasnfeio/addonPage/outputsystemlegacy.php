@@ -4,13 +4,10 @@ if (!defined('WHMCS')) {
 }
 use WHMCS\Database\Capsule;
 
- foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsadminurl')->get(['value']) as $gnfewhmcsadminurl_) {
-     $gnfewhmcsadminurl = $gnfewhmcsadminurl_->value;
- }
  ?>
 <div style="margin-bottom: 1%;">
-    <a href="<?php echo $gnfewhmcsadminurl; ?>addonmodules.php?module=gofasnfeio&action=code_product" class="btn btn-primary" id="gnfe_cancel" title="Código de Serviços">Código de Serviços</a>
-    <a href="<?php echo $gnfewhmcsadminurl; ?>addonmodules.php?module=gofasnfeio&action=nfeio" class="btn btn-primary" id="gnfe_cancel" title="NFE.io">NFE.io</a>
+    <a href="addonmodules.php?module=gofasnfeio&action=code_product" class="btn btn-primary" id="gnfe_cancel" title="Código de Serviços">Código de Serviços</a>
+    <a href="addonmodules.php?module=gofasnfeio&action=nfeio" class="btn btn-primary" id="gnfe_cancel" title="NFE.io">NFE.io</a>
 </div>
 <ul class="nav nav-tabs admin-tabs" role="tablist">
 	<li class="<?php if (!$_GET['aba']) {
