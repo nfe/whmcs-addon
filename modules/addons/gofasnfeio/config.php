@@ -213,7 +213,7 @@ EOT;
         //create tables
         create_table_product_code();
 
-        if (version_compare($previous_version,'1.2.7','<')) {
+        if (version_compare($previous_version,'1.2.7', '>')) {
             set_code_service_camp_gofasnfeio();
             set_custom_field_ini_date();
         }
