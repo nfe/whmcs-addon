@@ -103,7 +103,7 @@ EOT;
             // Verifica se a configuração rps_number existe no banco de dados.
             if (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting','=','rps_number')->count() == 0) {
                 try {
-                    $nfe_rps = gnfe_get_nfes()['rpsNumber'];
+                    $nfe_rps = gnfe_get_nfes()['rpsNumber'] ? gnfe_get_nfes()['rpsNumber'] : 'RPS administrado pela NFe.';
                     Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio', 'setting' => 'rps_number', 'value' => $nfe_rps]);
                 } catch (Exception $e) {
                     logModuleCall('gofas_nfeio', 'gofasnfeio_config', '', $e->getMessage(), '', '');
@@ -213,7 +213,7 @@ EOT;
         //create tables
         create_table_product_code();
 
-        if (version_compare($previous_version,'1.2.7','<')) {
+        if (version_compare($previous_version,'1.2.7', '>')) {
             set_code_service_camp_gofasnfeio();
             set_custom_field_ini_date();
         }
