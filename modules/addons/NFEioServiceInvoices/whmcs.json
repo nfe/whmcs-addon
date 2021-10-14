@@ -1,0 +1,38 @@
+{
+  "schema": "1.0",
+  "type": "whmcs-addons",
+  "name": "NFEioServiceInvoices",
+  "license": "MIT",
+  "category": "utilities",
+  "description": {
+    "name": "NFE.io NFSe",
+    "tagline": "Automatize a emissão de notas fiscais no WHMCS com a NFE.io",
+    "long": "A NFE.io é um sistema de emissão de notas fiscais que automatiza a comunicação com as prefeituras. Com a NFE.io você se livra de diversas tarefas chatas, melhorando o desempenho do seu negócio. E melhor, você economiza tempo e dinheiro.",
+    "features": [
+      "Automatizar emissão de Nota Fiscal de Serviço eletrônica no WHMCS",
+      "Gerar NFSe quando um cliente pagar uma fatura",
+      "Definir códigos de serviços para cada produto",
+      "Configurar cancelamento de NFSe",
+      "Visualizar as notas emitidas",
+      "Fácil configuração",
+      "Rápida integração com a NFE.io",
+      "Módulo Oficial NFE.io"
+    ]
+  },
+  "logo": {
+    "filename": "logo.png"
+  },
+  "support": {
+    "homepage": "https://nfe.io",
+    "learn_more": "https://nfe.io",
+    "email": "suporte@nfe.io",
+    "support_url": "https://nfe.io/",
+    "docs_url": "https://nfe.io"
+  },
+  "authors": [
+    {
+      "name": "NFe.io",
+      "homepage": "https://nfe.io/"
+    }
+  ]
+}
