@@ -1,6 +1,6 @@
 <?php
 
-namespace NFEioServiceInvoices\Models\serviceInvoices;
+namespace NFEioServiceInvoices\Models\ServiceInvoices;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 

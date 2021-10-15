@@ -7,6 +7,9 @@ if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
 require_once(dirname(dirname(__DIR__)) . DS . 'Loader.php');
 
 use NFEioServiceInvoices\CustomFields;
+use NFEioServiceInvoices\Helpers\Versions;
+use NFEioServiceInvoices\Migrations\Migrations;
+use NFEioServiceInvoices\Models\ModuleConfiguration\Repository;
 use Smarty;
 use WHMCS\Database\Capsule;
 use Plasticbrain\FlashMessages\FlashMessages;
@@ -65,6 +68,7 @@ class Controller {
     {
         try {
 
+
             //\NFEioServiceInvoices\Addon::I()->isAdmin(true);
             //d(\NFEioServiceInvoices\Addon::I());
             //d(\NFEioServiceInvoices\Addon::I()->genJSONUrl('test'));
@@ -86,7 +90,6 @@ class Controller {
             //d($moduleConfigurationRepo->getMandatoryFieldsKeys());
             //d($moduleConfigurationRepo->hasMandatoryFields($vars));
             //d($moduleConfigurationRepo->missingMandatoryFields($vars));
-
 
 
             if ($msg->hasMessages()) {

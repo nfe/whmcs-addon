@@ -246,6 +246,48 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         ]
     );
 
+    /**
+     * Campos que podem ser migrados de versões anteriores a 2.0
+     * @var array campos que podem ser migrados
+     */
+    public $migrationFields = array(
+        'api_key',
+        'company_id',
+        'service_code',
+        'issue_note_default_cond',
+        'insc_municipal',
+        'cpf_camp',
+        'cnpj_camp',
+        'rps_number',
+        'gnfe_email_nfe_config',
+        'initial_date',
+        'last_cron',
+        'issue_note_after',
+        'cancel_invoice_cancel_nfe',
+        'debug',
+        'tax',
+        'InvoiceDetails',
+        'send_invoice_url',
+        'descCustom',
+        'NFEioEnvironment',
+    );
+
+    /**
+     * Retorna coleção dos campos que podem ser migrados como chaves.
+     *
+     * @return array campos possíveis de migração
+     * @example 'nome_campo' => true
+     */
+    public function getMigrationFields()
+    {
+        $fields = [];
+
+        foreach ($this->migrationFields as $key) {
+            $fields[$key] = true;
+        }
+        return $fields;
+    }
+
     function getModelClass()
     {
         return __NAMESPACE__ . '\ModuleConfiguration';

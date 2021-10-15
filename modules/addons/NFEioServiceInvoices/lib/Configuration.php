@@ -2,7 +2,7 @@
 
 namespace NFEioServiceInvoices;
 
-use WHMCSExpert\Addon\Storage;
+
 use Plasticbrain\FlashMessages\FlashMessages;
 
 final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfiguration
@@ -221,21 +221,31 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
 
     }
 
+    /**
+     * Rotinas executadas durante a ativação do módulo
+     */
     public function activate()
     {
-        $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\serviceInvoices\Repository();
+        // Rotinas de ativação da model serviceInvoices (tabela serviceinvoices)
+        $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
         $serviceInvoicesRepo->createServiceInvoicesTable();
 
+        // rotinas de ativação da model ProductCode (tabela productcode)
         $productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
         $productCodeRepo->createProductCodeTable();
 
+        // rotinas de ativação da model ClientConfiguration (tabela custom_configs)
         $clientConfigurationRepo = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
         $clientConfigurationRepo->createClientCustomConfigTable();
+
+        // Migração das configurações do módulo para versão inferior a 2
+        \NFEioServiceInvoices\Migrations\Migrations::migrateConfigurations();
 
     }
 
     public function deactivate()
     {
+        // inicia as
         $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\serviceInvoices\Repository();
         $serviceInvoicesRepo->dropServiceInvoicesTable();
 

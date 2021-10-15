@@ -31,6 +31,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
     }
 
+    /**
+     * Cria a tabela mod_nfeio_si_custom_configs responsável por armazenar
+     * os registros personalizados de emissão de nota para um cliente
+     */
     public function createClientCustomConfigTable()
     {
         if (!Capsule::schema()->hasTable($this->tableName))
