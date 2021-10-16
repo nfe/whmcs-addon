@@ -91,7 +91,6 @@ class Migrations
     {
 
         // verifica se existem registros de versão anterior do módulo no banco de dados
-        // se houver, considera que pode existir registros em
         if (Versions::hasOldNfeioModule()) {
 
             try {
@@ -130,5 +129,47 @@ class Migrations
         // se não tiver registros returna false pra migração
         return false;
 
+    }
+
+    /**
+     * Migra os registros de notas fiscais da tabela gofasnfeio para a nova tabela mod_nfeio_si_serviceinvoices
+     */
+    public static function migrateServiceInvoices()
+    {
+        // verifica se existem registros de versão anterior do módulo no banco de dados
+        if (Versions::hasOldNfeioModule()) {
+            try {
+
+                // se a tabela gofasnfeio não existir não há o ser que migrar
+                if (!Capsule::schema()->hasTable('gofasnfeio')) { return false; }
+                // se não houver registros na tabela gofasnfeio não há o que ser migrado
+                if (!Capsule::table('gofasnfeio')->count()) { return false; }
+                // se a nova tabela já existir e possuir registros, não migra nada
+                if (
+                    Capsule::schema()->hasTable('mod_nfeio_si_serviceinvoices') &&
+                    Capsule::table('mod_nfeio_si_serviceinvoices')->count()
+                ) {
+                    return false;
+                }
+
+                // não existir a nova tabela destino mod_nfeio_si_serviceinvoices
+                if (!Capsule::schema()->hasTable('mod_nfeio_si_serviceinvoices')) {
+                    // copia a antiga tabela gofasnfeio e renomeia para o novo nome
+                    $db = Capsule::connection();
+                    $db->statement('CREATE TABLE mod_nfeio_si_serviceinvoices LIKE gofasnfeio');
+                    $db->statement(  'INSERT mod_nfeio_si_serviceinvoices SELECT * FROM gofasnfeio');
+
+                    return true;
+                }
+
+                return false;
+
+
+            } catch (\Exception $exception) {
+                echo $exception->getMessage();
+            }
+        }
+
+        return false;
     }
 }

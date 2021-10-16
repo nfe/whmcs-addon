@@ -228,6 +228,9 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
     {
         // Rotinas de ativação da model serviceInvoices (tabela serviceinvoices)
         $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+        // verifica e realiza possiveis migrações durante o processo de ativação para a model ServiceInvoices
+        \NFEioServiceInvoices\Migrations\Migrations::migrateServiceInvoices();
+        // executa as rotinas de sql para a model ServiceInvoices
         $serviceInvoicesRepo->createServiceInvoicesTable();
 
         // rotinas de ativação da model ProductCode (tabela productcode)
