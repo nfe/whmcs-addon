@@ -172,4 +172,40 @@ class Migrations
 
         return false;
     }
+
+    public static function migrateProductCodes()
+    {
+        // verifica se existem registros de versão anterior do módulo no banco de dados
+        if (Versions::hasOldNfeioModule()) {
+            try {
+                // se a tabela tblproductcode não existir não há o ser que migrar
+                if (!Capsule::schema()->hasTable('tblproductcode')) { return false; }
+                // se não houver registros na tabela tblproductcode não há o que ser migrado
+                if (!Capsule::table('tblproductcode')->count()) { return false; }
+                // se a nova tabela já existir e possuir registros, não migra nada
+                if (
+                    Capsule::schema()->hasTable('mod_nfeio_si_productcode') &&
+                    Capsule::table('mod_nfeio_si_productcode')->count()
+                ) {
+                    return false;
+                }
+
+                // copia a antiga tabela tblproductcode e renomeia para o novo nome
+                if (!Capsule::schema()->hasTable('mod_nfeio_si_productcode')) {
+                    // copia a antiga tabela tblproductcode e renomeia para o novo nome
+                    $db = Capsule::connection();
+                    $db->statement('CREATE TABLE mod_nfeio_si_productcode LIKE tblproductcode');
+                    $db->statement(  'INSERT mod_nfeio_si_productcode SELECT * FROM tblproductcode');
+
+                    return true;
+                }
+
+
+            } catch (\Exception $exception) {
+                echo $exception->getMessage();
+            }
+        }
+
+        return false;
+    }
 }

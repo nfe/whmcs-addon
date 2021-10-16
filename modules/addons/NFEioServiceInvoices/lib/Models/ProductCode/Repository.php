@@ -49,8 +49,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 $table->increments('id');
                 $table->integer('product_id');
                 $table->integer('code_service');
-                $table->date('create_at');
-                $table->date('update_at');
+                $table->timestamp('create_at');
+                $table->timestamp('update_at');
                 $table->integer('ID_user');
             });
         }

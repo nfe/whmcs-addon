@@ -235,6 +235,9 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
 
         // rotinas de ativação da model ProductCode (tabela productcode)
         $productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
+        // verifica e realiza possiveis migrações durante o processo de ativação para a model ProductCode
+        \NFEioServiceInvoices\Migrations\Migrations::migrateProductCodes();
+        // executa as rotinas de sql para a model ProductCode
         $productCodeRepo->createProductCodeTable();
 
         // rotinas de ativação da model ClientConfiguration (tabela custom_configs)

@@ -7,6 +7,7 @@
 * Adicionada rotina que migra os dados da versão anterior a 2.0 na ativação do módulo. Desta forma não é preciso se preocupar na reconfiguração do módulo.
 * Adicionada rotina que migra as configurações persoanlizada do cliente para emissão de nota fiscal.
 * Adicionada rotina que migra as notas fiscais da tabela da versão anterior para a nova tabela no banco de dados.
+* Adicionada rotina de migração dos códigos de serviço personalizados por produto para a nova tabela.
 
 #### Estrutura de diretórios
 #### Nomenclatura do módulo
