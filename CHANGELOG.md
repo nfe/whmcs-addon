@@ -2,6 +2,11 @@
 
 ### Rebrand do Módulo
 
+#### Migração
+
+* Adicionada rotina que migra os dados da versão anterior a 2.0 na ativação do módulo. Desta forma não é preciso se preocupar na reconfiguração do módulo.
+* Adicionada rotina que migra as configurações persoanlizada do cliente para emissão de nota fiscal.
+
 #### Estrutura de diretórios
 #### Nomenclatura do módulo
 

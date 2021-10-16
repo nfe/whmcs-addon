@@ -236,6 +236,9 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
 
         // rotinas de ativação da model ClientConfiguration (tabela custom_configs)
         $clientConfigurationRepo = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
+        // verifica e realiza possiveis migrações durante o processo de ativação para a model ClientConfiguration
+        \NFEioServiceInvoices\Migrations\Migrations::migrateClientsConfigurations();
+        // executa as rotinas de sql para a model ClientConfiguration
         $clientConfigurationRepo->createClientCustomConfigTable();
 
         // Migração das configurações do módulo para versão inferior a 2
