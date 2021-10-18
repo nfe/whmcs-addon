@@ -38,3 +38,8 @@ add_hook('InvoiceCancelled', 1, function ($vars) {
     $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
     $legacyHooks->invoicecancelled($vars);
 });
+
+add_hook('DailyCronJob', 1, function ($vars) {
+    $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
+    $legacyHooks->dailycronjob();
+});

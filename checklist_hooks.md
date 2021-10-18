@@ -4,7 +4,7 @@ Checklist dos hooks a serem migrados
 * [x] InvoicePaid
 * [ ] AdminInvoicesControlsOutput
 * [x] InvoiceCancelled
-* [ ] DailyCronJob
+* [x] DailyCronJob
 * [ ] AfterCronJob
 * [ ] ProductDelete
 * [ ] AdminClientProfileTabFields
