@@ -33,3 +33,8 @@ add_hook('InvoicePaid', 1, function ($vars) {
     $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
     $legacyHooks->invoicepaid($vars);
 });
+
+add_hook('InvoiceCancelled', 1, function ($vars) {
+    $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
+    $legacyHooks->invoicecancelled($vars);
+});
