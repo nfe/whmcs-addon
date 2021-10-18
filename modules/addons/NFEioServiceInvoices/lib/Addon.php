@@ -166,6 +166,25 @@ class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
         }
     }
 
+    /**
+     * Retorna o caminho absoluto do módulo
+     * @return string https://dominio.com/diretorio/modules/addons/modulo/
+     */
+    public static function getAddonPath()
+    {
+        $path = '/modules/addons/'.self::I()->configuration()->systemName.'/';
+
+        return main\Helper\Helper::getPathUrl($path);
+    }
+
+    public static function getCallBackPath()
+    {
+        $callBackFile = '/callback.php';
+        $path = '/modules/addons/'.self::I()->configuration()->systemName.$callBackFile;
+
+        return main\Helper\Helper::getPathUrl($path);
+    }
+
     public static function config()
     {
         $config = new \NFEioServiceInvoices\Configuration();
