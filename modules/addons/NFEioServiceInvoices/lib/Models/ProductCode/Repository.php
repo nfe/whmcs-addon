@@ -11,8 +11,8 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
 
-    public static $tableName = 'mod_nfeio_si_productcode';
-    public static $fieldDeclaration = array(
+    public $tableName = 'mod_nfeio_si_productcode';
+    public $fieldDeclaration = array(
         'id',
         'product_id',
         'code_service',
@@ -28,12 +28,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     public function fieldDeclaration()
     {
-        return self::$fieldDeclaration;
+        return $this->fieldDeclaration;
     }
 
     public function tableName()
     {
-        return self::$tableName;
+        return $this->tableName;
     }
 
     /**
@@ -44,9 +44,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     public function dataTable()
     {
         return Capsule::table('tblproducts')
-            ->leftJoin(self::$tableName, 'tblproducts.id', '=', self::$tableName.'.product_id')
+            ->leftJoin($this->tableName, 'tblproducts.id', '=', $this->tableName.'.product_id')
             ->orderByDesc('tblproducts.id')
-            ->select('tblproducts.id', 'tblproducts.name', self::$tableName.'.code_service')
+            ->select('tblproducts.id', 'tblproducts.name', $this->tableName.'.code_service')
             ->get()
             ->toArray();
     }
@@ -58,7 +58,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }*/
 
         try {
-            return Capsule::table(self::$tableName)->updateOrInsert(
+            return Capsule::table($this->tableName)->updateOrInsert(
                 [ 'product_id' => $data['product_id'] ],
                 [
                     'code_service' => $data['service_code'],
@@ -73,7 +73,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     public function delete($data)
     {
         try {
-            return Capsule::table(self::$tableName)
+            return Capsule::table($this->tableName)
                 ->where('product_id', '=',  $data['product_id'])
                 ->delete();
         } catch (\Exception $exception) {

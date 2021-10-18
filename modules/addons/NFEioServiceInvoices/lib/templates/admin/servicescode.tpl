@@ -29,12 +29,14 @@
                   <form action="{$modulelink}&action={$formAction}" method="post">
                     <td>{$produto->id}</td>
                     <td>{$produto->name}</td>
-                    <td><input class="form-control" type="text" name="service_code" value="{$produto->code_service}"></td>
+                    <td><input class="form-control" type="text" name="service_code" required value="{$produto->code_service}"></td>
                     <td>
                       <input type="hidden" name="product_id" value="{$produto->id}">
                       <input type="hidden" name="product_name" value="{$produto->name}">
                       <button type="submit" class="btn btn-success btn-sm" name="btnSave" value="true">Salvar Código</button>
+                      {if $produto->code_service}
                       <button type="submit" class="btn btn-danger btn-sm" name="btnDelete" value="true">Excluir Código</button>
+                      {/if}
                     </td>
                   </form>
 
