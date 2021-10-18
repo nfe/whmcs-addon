@@ -12,7 +12,7 @@ use WHMCS\Database\Capsule;
 use Plasticbrain\FlashMessages\FlashMessages;
 use WHMCSExpert\Template\Template;
 use \NFEioServiceInvoices\Addon;
-use \NFEioServiceInvoices\Configuration;
+
 
 /**
  * Sample Admin Area Controller
@@ -34,7 +34,7 @@ class Controller {
             $template = new Template(Addon::getModuleTemplatesDir());
             $assetsURL = Addon::I()->getAssetsURL();
             $msg = new FlashMessages;
-            $config = new Configuration();
+            $config = new \NFEioServiceInvoices\Configuration();
             $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
             $vars['dtData'] = $serviceInvoicesRepo->dataTable();
             $vars['assetsURL'] = $assetsURL;
@@ -63,10 +63,6 @@ class Controller {
     {
         try {
 
-
-            //\NFEioServiceInvoices\Addon::I()->isAdmin(true);
-            //d(\NFEioServiceInvoices\Addon::I());
-            //d(\NFEioServiceInvoices\Addon::I()->genJSONUrl('test'));
             $msg = new FlashMessages;
             $template = new Template(Addon::getModuleTemplatesDir());
             $config = new \NFEioServiceInvoices\Configuration();
@@ -80,11 +76,6 @@ class Controller {
             $vars['moduleFields'] = $moduleFields;
             $vars['formAction'] = 'configurationSave';
             $vars['assetsURL'] = $assetsURL;
-
-            //d($moduleConfigurationRepo->getMandatoryFields());
-            //d($moduleConfigurationRepo->getMandatoryFieldsKeys());
-            //d($moduleConfigurationRepo->hasMandatoryFields($vars));
-            //d($moduleConfigurationRepo->missingMandatoryFields($vars));
 
 
             if ($msg->hasMessages()) {
