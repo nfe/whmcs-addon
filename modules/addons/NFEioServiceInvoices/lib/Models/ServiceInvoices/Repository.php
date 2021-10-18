@@ -13,10 +13,37 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
 
     public $tableName = 'mod_nfeio_si_serviceinvoices';
+    public $fieldDeclaration = array(
+        'invoice_id',
+        'user_id',
+        'nfe_id',
+        'status',
+        'services_amount',
+        'environment',
+        'issue_note_conditions',
+        'flow_status',
+        'pdf',
+        'rpsSerialNumber',
+        'rpsNumber',
+        'created_at',
+        'updated_at',
+        'service_code',
+        'tics',
+    );
 
     function getModelClass()
     {
-        return __NAMESPACE__ . '\ServiceInvoices';
+        return __NAMESPACE__ . '\Repository';
+    }
+
+    public function fieldDeclaration()
+    {
+        return $this->fieldDeclaration;
+    }
+
+    public function tableName()
+    {
+        return $this->tableName;
     }
 
     /**
@@ -25,6 +52,21 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     public function get()
     {
         return Capsule::table($this->tableName)->first();
+    }
+
+    /**
+     * Realiza um join entre produtos e códigos personalizados de serviços
+     * e estrutura os dados para a dataTable
+     * @return array
+     */
+    public function dataTable()
+    {
+        return Capsule::table($this->tableName)
+            ->leftJoin('tblclients', "{$this->tableName}.user_id", '=', 'tblclients.id')
+            ->orderByDesc("{$this->tableName}.id")
+            ->select("{$this->tableName}.*", 'tblclients.firstname', 'tblclients.lastname', 'tblclients.companyname')
+            ->get()
+            ->toArray();
     }
 
     /**

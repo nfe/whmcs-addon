@@ -31,12 +31,12 @@ class Controller {
     {
         try {
 
-            Addon::I()->isAdmin(true);
             $template = new Template(Addon::getModuleTemplatesDir());
             $assetsURL = Addon::I()->getAssetsURL();
             $msg = new FlashMessages;
             $config = new Configuration();
-
+            $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+            $vars['dtData'] = $serviceInvoicesRepo->dataTable();
             $vars['assetsURL'] = $assetsURL;
 
             // metodo para verificar se existe algum campo obrigatório não preenchido.
@@ -45,8 +45,6 @@ class Controller {
             if ($msg->hasMessages()) {
                 $msg->display();
             }
-
-            d($vars);
 
             return $template->fetch('index', $vars);
 
@@ -176,6 +174,11 @@ class Controller {
 
     }
 
+    /**
+     * Exibe a página de configuração de código de serviços e seus parametros
+     * @param $vars parametros do WHMCS
+     * @return string|void template
+     */
     public function servicesCode($vars)
     {
         try {
@@ -206,6 +209,10 @@ class Controller {
         }
     }
 
+    /**
+     * Salva os códigos de serviços do post
+     * @param $vars
+     */
     public function servicesCodeSave($vars)
     {
 

@@ -6,6 +6,7 @@
 
 * Nova interface de configuração
 * Nova interface de edição de código de serviço
+* Nova interface de gestão de notas fiscais
 
 #### Migração
 
