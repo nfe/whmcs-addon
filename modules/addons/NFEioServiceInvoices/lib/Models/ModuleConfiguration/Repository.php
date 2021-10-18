@@ -11,6 +11,32 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
 
+    public $tableName = 'tbladdonmodules';
+
+    public $fieldDeclaration = array(
+        'api_key',
+        'company_id',
+        'service_code',
+        'issue_note_conditions',
+        'rps_number',
+        'gnfe_email_nfe_config',
+        'initial_date',
+        'last_cron',
+        'intro',
+        'issue_note_default_cond',
+        'issue_note_after',
+        'cancel_invoice_cancel_nfe',
+        'debug',
+        'insc_municipal',
+        'cpf_camp',
+        'cnpj_camp',
+        'tax',
+        'InvoiceDetails',
+        'send_invoice_url',
+        'descCustom',
+        'footer'
+    );
+
     /**
      * @var string[] coleção com as chaves de configuração do módulo existentes para configuração
      */
@@ -82,14 +108,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'disabled' => true,
             'description' => 'O que é Código de Serviço?',
         ],
-        /*'issue_note_conditions' => [
-            'type' => 'radio',
-            'label' => 'Quando emitir NFE',
-            'name' => 'issue_note_conditions',
-            'id' => 'issueNoteConditions_Field',
-            'required' => true,
-            'disabled' => false,
-        ],*/
         'rps_number' => [
             'type' => 'text',
             'label' => 'RPS (legado)',
@@ -255,6 +273,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'company_id',
         'service_code',
         'issue_note_default_cond',
+        'issue_note_conditions',
         'insc_municipal',
         'cpf_camp',
         'cnpj_camp',
@@ -290,7 +309,31 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     function getModelClass()
     {
-        return __NAMESPACE__ . '\ModuleConfiguration';
+        return __NAMESPACE__ . '\Repository';
+    }
+
+    public function fieldDeclaration()
+    {
+        return $this->fieldDeclaration;
+    }
+
+    public function tableName()
+    {
+        return $this->tableName;
+    }
+
+    /**
+     * Responsável por iniciar alguns valores padrões nas chaves do módulo
+     */
+    public function initDefaultValues()
+    {
+
+
+        $functions = new \NFEioServiceInvoices\Legacy\Functions();
+        // inicia valores para chave issue_note_conditions
+        $functions->gnfe_insert_issue_nfe_cond_in_database();
+
+
     }
 
     /**
