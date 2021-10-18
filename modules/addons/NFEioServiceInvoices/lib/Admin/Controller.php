@@ -7,15 +7,12 @@ if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
 require_once(dirname(dirname(__DIR__)) . DS . 'Loader.php');
 
 use NFEioServiceInvoices\CustomFields;
-use NFEioServiceInvoices\Helpers\Versions;
-use NFEioServiceInvoices\Migrations\Migrations;
-use NFEioServiceInvoices\Models\ModuleConfiguration\Repository;
 use Smarty;
 use WHMCS\Database\Capsule;
 use Plasticbrain\FlashMessages\FlashMessages;
 use WHMCSExpert\Template\Template;
-use NFEioServiceInvoices\Addon;
-use NFEioServiceInvoices\Configuration;
+use \NFEioServiceInvoices\Addon;
+use \NFEioServiceInvoices\Configuration;
 
 /**
  * Sample Admin Area Controller
@@ -178,6 +175,68 @@ class Controller {
         }
 
     }
+
+    public function servicesCode($vars)
+    {
+        try {
+
+
+            $msg = new FlashMessages;
+            $template = new Template(Addon::getModuleTemplatesDir());
+            $config = new \NFEioServiceInvoices\Configuration();
+            $servicesCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
+            // metodo para verificar se existe algum campo obrigatório não preenchido.
+            $config->verifyMandatoryFields($vars);
+            // URL absoluta dos assets
+            $assetsURL = Addon::I()->getAssetsURL();
+
+            $vars['assetsURL'] = $assetsURL;
+            $vars['dtData'] = $servicesCodeRepo->dataTable();
+            // parametro para o atributo action dos formulários da página
+            $vars['formAction'] = 'servicesCodeSave';
+
+            if ($msg->hasMessages()) {
+                $msg->display();
+            }
+
+            return $template->fetch('servicescode', $vars);
+
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+        }
+    }
+
+    public function servicesCodeSave($vars)
+    {
+
+        $msg = new FlashMessages();
+        $post = $_POST;
+
+        if (!isset($post) && !is_array($post)) {
+            $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=servicesCode");
+        }
+
+        $productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
+
+        if ($post['btnSave'] === 'true') {
+            $response = $productCodeRepo->save($post);
+            if ($response) {
+                $msg->success("Código {$post['service_code']} para {$post['product_name']} atualizado.", "{$vars['modulelink']}&action=servicesCode");
+            } else {
+                $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=servicesCode");
+            }
+        }
+
+        if ($post['btnDelete'] === 'true') {
+            $productCodeRepo->delete($post);
+            $msg->warning("Código {$post['service_code']} para {$post['product_name']} removido.", "{$vars['modulelink']}&action=servicesCode");
+
+        }
+
+
+
+    }
+
     /**
      * Support action.
      *

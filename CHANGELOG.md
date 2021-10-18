@@ -2,6 +2,11 @@
 
 ### Rebrand do Módulo
 
+#### Interfaces
+
+* Nova interface de configuração
+* Nova interface de edição de código de serviço
+
 #### Migração
 
 * Adicionada rotina que migra os dados da versão anterior a 2.0 na ativação do módulo. Desta forma não é preciso se preocupar na reconfiguração do módulo.

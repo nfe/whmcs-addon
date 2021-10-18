@@ -11,19 +11,74 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
 
-    public $tableName = 'mod_nfeio_si_productcode';
+    public static $tableName = 'mod_nfeio_si_productcode';
+    public static $fieldDeclaration = array(
+        'id',
+        'product_id',
+        'code_service',
+        'create_at',
+        'update_at',
+        'ID_user',
+    );
 
     function getModelClass()
     {
-        return __NAMESPACE__ . '\ProductCode';
+        return __NAMESPACE__ . '\Repository';
+    }
+
+    public function fieldDeclaration()
+    {
+        return self::$fieldDeclaration;
+    }
+
+    public function tableName()
+    {
+        return self::$tableName;
     }
 
     /**
-     * verifica se table possui algum registro já inserido
+     * Realiza um join entre produtos e códigos personalizados de serviços
+     * e estrutura os dados para a dataTable
+     * @return array
      */
-    public function get()
+    public function dataTable()
     {
-        return Capsule::table($this->tableName)->first();
+        return Capsule::table('tblproducts')
+            ->leftJoin(self::$tableName, 'tblproducts.id', '=', self::$tableName.'.product_id')
+            ->orderByDesc('tblproducts.id')
+            ->select('tblproducts.id', 'tblproducts.name', self::$tableName.'.code_service')
+            ->get()
+            ->toArray();
+    }
+
+    public function save($data)
+    {
+        /*if (!in_array( 'product_id', $data) && !in_array('service_code', $data)) {
+            return false;
+        }*/
+
+        try {
+            return Capsule::table(self::$tableName)->updateOrInsert(
+                [ 'product_id' => $data['product_id'] ],
+                [
+                    'code_service' => $data['service_code'],
+                    'ID_user' => 1,
+                ]
+            );
+        } catch (\Exception $exception) {
+            echo $exception->getMessage();
+        }
+    }
+
+    public function delete($data)
+    {
+        try {
+            return Capsule::table(self::$tableName)
+                ->where('product_id', '=',  $data['product_id'])
+                ->delete();
+        } catch (\Exception $exception) {
+            echo $exception->getMessage();
+        }
     }
 
     /**
