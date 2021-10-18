@@ -3,21 +3,25 @@
 namespace NFEioServiceInvoices\Legacy;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
+use NFEioServiceInvoices\Addon;
 
 class Functions
 {
     function gnfe_config($set = false) {
+
+        $_storageKey = Addon::I()->configuration()->storageKey;
+
         if ($set === false) {
             $setting = [];
 
-            foreach (Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->get(['setting', 'value']) as $settings) {
+            foreach (Capsule::table('tbladdonmodules')->where('module', '=', $_storageKey)->get(['setting', 'value']) as $settings) {
                 $setting[$settings->setting] = $settings->value;
             }
 
             return $setting;
         } else {
             return Capsule::table('tbladdonmodules')
-                ->where('module', '=', 'gofasnfeio')
+                ->where('module', '=', Addon::I()->configuration()->storageKey)
                 ->where('setting', '=', $set)
                 ->get(['value'])[0]->value;
         }
@@ -25,9 +29,9 @@ class Functions
 
     function gnfe_customer($user_id, $client) {
         //Determine custom fields id
-        $CPF_id = gnfe_config('cpf_camp');
-        $CNPJ_id = gnfe_config('cnpj_camp');
-        $insc_municipal_id = gnfe_config('insc_municipal');
+        $CPF_id = $this->gnfe_config('cpf_camp');
+        $CNPJ_id = $this->gnfe_config('cnpj_camp');
+        $insc_municipal_id = $this->gnfe_config('insc_municipal');
 
         $insc_customfield_value = 'NF';
         // insc_municipal
@@ -174,7 +178,9 @@ class Functions
 
     function gnfe_queue_nfe($invoice_id, $create_all = false) {
         $invoice = localAPI('GetInvoice', ['invoiceid' => $invoice_id], false);
-        $itens = get_product_invoice($invoice_id);
+        $itens = $this->get_product_invoice($invoice_id);
+        $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+        $_tableName = $serviceInvoicesRepo->tableName();
 
         foreach ($itens as $item) {
             $data = [
@@ -191,21 +197,21 @@ class Functions
                 'rpsSerialNumber' => 'waiting',
                 'service_code' => $item['code_service'],
             ];
-            $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
+            $nfe_for_invoice = $this->gnfe_get_local_nfe($invoice_id, ['status']);
 
             if (!$nfe_for_invoice['status'] || $create_all) {
                 $create_all = true;
                 try {
-                    $service_code_row = Capsule::table('gofasnfeio')->where('service_code', '=', $item['code_service'])->where('invoice_id', '=', $invoice_id)->where('status','=','waiting')->get(['id', 'services_amount']);
+                    $service_code_row = Capsule::table($_tableName)->where('service_code', '=', $item['code_service'])->where('invoice_id', '=', $invoice_id)->where('status','=','waiting')->get(['id', 'services_amount']);
 
                     if (count($service_code_row) == 1) {
                         $mountDB = floatval($service_code_row[0]->services_amount);
                         $mount_item = floatval($item['amount']);
                         $mount = $mountDB + $mount_item;
 
-                        $update_nfe = Capsule::table('gofasnfeio')->where('id', '=', $service_code_row[0]->id)->update(['services_amount' => $mount]);
+                        $update_nfe = Capsule::table($_tableName)->where('id', '=', $service_code_row[0]->id)->update(['services_amount' => $mount]);
                     } else {
-                        $save_nfe = Capsule::table('gofasnfeio')->insert($data);
+                        $save_nfe = Capsule::table($_tableName)->insert($data);
                     }
                 } catch (\Exception $e) {
                     return $e->getMessage();
@@ -217,7 +223,9 @@ class Functions
 
     function gnfe_queue_nfe_edit($invoice_id, $gofasnfeio_id) {
         $invoice = localAPI('GetInvoice', ['invoiceid' => $invoice_id], false);
-        $itens = get_product_invoice($invoice_id);
+        $itens = $this->get_product_invoice($invoice_id);
+        $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+        $_tableName = $serviceInvoicesRepo->tableName();
 
         foreach ($itens as $item) {
             $data = [
@@ -235,11 +243,11 @@ class Functions
                 'service_code' => $item['code_service'],
             ];
 
-            $nfe_for_invoice = gnfe_get_local_nfe($invoice_id, ['status']);
+            $nfe_for_invoice = $this->gnfe_get_local_nfe($invoice_id, ['status']);
 
             if ((string) $nfe_for_invoice['status'] === (string) 'Cancelled' or (string) $nfe_for_invoice['status'] === (string) 'Error') {
                 try {
-                    $update_nfe = Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->where('id', '=', $gofasnfeio_id)->update($data);
+                    $update_nfe = Capsule::table($_tableName)->where('invoice_id', '=', $invoice_id)->where('id', '=', $gofasnfeio_id)->update($data);
                 } catch (\Exception $e) {
                     return $e->getMessage();
                 }
@@ -250,19 +258,19 @@ class Functions
     }
 
     function gnfe_issue_nfe($postfields) {
-        $webhook_url = gnfe_whmcs_url() . 'modules/addons/gofasnfeio/callback.php';
+        $webhook_url = Addon::getCallBackPath();
         foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'gnfe_webhook_id')->get(['value']) as $gnfe_webhook_id_) {
             $gnfe_webhook_id = $gnfe_webhook_id_->value;
         }
         if ($gnfe_webhook_id) {
-            $check_webhook = gnfe_check_webhook($gnfe_webhook_id);
+            $check_webhook = $this->gnfe_check_webhook($gnfe_webhook_id);
             $error = '';
             if ($check_webhook['message']) {
                 logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - check_webhook', $gnfe_webhook_id, $check_webhook['message'], 'ERROR', '');
             }
         }
         if ($gnfe_webhook_id and (string) $check_webhook['hooks']['url'] !== (string) $webhook_url) {
-            $create_webhook = gnfe_create_webhook($webhook_url);
+            $create_webhook = $this->gnfe_create_webhook($webhook_url);
             if ($create_webhook['message']) {
                 logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - gnfe_create_webhook', $webhook_url, $create_webhook['message'], 'ERROR', '');
             }
@@ -273,13 +281,13 @@ class Functions
                     logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - Capsule::table(tblconfiguration) update', '', $e->getMessage(), 'ERROR', '');
                 }
             }
-            $delete_webhook = gnfe_delete_webhook($gnfe_webhook_id);
+            $delete_webhook = $this->gnfe_delete_webhook($gnfe_webhook_id);
             if ($delete_webhook['message']) {
                 logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - gnfe_delete_webhook', $gnfe_webhook_id, $delete_webhook, 'ERROR', '');
             }
         }
         if (!$gnfe_webhook_id) {
-            $create_webhook = gnfe_create_webhook($webhook_url);
+            $create_webhook = $this->gnfe_create_webhook($webhook_url);
             if ($create_webhook['message']) {
                 logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - gnfe_create_webhook', $webhook_url, $create_webhook, 'ERROR', '');
             }
@@ -293,8 +301,8 @@ class Functions
         }
 
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices');
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id') . '/serviceinvoices');
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_POST, 1);
         curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($postfields));
@@ -314,8 +322,8 @@ class Functions
 
     function gnfe_get_nfe($nf) {
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices/' . $nf);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id') . '/serviceinvoices/' . $nf);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
@@ -332,13 +340,13 @@ class Functions
     function gnfe_get_company_info($set = false) {
         $curl = curl_init();
         curl_setopt_array($curl, [
-            CURLOPT_URL => 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'),
+            CURLOPT_URL => 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id'),
             CURLOPT_TIMEOUT => 30,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => [
                 'Content-Type: application/json',
                 'Accept: application/json',
-                'Authorization: ' . gnfe_config('api_key')
+                'Authorization: ' . $this->gnfe_config('api_key')
             ]
         ]);
 
@@ -373,14 +381,14 @@ class Functions
 
         $curl = curl_init();
         curl_setopt_array($curl, [
-            CURLOPT_URL => 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'),
+            CURLOPT_URL => 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id'),
             CURLOPT_TIMEOUT => 30,
             CURLOPT_CUSTOMREQUEST => 'PUT',
             CURLOPT_POSTFIELDS => $requestBody,
             CURLOPT_HTTPHEADER => [
                 'Content-Type: application/json',
                 'Accept: application/json',
-                'Authorization: ' . gnfe_config('api_key')
+                'Authorization: ' . $this->gnfe_config('api_key')
             ]
         ]);
         $response = json_decode(curl_exec($curl), true);
@@ -394,8 +402,8 @@ class Functions
                 ' Consulte: https://nfe.io/docs/desenvolvedores/rest-api/nota-fiscal-de-servico-v1/#/Companies/Companies_Put';
             logModuleCall('gofas_nfeio', 'gnfe_put_rps', $requestBody, $response, '', '');
         } else {
-            $nfe_rps = intval(gnfe_get_company_info('rpsNumber'));
-            $whmcs_rps = intval(gnfe_config('rps_number'));
+            $nfe_rps = intval($this->gnfe_get_company_info('rpsNumber'));
+            $whmcs_rps = intval($this->gnfe_config('rps_number'));
 
             // Verifica se o RPS na NFe é maior ou igual ao RPS no WHMCS para garantir que a ação foi efetivada.
             if ($nfe_rps >= $whmcs_rps) {
@@ -411,8 +419,8 @@ class Functions
 
     function gnfe_test_connection() {
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices');
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id') . '/serviceinvoices');
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
@@ -431,8 +439,8 @@ class Functions
      */
     function gnfe_get_nfes() {
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices?pageCount=1&pageIndex=1');
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id') . '/serviceinvoices?pageCount=1&pageIndex=1');
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
@@ -442,8 +450,10 @@ class Functions
 
     function gnfe_get_invoice_nfes($invoice_id) {
         $nfes = [];
+        $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+        $_tableName = $serviceInvoicesRepo->tableName();
         // foreach( Capsule::table('tbladdonmodules') -> where( 'module', '=', 'gofasnfeio' ) -> get( array( 'setting', 'value') ) as $settings ) {
-        foreach (Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->get(['invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'flow_status', 'pdf', 'created_at', 'updated_at', 'rpsSerialNumber', 'rpsNumber']) as $nfe) {
+        foreach (Capsule::table($_tableName)->where('invoice_id', '=', $invoice_id)->get(['invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'flow_status', 'pdf', 'created_at', 'updated_at', 'rpsSerialNumber', 'rpsNumber']) as $nfe) {
             $nfes = $nfe;
         }
 
@@ -462,8 +472,8 @@ class Functions
 
     function gnfe_delete_nfe($nf) {
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices/' . $nf);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id') . '/serviceinvoices/' . $nf);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
@@ -474,10 +484,10 @@ class Functions
     }
 
     function gnfe_email_nfe($nf) {
-        if ('on' == gnfe_config('gnfe_email_nfe_config')) {
+        if ('on' == $this->gnfe_config('gnfe_email_nfe_config')) {
             $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices/' . $nf . '/sendemail');
-            curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+            curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id') . '/serviceinvoices/' . $nf . '/sendemail');
+            curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
             curl_setopt($curl, CURLOPT_TIMEOUT, 30);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
@@ -490,8 +500,8 @@ class Functions
 
     function gnfe_pdf_nfe($nf) {
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices/' . $nf . '/pdf');
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-type: application/pdf', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id') . '/serviceinvoices/' . $nf . '/pdf');
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-type: application/pdf', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -507,8 +517,8 @@ class Functions
 
     function gnfe_xml_nfe($nf) {
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices/' . $nf . '/xml');
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id') . '/serviceinvoices/' . $nf . '/xml');
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
@@ -525,11 +535,14 @@ class Functions
         return $gnfewhmcsurl;
     }
 
-    function gnfe_xml_nfe($nf) {
+    /**
+     * função duplicada
+     */
+    /*function gnfe_xml_nfe($nf) {
         $curl = curl_init();
 
         curl_setopt_array($curl, [
-            CURLOPT_URL => 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id') . '/serviceinvoices/' . $nf . '/xml',
+            CURLOPT_URL => 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id') . '/serviceinvoices/' . $nf . '/xml',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -540,7 +553,7 @@ class Functions
             CURLOPT_HTTPHEADER => [
                 'Content-Type: text/json',
                 'Accept: application/json',
-                'Authorization:' . gnfe_config('api_key'),
+                'Authorization:' . $this->gnfe_config('api_key'),
             ],
         ]);
 
@@ -549,7 +562,7 @@ class Functions
         curl_close($curl);
 
         return $response;
-    }
+    }*/
 
     function gnfe_whmcs_admin_url() {
         foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsadminurl')->get(['value']) as $gnfewhmcsadminurl_) {
@@ -563,6 +576,10 @@ class Functions
         if ($nfe->servicesAmount == -1) {
             return;
         }
+
+        $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+        $_tableName = $serviceInvoicesRepo->tableName();
+
         $data = [
             'invoice_id' => $invoice_id,
             'user_id' => $user_id,
@@ -579,7 +596,7 @@ class Functions
         ];
 
         try {
-            $save_nfe = Capsule::table('gofasnfeio')->insert($data);
+            $save_nfe = Capsule::table($_tableName)->insert($data);
 
             return 'success';
         } catch (\Exception $e) {
@@ -604,6 +621,10 @@ class Functions
         ];
 
         try {
+
+            $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+            $_tableName = $serviceInvoicesRepo->tableName();
+
             if (!$id_gofasnfeio) {
                 $id = $invoice_id;
                 $camp = 'invoice_id';
@@ -611,7 +632,7 @@ class Functions
                 $id = $id_gofasnfeio;
                 $camp = 'id';
             }
-            $save_nfe = Capsule::table('gofasnfeio')->where($camp, '=', $id)->update($data);
+            $save_nfe = Capsule::table($_tableName)->where($camp, '=', $id)->update($data);
 
             return 'success';
         } catch (\Exception $e) {
@@ -626,7 +647,11 @@ class Functions
      * @return string
      */
     function gnfe_get_local_nfe($invoice_id, $values) {
-        foreach (Capsule::table('gofasnfeio')->where('invoice_id', '=', $invoice_id)->orderBy('id', 'desc')->get($values) as $key => $value) {
+
+        $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+        $_tableName = $serviceInvoicesRepo->tableName();
+
+        foreach (Capsule::table($_tableName)->where('invoice_id', '=', $invoice_id)->orderBy('id', 'desc')->get($values) as $key => $value) {
             $nfe_for_invoice[$key] = json_decode(json_encode($value), true);
         }
         return $nfe_for_invoice['0'];
@@ -635,7 +660,7 @@ class Functions
     function gnfe_check_webhook($id) {
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/hooks/' . $id);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
@@ -648,7 +673,7 @@ class Functions
         try {
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/hooks');
-            curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: aplication/json', 'Authorization: ' . gnfe_config('api_key')]);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: aplication/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
             curl_setopt($curl, CURLOPT_TIMEOUT, 30);
             curl_setopt($curl, CURLOPT_POST, 1);
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(['url' => $url, 'contentType' => 'application/json', 'secret' => (string)time(), 'events' => ['issue', 'cancel', 'WaitingCalculateTaxes'], 'status' => 'Active',  ]));
@@ -663,7 +688,7 @@ class Functions
     function gnfe_delete_webhook($id) {
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/hooks/' . $id);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
@@ -721,8 +746,8 @@ class Functions
 
     function gnfe_get_company() {
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . gnfe_config('company_id'));
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id'));
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         $response = curl_exec($curl);
@@ -753,7 +778,7 @@ class Functions
         $row = $statement->fetchAll();
         $pdo->commit();
 
-        $tax_check = gnfe_config('tax');
+        $tax_check = $this->gnfe_config('tax');
         foreach ($row as $item) {
             $hosting_id = $item['relid'];
 
@@ -763,7 +788,7 @@ class Functions
             LEFT JOIN tblproductcode ON tblhosting.packageid = tblproductcode.product_id
             WHERE tblhosting.id = :HOSTING';
 
-                if ($tax_check == 'Não') {
+                if (!$tax_check) {
                     $query .= ' AND tblproducts.tax = 1';
                 } else {
                     Capsule::table('tblproducts')->update(['tax' => 1]);
@@ -825,8 +850,12 @@ class Functions
     }
 
     function update_status_nfe($invoice_id,$status) {
+
+        $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+        $_tableName = $serviceInvoicesRepo->tableName();
+
         try {
-            $return = Capsule::table('gofasnfeio')->where('invoice_id','=',$invoice_id)->update(['status' => $status]);
+            $return = Capsule::table($_tableName)->where('invoice_id','=',$invoice_id)->update(['status' => $status]);
             return $return;
         } catch (Exception $e) {
             return $e->getMessage();
@@ -840,9 +869,13 @@ class Functions
      * @return string
      */
     function gnfe_get_client_issue_invoice_cond_from_invoice_id($invoiceId) {
+
+        $clientConfigurationRepo = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
+        $_table = $clientConfigurationRepo->tableName();
+
         $clientInvoiceId = localAPI('GetInvoice', ['invoiceid' => $invoiceId])['userid'];
 
-        $clientCond = Capsule::table('mod_nfeio_custom_configs')
+        $clientCond = Capsule::table($_table)
             ->where('client_id', '=', $clientInvoiceId)
             ->where('key', '=', 'issue_nfe_cond')
             ->get(['value'])[0]->value;
@@ -862,10 +895,17 @@ class Functions
      * @return string
      */
     function gnfe_show_issue_invoice_conds($clientId) {
-        $conditions = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->where('setting', '=', 'issue_note_conditions')->get(['value'])[0]->value;
+
+        $clientConfigurationRepo = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
+        $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+        $tableServiceInvoices = $serviceInvoicesRepo->tableName();
+        $tableClientConfiguration = $clientConfigurationRepo->tableName();
+        $_storageKey = Addon::I()->configuration()->storageKey;
+
+        $conditions = Capsule::table('tbladdonmodules')->where('module', '=', $_storageKey)->where('setting', '=', 'issue_note_conditions')->get(['value'])[0]->value;
         $conditions = explode(',', $conditions);
 
-        $previousClientCond = Capsule::table('mod_nfeio_custom_configs')->where('client_id', '=', $clientId)->first()->value;
+        $previousClientCond = Capsule::table($tableClientConfiguration)->where('client_id', '=', $clientId)->first()->value;
 
         $select = '<select name="issue_note_cond" class="form-control select-inline">';
 
@@ -897,20 +937,23 @@ class Functions
      */
     function gnfe_save_client_issue_invoice_cond($clientId, $newCond) {
 
+        $clientConfigurationRepo = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
+        $_tableName = $clientConfigurationRepo->tableName();
+
         // pega o primeiro registro disponível em mod_nfeio_custom_configs para o ID do cliente
-        $clientCustomConfig = Capsule::table('mod_nfeio_custom_configs')->where('client_id', $clientId)->first();
+        $clientCustomConfig = Capsule::table($_tableName)->where('client_id', $clientId)->first();
 
         // caso cliente já possua uma configuração personalizada, atualiza baseado no ID do registro já encontrado
         // na tabela mod_nfeio_custom_configs
         if ($clientCustomConfig) {
 
-            Capsule::table('mod_nfeio_custom_configs')
+            Capsule::table($_tableName)
                 ->where('id', $clientCustomConfig->id)
                 ->update(['value' => $newCond]);
 
         } else {
             // senão insere um novo
-            Capsule::table('mod_nfeio_custom_configs')->insert([
+            Capsule::table($_tableName)->insert([
                 'key' => 'issue_nfe_cond',
                 'client_id' => $clientId,
                 'value' => $newCond
@@ -924,22 +967,24 @@ class Functions
      * Inserts the conditions of sending invoices in the database.
      */
     function gnfe_insert_issue_nfe_cond_in_database() {
+
+        $_storageKey = Addon::I()->configuration()->storageKey;
         $conditions = 'Quando a fatura é gerada,Quando a fatura é paga,Seguir configuração do módulo NFE.io';
 
         $previousConditions = Capsule::table('tbladdonmodules')
-            ->where('module', '=', 'gofasnfeio')
+            ->where('module', '=', $_storageKey)
             ->where('setting', '=', 'issue_note_conditions')
             ->get(['value'])[0]->value;
 
         if (count($previousConditions) <= 0 || $previousConditions != $conditions) {
             Capsule::table('tbladdonmodules')
-                ->where('module', '=', 'gofasnfeio')
+                ->where('module', '=', $_storageKey)
                 ->where('setting', '=', 'issue_note_conditions')
                 ->update(['value' => $conditions]);
         }
 
         if (count($previousConditions) <= 0) {
-            Capsule::table('tbladdonmodules')->insert(['module' => 'gofasnfeio','setting' => 'issue_note_conditions','value' => $conditions]);
+            Capsule::table('tbladdonmodules')->insert(['module' => $_storageKey,'setting' => 'issue_note_conditions','value' => $conditions]);
         }
     }
 }
