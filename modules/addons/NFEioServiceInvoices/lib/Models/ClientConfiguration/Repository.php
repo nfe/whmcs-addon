@@ -12,15 +12,25 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
 
     public $tableName = 'mod_nfeio_si_custom_configs';
+    public $fieldDeclaration = array(
+        'client_id',
+        'key',
+        'value',
+    );
 
-    private function getTableName()
+    public function tableName()
     {
         return $this->tableName;
     }
 
+    public function fieldDeclaration()
+    {
+        return $this->fieldDeclaration;
+    }
+
     function getModelClass()
     {
-        return __NAMESPACE__ . '\ClientConfiguration';
+        return __NAMESPACE__ . '\Repository';
     }
 
     public function get()
