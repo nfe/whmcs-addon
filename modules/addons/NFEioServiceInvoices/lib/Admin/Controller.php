@@ -244,6 +244,9 @@ class Controller {
 
         $msg = new FlashMessages();
         $functions = new \NFEioServiceInvoices\Legacy\Functions();
+        $moduleLink = $vars['modulelink'];
+        $moduleAction = 'index';
+        $redirectUrl = $moduleLink.'&action='.$moduleAction;
 
         // create
         if ($_REQUEST['gnfe_create']) {
@@ -253,26 +256,14 @@ class Controller {
             if (!$nfe_for_invoice['id']) {
                 $queue = $functions->gnfe_queue_nfe($_REQUEST['invoice_id'], true);
                 if ($queue !== 'success') {
-                    $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">Erro ao salvar nota fiscal no DB: ' . $queue . '</div>';
-                    header_remove();
-                    header('Location: addonmodules.php?module=gofasnfeio&gnfe_message=' . base64_encode(urlencode($message)));
-
-                    exit;
+                    $msg->error("Erro ao salvar nota fiscal no DB: <b>{$queue}</b>", $redirectUrl);
                 }
                 if ($queue === 'success') {
-                    $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #5cb85c;color: #ffffff;padding: 5px;text-align: center;">Nota fiscal enviada para processamento</div>';
-                    header_remove();
-                    header('Location: addonmodules.php?module=gofasnfeio&gnfe_message=' . base64_encode(urlencode($message)));
-
-                    exit;
+                    $msg->success("Nota fiscal enviada para processamento", $redirectUrl);
                 }
             } else {
                 if ($queue !== 'success') {
-                    $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">Erro ao salvar nota fiscal no DB: ' . 'nota fiscal já solicitada' . '</div>';
-                    header_remove();
-                    header('Location: addonmodules.php?module=gofasnfeio&gnfe_message=' . base64_encode(urlencode($message)));
-
-                    exit;
+                    $msg->error("Erro ao salvar nota fiscal no DB: nota fiscal já solicitada", $redirectUrl);
                 }
             }
         }
@@ -282,18 +273,10 @@ class Controller {
             $delete_nfe = $functions->gnfe_delete_nfe($_REQUEST['gnfe_cancel']);
             if (!$delete_nfe->message) {
                 $gnfe_update_nfe = $functions->gnfe_update_nfe((object) ['id' => $_REQUEST['gnfe_cancel'], 'status' => 'Cancelled', 'servicesAmount' => $_REQUEST['services_amount'], 'environment' => $_REQUEST['environment'], 'flow_status' => $_REQUEST['flow_status']], $_REQUEST['user_id'], $_REQUEST['invoice_id'], 'n/a', $_REQUEST['created_at'], date('Y-m-d H:i:s'));
-                $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #5cb85c;color: #ffffff;padding: 5px;text-align: center;">Nota fiscal cancelada com sucesso</div>';
-                header_remove();
-                header('Location: addonmodules.php?module=gofasnfeio&gnfe_message=' . base64_encode(urlencode($message)));
-
-                exit;
+                $msg->success("Nota fiscal cancelada com sucesso", $redirectUrl);
             }
             if ($delete_nfe->message) {
-                $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">' . $delete_nfe->message . '</div>';
-                header_remove();
-                header('Location: addonmodules.php?module=gofasnfeio&gnfe_message=' . base64_encode(urlencode($message)));
-
-                exit;
+                $msg->error($delete_nfe->message, $redirectUrl);
             }
         }
 
@@ -301,18 +284,10 @@ class Controller {
         if ($_REQUEST['gnfe_email']) {
             $gnfe_email = $functions->gnfe_email_nfe($_REQUEST['gnfe_email']);
             if (!$gnfe_email->message) {
-                $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #5cb85c;color: #ffffff;padding: 5px;text-align: center;">Email Enviado com Sucesso</div>';
-                header_remove();
-                header('Location: addonmodules.php?module=gofasnfeio&gnfe_message=' . base64_encode(urlencode($message)));
-
-                exit;
+                $msg->info("Email Enviado com Sucesso", $redirectUrl);
             }
             if ($gnfe_email->message) {
-                $message = '<div style="position:absolute;top: -5px;width: 50%;left: 25%;background: #d9534f;color: #ffffff;padding: 5px;text-align: center;">' . $gnfe_email->message . '</div>';
-                header_remove();
-                header('Location: addonmodules.php?module=gofasnfeio&gnfe_message=' . base64_encode(urlencode($message)));
-
-                exit;
+                $msg->error($gnfe_email->message, $redirectUrl);
             }
         }
 

@@ -43,21 +43,23 @@
               <tbody>
                 {foreach from=$dtData item=nota }
                   <tr>
-                    <td>{$nota->invoice_id}</td>
-                    <td>{$nota->created_at}</td>
+                    <td><a href="invoices.php?action=edit&id={$nota->invoice_id}" target="_blank">{$nota->invoice_id}</a></td>
+                    <td>{$nota->created_at|date_format:"%d/%m/%Y %H:%M"}</td>
                     <td>
-                      {$nota->firstname} {$nota->lastname}
-                      {if $nota->companyname}
-                        ({$nota->companyname})
-                      {/if}
+                      <a href="clientssummary.php?userid={$nota->user_id}" target="_blank">
+                        {$nota->firstname} {$nota->lastname}
+                        {if $nota->companyname}
+                          ({$nota->companyname})
+                        {/if}
+                      </a>
                     </td>
                     <td>R${$nota->services_amount}</td>
                     <td>{statusLabel data=$nota->flow_status}</td>
                     <td>
-                      <a href="{$modulelink}" class="btn btn-primary btn-sm">Emitir NFSe</a>
-                      <a href="https://app.nfe.io/companies/{$company_id}/service-invoices/{$nota->nfe_id}" target="_blank" class="btn btn-success btn-sm">Visualizar</a>
-                      <a href="{$modulelink}" class="btn btn-danger btn-sm">Cancelar NFSe</a>
-                      <a href="{$modulelink}" class="btn btn-info btn-sm">Enviar e-mail</a>
+                      <a href="{$modulelink}&action=legacyFunctions&invoice_id={$nota->invoice_id}&gnfe_create=yes" class="btn btn-primary btn-sm" id="gnfe_generate">Emitir NFSe</a>
+                      <a href="https://app.nfe.io/companies/{$company_id}/service-invoices/{$nota->nfe_id}" target="_blank" class="btn btn-success btn-sm" id="gnfe_view">Visualizar</a>
+                      <a href="{$modulelink}&action=legacyFunctions&invoice_id={$nota->invoice_id}&gnfe_cancel={$nota->nfe_id}&services_amount={$nota->services_amount}&environment={$nota->environment}&flow_status={$nota->flow_status}&user_id={$nota->user_id}&created_at={$nota->created_at}" class="btn btn-danger btn-sm" id="gnfe_cancel">Cancelar NFSe</a>
+                      <a href="{$modulelink}&action=legacyFunctions&gnfe_email={$nota->nfe_id}" class="btn btn-info btn-sm" id="gnfe_email">Enviar e-mail</a>
                     </td>
                   </tr>
                 {/foreach}
