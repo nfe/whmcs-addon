@@ -10,6 +10,7 @@ class Hooks
     private $functions;
     private $serviceInvoicesRepo;
     private $productCodeRepo;
+    private $clientConfigurationRepo;
 
     public function __construct()
     {
@@ -17,6 +18,7 @@ class Hooks
         $this->functions = new \NFEioServiceInvoices\Legacy\Functions();
         $this->serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
         $this->productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
+        $this->clientConfigurationRepo = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
     }
 
     function dailycronjob()
@@ -234,5 +236,25 @@ class Hooks
         } catch (Exception $e) {
             logModuleCall('gofas_nfeio', 'productdelete', 'product_id=' . $vars['pid'], $e->getMessage(), 'ERROR', '');
         }
+    }
+
+    function customclientissueinvoice($vars)
+    {
+        $_table = $this->clientConfigurationRepo->tableName();
+
+        try {
+            if (Capsule::schema()->hasTable($_table)) {
+                return ['Emitir nota fiscal quando' => $this->functions->gnfe_show_issue_invoice_conds($vars['userid'])];
+            } else {
+                return [
+                    'Módulo NFE.io' => 'Não existem opções'
+                ];
+            }
+
+        } catch (\Exception $exception) {
+            echo $exception->getMessage();
+        }
+
+
     }
 }

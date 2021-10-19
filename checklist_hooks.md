@@ -7,5 +7,5 @@ Checklist dos hooks a serem migrados
 * [x] DailyCronJob
 * [x] AfterCronJob
 * [x] ProductDelete
-* [ ] AdminClientProfileTabFields
+* [x] AdminClientProfileTabFields
 * [x] AdminClientProfileTabFieldsSave
