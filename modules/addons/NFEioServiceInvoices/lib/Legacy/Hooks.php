@@ -6,11 +6,13 @@ class Hooks
 {
     private $config;
     private $functions;
+    private $serviceInvoicesRepo;
 
     public function __construct()
     {
         $this->config = new \NFEioServiceInvoices\Configuration();
         $this->functions = new \NFEioServiceInvoices\Legacy\Functions();
+        $this->serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
     }
 
     function dailycronjob()
@@ -179,6 +181,41 @@ class Hooks
                     $gnfe_update_nfe = $this->functions->gnfe_update_nfe((object) ['id' => $nfe_for_invoice['nfe_id'], 'status' => 'Cancelled', 'servicesAmount' => $nfe_for_invoice['services_amount'], 'environment' => $nfe_for_invoice['environment'], 'flow_status' => $nfe_for_invoice['flow_status']], $invoice['userid'], $vars['invoiceid'], 'n/a', $nfe_for_invoice['created_at'], date('Y-m-d H:i:s'));
                 } else {
                     logModuleCall('gofas_nfeio', 'invoicecancelled', $nfe_for_invoice['nfe_id'], $delete_nfe, 'ERROR', '');
+                }
+            }
+        }
+    }
+
+    function aftercronjob()
+    {
+        $storageKey = $this->config->getStorageKey();
+        $serviceInvoicesTable = $this->serviceInvoicesRepo->tableName();
+        $params = $this->functions->gnfe_config();
+        $dataAtual = date('Y-m-d H:i:s');
+
+        if (Capsule::table('tbladdonmodules')->where('setting','=','last_cron')->count() == 0) {
+            Capsule::table('tbladdonmodules')->insert(['module' => $storageKey, 'setting' => 'last_cron', 'value' => $dataAtual]);
+        } else {
+            Capsule::table('tbladdonmodules')->where('setting','=','last_cron')->update(['value' => $dataAtual]);
+        }
+
+        if (!isset($params['issue_note_after']) || $params['issue_note_after'] <= 0) {
+            foreach (Capsule::table($serviceInvoicesTable)->orderBy('id', 'desc')->where('status', '=', 'Waiting')->get(['id', 'invoice_id', 'services_amount']) as $waiting) {
+                logModuleCall('gofas_nfeio', 'aftercronjob - checktablegofasnfeio', '', $waiting,'', '');
+
+                $data = getTodaysDate(false);
+                $dataAtual = toMySQLDate($data);
+
+                if ($params['issue_note_default_cond'] !== 'Manualmente') {
+                    $getQuery = Capsule::table('tblinvoices')->whereBetween('date', [$params['initial_date'], $dataAtual])->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
+                    logModuleCall('gofas_nfeio', 'aftercronjob - getQuery', ['date' => [$params['initial_date'], $dataAtual], 'where' => 'id=' . $waiting->invoice_id], $getQuery,'', '');
+                } else {
+                    $getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
+                    logModuleCall('gofas_nfeio', 'aftercronjob - getQuery', 'id=' . $waiting->invoice_id, $getQuery,'', '');
+                }
+
+                foreach ($getQuery as $invoices) {
+                    $this->functions->emitNFE($invoices,$waiting);
                 }
             }
         }

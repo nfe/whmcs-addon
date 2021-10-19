@@ -43,3 +43,8 @@ add_hook('DailyCronJob', 1, function ($vars) {
     $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
     $legacyHooks->dailycronjob();
 });
+
+add_hook('AfterCronJob', 1, function ($vars) {
+    $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
+    $legacyHooks->aftercronjob();
+});
