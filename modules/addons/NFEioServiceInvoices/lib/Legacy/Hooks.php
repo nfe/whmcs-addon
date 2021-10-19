@@ -2,17 +2,21 @@
 
 namespace NFEioServiceInvoices\Legacy;
 
+use Illuminate\Database\Capsule\Manager as Capsule;
+
 class Hooks
 {
     private $config;
     private $functions;
     private $serviceInvoicesRepo;
+    private $productCodeRepo;
 
     public function __construct()
     {
         $this->config = new \NFEioServiceInvoices\Configuration();
         $this->functions = new \NFEioServiceInvoices\Legacy\Functions();
         $this->serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+        $this->productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
     }
 
     function dailycronjob()
@@ -218,6 +222,17 @@ class Hooks
                     $this->functions->emitNFE($invoices,$waiting);
                 }
             }
+        }
+    }
+
+    function productdelete($vars)
+    {
+        $productCodeTable = $this->productCodeRepo->tableName();
+        try {
+            $delete = Capsule::table($productCodeTable)->where('product_id', '=', $vars['pid'])->delete();
+            logModuleCall('gofas_nfeio', 'productdelete', 'product_id=' . $vars['pid'], $delete, 'OK', '');
+        } catch (Exception $e) {
+            logModuleCall('gofas_nfeio', 'productdelete', 'product_id=' . $vars['pid'], $e->getMessage(), 'ERROR', '');
         }
     }
 }

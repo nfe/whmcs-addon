@@ -48,3 +48,8 @@ add_hook('AfterCronJob', 1, function ($vars) {
     $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
     $legacyHooks->aftercronjob();
 });
+
+add_hook('ProductDelete', 1, function ($vars) {
+    $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
+    $legacyHooks->productdelete($vars);
+});
