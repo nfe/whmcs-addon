@@ -260,15 +260,17 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
 
     public function deactivate()
     {
-        // inicia as
         $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\serviceInvoices\Repository();
-        $serviceInvoicesRepo->dropServiceInvoicesTable();
+        // não derruba as tabelas de notas ao desativar o módulo por segurança
+        // $serviceInvoicesRepo->dropServiceInvoicesTable();
 
         $productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
-        $productCodeRepo->dropProductCodeTable();
+        // não derruba as tabelas de código de serviços personalizados ao desativar por segurança
+        // $productCodeRepo->dropProductCodeTable();
 
         $clientConfigurationRepo = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
-        $clientConfigurationRepo->dropProductCodeTable();
+        // não derruba a tabela com configurações persoanlizadas de emissão por segurança
+        // $clientConfigurationRepo->dropProductCodeTable();
 
     }
 
