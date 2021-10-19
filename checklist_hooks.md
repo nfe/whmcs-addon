@@ -6,6 +6,6 @@ Checklist dos hooks a serem migrados
 * [x] InvoiceCancelled
 * [x] DailyCronJob
 * [x] AfterCronJob
-* [ ] ProductDelete
+* [x] ProductDelete
 * [ ] AdminClientProfileTabFields
-* [ ] AdminClientProfileTabFieldsSave
+* [x] AdminClientProfileTabFieldsSave

@@ -53,3 +53,10 @@ add_hook('ProductDelete', 1, function ($vars) {
     $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
     $legacyHooks->productdelete($vars);
 });
+
+add_hook('AdminClientProfileTabFieldsSave', 1, function($vars) {
+
+    $functions = new \NFEioServiceInvoices\Legacy\Functions();
+    $functions->gnfe_save_client_issue_invoice_cond($vars['userid'], $_REQUEST['issue_note_cond']);
+
+});
