@@ -564,6 +564,7 @@ class Functions
         return $response;
     }*/
 
+    // TODO: adaptar para a URL do admin sem depender da tabela tblconfiguration
     function gnfe_whmcs_admin_url() {
         foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'gnfewhmcsadminurl')->get(['value']) as $gnfewhmcsadminurl_) {
             $gnfewhmcsadminurl = $gnfewhmcsadminurl_->value;
