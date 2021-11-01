@@ -4,6 +4,7 @@ namespace NFEioServiceInvoices\Legacy;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 use NFEioServiceInvoices\Addon;
+use WHMCSExpert\Addon\Storage;
 
 class Functions
 {
@@ -259,9 +260,10 @@ class Functions
 
     function gnfe_issue_nfe($postfields) {
         $webhook_url = Addon::getCallBackPath();
-        foreach (Capsule::table('tblconfiguration')->where('setting', '=', 'gnfe_webhook_id')->get(['value']) as $gnfe_webhook_id_) {
-            $gnfe_webhook_id = $gnfe_webhook_id_->value;
-        }
+        $gnfe_webhook_id = $this->gnfe_config('webhook_id');
+        $_storageKey = Addon::I()->configuration()->storageKey;
+        $storage = new Storage($_storageKey);
+
         if ($gnfe_webhook_id) {
             $check_webhook = $this->gnfe_check_webhook($gnfe_webhook_id);
             $error = '';
@@ -270,18 +272,16 @@ class Functions
             }
         }
         if ($gnfe_webhook_id and (string) $check_webhook['hooks']['url'] !== (string) $webhook_url) {
+            $delete_webhook = $this->gnfe_delete_webhook($gnfe_webhook_id);
             $create_webhook = $this->gnfe_create_webhook($webhook_url);
             if ($create_webhook['message']) {
                 logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - gnfe_create_webhook', $webhook_url, $create_webhook['message'], 'ERROR', '');
             }
             if ($create_webhook['hooks']['id']) {
-                try {
-                    Capsule::table('tblconfiguration')->where('setting', 'gnfe_webhook_id')->update(['value' => $create_webhook['hooks']['id'], 'created_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s')]);
-                } catch (Exception $e) {
-                    logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - Capsule::table(tblconfiguration) update', '', $e->getMessage(), 'ERROR', '');
-                }
+                $storage->set('webhook_id', $create_webhook['hooks']['id']);
+                $storage->set('webhook_secret', $create_webhook['hooks']['secret']);
+                logModuleCall($_storageKey, 'webhook_id', $create_webhook);
             }
-            $delete_webhook = $this->gnfe_delete_webhook($gnfe_webhook_id);
             if ($delete_webhook['message']) {
                 logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - gnfe_delete_webhook', $gnfe_webhook_id, $delete_webhook, 'ERROR', '');
             }
@@ -292,11 +292,8 @@ class Functions
                 logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - gnfe_create_webhook', $webhook_url, $create_webhook, 'ERROR', '');
             }
             if ($create_webhook['hooks']['id']) {
-                try {
-                    Capsule::table('tblconfiguration')->insert(['setting' => 'gnfe_webhook_id', 'value' => $create_webhook['hooks']['id'], 'created_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s')]);
-                } catch (Exception $e) {
-                    logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - Capsule::table(tblconfiguration) insert', '', $e->getMessage(), 'ERROR', '');
-                }
+                $storage->set('webhook_id', $create_webhook['hooks']['id']);
+                $storage->set('webhook_secret', $create_webhook['hooks']['secret']);
             }
         }
 

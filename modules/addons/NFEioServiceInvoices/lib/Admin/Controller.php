@@ -7,6 +7,7 @@ if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
 require_once(dirname(dirname(__DIR__)) . DS . 'Loader.php');
 
 use NFEioServiceInvoices\CustomFields;
+use NFEioServiceInvoices\Helpers\Versions;
 use Smarty;
 use WHMCS\Database\Capsule;
 use Plasticbrain\FlashMessages\FlashMessages;
@@ -33,6 +34,7 @@ class Controller {
 
             $template = new Template(Addon::getModuleTemplatesDir());
             $assetsURL = Addon::I()->getAssetsURL();
+            var_dump(Addon::I()->getCallBackPath());
             $msg = new FlashMessages;
             $config = new \NFEioServiceInvoices\Configuration();
             $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
@@ -41,6 +43,14 @@ class Controller {
 
             // metodo para verificar se existe algum campo obrigatório não preenchido.
             $config->verifyMandatoryFields($vars, false, true);
+
+            // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
+            $oldVersion = Versions::getOldNfeioModuleVersion();
+            // se tiver registro de versão antiga define mensagem
+            if ($oldVersion) {
+                $msg->error("<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true);
+            }
 
             if ($msg->hasMessages()) {
                 $msg->display();
@@ -69,6 +79,7 @@ class Controller {
             // metodo para verificar se existe algum campo obrigatório não preenchido.
             $config->verifyMandatoryFields($vars);
             $assetsURL = Addon::I()->getAssetsURL();
+            $moduleCallBackUrl = Addon::I()->getCallBackPath();
             $moduleConfigurationRepo = new \NFEioServiceInvoices\Models\ModuleConfiguration\Repository();
             $moduleFields = $moduleConfigurationRepo->getFields();
             $customFieldsClientsOptions = CustomFields::getClientFields();
@@ -76,7 +87,15 @@ class Controller {
             $vars['moduleFields'] = $moduleFields;
             $vars['formAction'] = 'configurationSave';
             $vars['assetsURL'] = $assetsURL;
+            $vars['moduleCallBackUrl'] = $moduleCallBackUrl;
 
+            // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
+            $oldVersion = Versions::getOldNfeioModuleVersion();
+            // se tiver registro de versão antiga define mensagem
+            if ($oldVersion) {
+                $msg->error("<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true);
+            }
 
             if ($msg->hasMessages()) {
                 $msg->display();
@@ -188,6 +207,14 @@ class Controller {
             $vars['dtData'] = $servicesCodeRepo->dataTable();
             // parametro para o atributo action dos formulários da página
             $vars['formAction'] = 'servicesCodeSave';
+
+            // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
+            $oldVersion = Versions::getOldNfeioModuleVersion();
+            // se tiver registro de versão antiga define mensagem
+            if ($oldVersion) {
+                $msg->error("<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de nptas.", '', true);
+            }
 
             if ($msg->hasMessages()) {
                 $msg->display();
@@ -314,6 +341,14 @@ class Controller {
             $assetsURL = Addon::I()->getAssetsURL();
             $msg = new FlashMessages;
 
+            // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
+            $oldVersion = Versions::getOldNfeioModuleVersion();
+            // se tiver registro de versão antiga define mensagem
+            if ($oldVersion) {
+                $msg->error("<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true);
+            }
+
             if ($msg->hasMessages()) {
                 $msg->display();
             }
@@ -335,6 +370,14 @@ class Controller {
         $assetsURL = Addon::I()->getAssetsURL();
 
         $msg = new FlashMessages;
+
+        // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
+        $oldVersion = Versions::getOldNfeioModuleVersion();
+        // se tiver registro de versão antiga define mensagem
+        if ($oldVersion) {
+            $msg->error("<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo a uma nova versão.
+                Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true);
+        }
 
         if ($msg->hasMessages()) {
             $msg->display();
