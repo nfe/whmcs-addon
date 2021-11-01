@@ -34,7 +34,6 @@ class Controller {
 
             $template = new Template(Addon::getModuleTemplatesDir());
             $assetsURL = Addon::I()->getAssetsURL();
-            var_dump(Addon::I()->getCallBackPath());
             $msg = new FlashMessages;
             $config = new \NFEioServiceInvoices\Configuration();
             $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
