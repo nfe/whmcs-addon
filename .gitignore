@@ -5,3 +5,7 @@ rsync-dev2.sh
 *.zip
 composer.lock
 phpreport
+phpmetrics
+docs
+/vendor/**/.git
+/modules/addons/NFEioServiceInvoices/lib/vendor/**/.git
