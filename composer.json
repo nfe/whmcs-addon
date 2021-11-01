@@ -3,9 +3,8 @@
     "whmcsexpert/whmcsexpert": "dev-dev",
     "plasticbrain/php-flash-messages": "^1",
     "guzzlehttp/psr7": "^1.8",
-    "php-http/message": "@stable",
-    "react/http": "^1.5",
-    "ext-curl": "*"
+    "ext-curl": "*",
+    "php": ">=5.6"
   },
   "require-dev": {
     "phpunit/phpunit": "@stable",
