@@ -1,37 +1,48 @@
-## Welcome to GitHub Pages
+# Módulo Nota Fiscal para WHMCS via NFE.io
 
-You can use the [editor on GitHub](https://github.com/nfe/whmcs-addon/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+> Automatize a emissão de notas fiscais no WHMCS com a [NFE.io][nfeio]!
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+A [NFE.io][nfeio] é um sistema de emissão de notas fiscais que automatiza a comunicação com as prefeituras. Com a [NFE.io][nfeio] você se livra de diversas tarefas chatas, melhorando o desempenho do seu negócio. E melhor, você economiza tempo e dinheiro.
 
-### Markdown
+![](assets/img/nfeio-whmcs-notas-fiscais.png)
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+> Este módulo é para emissão de NFS-e, Nota Fiscal de Serviço Eletrônica, não sendo possível emissão de nota de produto.
 
-```markdown
-Syntax highlighted code block
+## Principais Recursos
 
-# Header 1
-## Header 2
-### Header 3
+* [x] Emissão automática de notas fiscais
+* [x] Emissão manual de notas fiscais
+* [x] Agendamento de emissão de notas fiscais
+* [x] Cancelamento de nota fiscal quando fatura é cancelada
+* [x] Configuração de código de serviço personalizado por produto
+* [x] Painel intuitivo de visualização de notas emitidas
+* [x] Botões de ação rápida para emissão, cancelamento e envio
+* [x] Acompanhamento do status da emissão
+* [x] Envio de nota fiscal por e-mail
+* [x] Download de nota em PDF e XML
 
-- Bulleted
-- List
+### Demais Recursos
 
-1. Numbered
-2. List
+* [x] Emite notas fiscais de forma sequencial, evitando sobrecargas nos sites das prefeituras.
+* [x] salva o debug das chamadas à API NFE.io no log de Módulo do WHMCS para diagnóstico
+* [x] seleciona nas configurações do módulo a opção de enviar o número inscrição municipal para a nota fiscal.
+* [x] seleciona nas configurações do módulo a opção de enviar a nota fiscal por e-mail automaticamente.
+* [x] valida CPF/CNPJ do cliente e não emite a nota fiscal caso inválido
 
-**Bold** and _Italic_ and `Code` text
+## Como usar este Módulo
 
-[Link](url) and ![Image](src)
-```
+### Requisitos
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+- WHMCS versão 7.2 ou superior
+- PHP 5.6 ou superior
+- Tarefas cron do WHMCS devem estar funcionando a cada 5 minutos, conforme descrito na documentação oficial (https://docs.whmcs.com/Crons);
+- É necessário um portal de pagamento ativado e que a criação de faturas do WHMCS esteja funcional, sendo que as notas fiscais são emitidas no momento da criação ou após o pagamento das faturas geradas manual ou automaticamente pelo WHMCS.
 
-### Jekyll Themes
+### Documentação
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/nfe/whmcs-addon/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+WIP
 
-### Support or Contact
+### 
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+
+[nfeio]: https://nfe.io/
