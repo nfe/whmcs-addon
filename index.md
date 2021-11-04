@@ -1,4 +1,3 @@
-# Módulo Nota Fiscal para WHMCS via NFE.io
 
 > Automatize a emissão de notas fiscais no WHMCS com a [NFE.io][nfeio]!
 
