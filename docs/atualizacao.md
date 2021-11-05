@@ -50,13 +50,19 @@ As demais configurações migradas poderão ser verificadas acessando o módulo 
 
 Ao ativar o novo módulo, as informações das notas fiscais emitidas a partir da versão anterior serão migradas automaticamente.
 
-Todas as notas existentes estarão visíveis ao acessar o módulo em  `Addons -> NFE.io NFSe`
+Todas as notas existentes estarão visíveis ao acessar o módulo em  `Addons -> NFE.io NFSe`.
 
 ![](../assets/img/nfeio-whmcs-notas-fiscais.png)
 
 ## Migrando os códigos de serviços
 
+Os códigos de serviços personalizados serão migrados automaticamente e poderão ser verificados acessando o módulo em `Addons -> NFE.io NFSe -> Códigos de Serviços`.
+
+![](../assets/img/nfeio-whmcs-docs-atualizacao-04.png)
+
 ## Migrando as definições dos usuários
+
+As configurações personalizadas de emissão de notas para os clientes também será migrada e todas as rotinas existentes de emissão para seus clientes serão mantidas.
 
 ## Verificando tudo
 
