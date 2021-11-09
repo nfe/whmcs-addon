@@ -39,9 +39,14 @@ A [NFE.io][nfeio] é um sistema de emissão de notas fiscais que automatiza a co
 
 ### Documentação
 
-WIP
+O módulo de emissão de notas fiscais para WHMCS via [NFE.io][nfeio] é simples de instalar como qualquer módulo adicional e possui uma documentação bem organizada para auxiliar o processo de instalação e configuração para você começar a emitir notas fiscais automaticamente em seu WHMCS!
 
-### 
+* [Instalação][manual-instalacao]
+* [Configuração][manual-configuracao]
+* [Atualização][manual-atualizacao] (v1.4 para 2.0)
 
 
 [nfeio]: https://nfe.io/
+[manual-instalacao]: https://nfe.github.io/whmcs-addon/docs/instalacao
+[manual-configuracao]: https://nfe.github.io/whmcs-addon/docs/configuracao
+[manual-atualizacao]: https://nfe.github.io/whmcs-addon/docs/atualizacao

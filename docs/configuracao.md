@@ -1,5 +1,6 @@
 ---
 slug: configuracao
+layout: page
 ---
 # Configuração
 

@@ -1,6 +1,7 @@
 ---
 slug: atualizacao
 title: Atualização
+layout: page
 ---
 
 > Este documento visa auxiliar no processo de atualização do módulo da versão v1.4 para a versão v2.0
@@ -70,6 +71,36 @@ Por precaução, **antes de desativar a versão antiga** do módulo, faça uma v
 
 Fazendo esta verificação antes de seguir com a desativação e exclusão do módulo antigo ajudará a evitar problemas que não poderão ser revertidos após as próximas etapas.
 
-## Desativando a versão antiga
+## Desativando a versão anterior (1.4)
 
-## Excluindo o módulo antigo
+Após conferir a configurações do módulo e as notas ficais, tudo parecendo certo, você poderá desativar o módulo.
+
+Para desativar o módulo **NFE.io v1.4.x** vá para `Configurações -> Módulos Addons` no WHMCS v7.x ou `Opções -> Módulos Addons` no WHMCS v8.x.
+
+Localize o módulo antigo, **verifique a versão que deve ser desativada**, você deverá desativar a versão ****v1.4.x**** (sendo x qualquer versão menor como 1.4.1, 1.4.4 etc). Veja a imagem a seguir.
+
+![](../assets/img/nfeio-whmcs-docs-atualizacao-05.png)
+
+## Excluindo o módulo anterior (v1.4)
+
+Após desativar o módulo **NFE.io v1.4.x**, será necessário **remover o diretório** `gofasnfeio` existente dentro de `modules/addons` como última etapa da atualização para a versão 2.0.
+
+Para isso, utilize seu cliente FTP preferido para acessar o WHMCS, navegue até o diretório `seu_whmcs/modules/addons` para visualizar os módulos adicionais existentes em seu WHMCS e localize o diretório nomeado `gofasnfeio` como demonstrado na imagem a seguir.
+
+![](../assets/img/nfeio-whmcs-docs-atualizacao-06.png)
+
+Após localizar o diretório, **exclua-o**.
+
+Pronto! Seu módulo de emissão de notas fiscais no WHMCS via NFE.io está atualizado para a versão 2.0!
+
+### Tabelas do Banco de Dados
+
+Este processo de atualização, por segurança, **não exclui ou manipula** as tabelas no banco de dados utilizado pela versão anterior. A versão 2.0 copia todas as informações para novas tabelas e mantém as originais intactas, e a desativação do módulo não aciona nenhuma ação de exclusão. Então **caso você tenha tido algum problema** e precise voltar o módulo para uma versão anterior a atualização, basta desativar a versão 2.0 e **reenviar os arquivos da versão originalmente em uso**.
+
+Veja a lista a seguir das tabelas do banco de dados usadas pela versão anterior, caso você desejar fazer um backup manual ou exclui-las no futuro.
+
+* `gofasnfeio`: todos os registros de notas fiscais já emitidas pelo módulo.
+* `mod_nfeio_custom_configs`: contém todos os registros das configurações personalizadas de emissão de notas para os clientes.
+* `tblproductcode`: possui todos os registros de códigos de serviços personalizados associados aos produtos/serviços.
+
+> `tblproductcode` possui um nome muito similar as tabelas padrões do WHMCS, mas ela é uma tabela personalizada e nenhum componente ou função do nativas do WHMCS dependem dela.

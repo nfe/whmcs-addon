@@ -1,5 +1,6 @@
 ---
 slug: instalacao
+layout: page
 ---
 # Instalação
 
