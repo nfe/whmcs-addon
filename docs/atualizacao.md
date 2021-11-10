@@ -4,6 +4,8 @@ title: Atualização
 layout: page
 ---
 
+Este documento irá mostrar como atualizar e migrar com sucesso o [Módulo Nota Fiscal para WHMCS via NFE.io](https://github.com/nfe/whmcs-addon) para a versão 2.0. Ela irá guiar passo a passo por todo o processo de atualização e migração necessários.
+
 > Este documento visa auxiliar no processo de atualização do módulo da versão v1.4 para a versão v2.0
 
 > **ATENÇÃO:** Sempre realize um backup por segurança, tanto do seu WHMCS quanto do seu banco e dados antes de realizar qualquer migração.
@@ -24,7 +26,7 @@ Ao ativar a nova versão, todas as configurações globais do módulo serão aut
 
 ![](../assets/img/nfeio-whmcs-docs-atualizacao-02.png)
 
-As configurações migradas automaticamente da versão anterior são:
+As configurações migradas automaticamente da versão anterior serão:
 
 * API Key
 * ID da Empresa
@@ -103,4 +105,4 @@ Veja a lista a seguir das tabelas do banco de dados usadas pela versão anterior
 * `mod_nfeio_custom_configs`: contém todos os registros das configurações personalizadas de emissão de notas para os clientes.
 * `tblproductcode`: possui todos os registros de códigos de serviços personalizados associados aos produtos/serviços.
 
-> `tblproductcode` possui um nome muito similar as tabelas padrões do WHMCS, mas ela é uma tabela personalizada e nenhum componente ou função do nativas do WHMCS dependem dela.
+> `tblproductcode` possui um nome muito similar as tabelas padrões do WHMCS, mas ela é uma tabela personalizada e nenhum componente ou função nativas do WHMCS dependem dela.
