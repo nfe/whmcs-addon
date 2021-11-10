@@ -26,18 +26,20 @@ Os requisitos a seguir são necessários para o funcionamento adequado do módul
 
 O módulo irá requerer os seguintes campos personalizados para o cliente:
 
-1. CPF/CNPJ (obrigatório)
-2. Inscrição Municipal (opcional)
+| Campo | Criação | Preenchimento |
+| :---: | :---: | :---: |
+| CPF/CNPJ | Obrigatória | Obrigatório |
+| Inscrição Municipal | Obrigatória | Opcional |
 
 Na administração do WHMCS, crie um campo personalizado de cliente para registrar o CPF/CNPJ necessário para a emissão da NFSe e outro para a Inscrição Municipal.
 
 **Caso já exista** um campo personalizado de cliente configurado e utilizado para registrar o número do documento (CPF/CNPJ), **não será necessário criar outro**. 
 
-O campo `Inscrição Estadual` é opcional, mas recomendado para emissão de notas para pessoa jurídica.
+O campo `Inscrição Estadual` é de criação obrigatória, mas de preenchimento opcional pelo cliente, necessário para emissão de notas para pessoa jurídica.
 
 > **Atenção:** O módulo identificará automaticamente se o número de documento informado no campo personalizado se trata de CPF ou CNPJ e emitirá a nota em conformidade com o tipo de pessoa (física ou jurídica).
 
-> **Dica:** se desejar, é possível utilizar campos personalizados distintos para CPF e CNPJ. 
+> **Dica:** é possível utilizar campos personalizados diferentes para preenchimento de CPF e CNPJ. 
 
 ## Instalação
 
@@ -142,4 +144,4 @@ Escolha os grupos de administradores ou  operadores que terão para acessar o m�
 > **dics:** informe todos os grupos de operadores que precisem acessar e operar o módulo. 
 
 
-Após realizar a instalação e configuração inicial, siga para as configurações detalhadas do módulo em https://nfe.github.io/whmcs-addon/docs/configuracao
+Após realizar a instalação e configuração inicial, siga para as configurações detalhadas do módulo em [https://nfe.github.io/whmcs-addon/docs/configuracao](https://nfe.github.io/whmcs-addon/docs/instalacao/)
