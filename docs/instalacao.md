@@ -138,3 +138,6 @@ Marque essa opção para salvar informações de diagnóstico no Log de Módulo 
 Escolha os grupos de administradores ou  operadores que terão para acessar o módulo.
 
 > **dics:** informe todos os grupos de operadores que precisem acessar e operar o módulo. 
+
+
+Após realizar a instalação e configuração inicial, siga para as configurações detalhadas do módulo em https://nfe.github.io/whmcs-addon/docs/configuracao
