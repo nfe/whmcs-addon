@@ -1,5 +1,6 @@
 ---
 slug: atualizacao
+permalink: /docs/atualizacao/
 title: Atualização
 layout: page
 ---

@@ -1,7 +1,7 @@
 ---
 slug: instalacao
 permalink: /docs/instalacao/
-title: Instalação do Módulo
+title: Instalação
 layout: page
 ---
 
