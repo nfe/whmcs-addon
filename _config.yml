@@ -1,5 +1,9 @@
 theme: minima
+description: Automatize a emissão de nota fiscal eletrônica de serviço diretamente em seu WHMCS através do Módulo Nota Fiscal para WHMCS via NFE.io.
 header_pages:
   - docs/instalacao.md
   - docs/atualizacao.md
   - docs/configuracao.md
+  - faq.md
+author:
+  name: NFE.io

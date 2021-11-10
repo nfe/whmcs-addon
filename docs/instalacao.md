@@ -1,5 +1,7 @@
 ---
 slug: instalacao
+permalink: /docs/instalacao/
+title: Instalação do Módulo
 layout: page
 ---
 
