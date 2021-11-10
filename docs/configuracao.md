@@ -9,7 +9,41 @@ Este documento irá mostrar como configurar com sucesso o [Módulo Nota Fiscal p
 
 ## Configurações do Módulo
 
-wip
+Após a instalação e configuração inicial do addon como chave de API e código da empresa, é necessário realizar as configurações avançadas e rotinas de emissão das notas fiscais. Para isso acesse `Addons -> NFE.io NFSe -> Configurações`.
+
+![](../assets/img/nfeio-whmcs-docs-configuracao-05.png)
+
+As configurações disponíveis estão descritas a seguir.
+
+### API KEY
+
+### ID da Empresa
+
+### Código de Serviço Principal
+
+### RPS
+
+### Disparar e-mail com a nota
+
+### Quando emitir NFE
+
+### Agendar Emissão
+
+### Cancelar NFE Quando Cancelar Fatura
+
+### Inscrição Municipal
+
+### Campo Personalizado CPF
+
+### Campo Personalizado CNPJ
+
+### Aplicar Impostos em todos os produtos
+
+### Descrição da NFSe
+
+### Exibir Link da Fatura na NFSe
+
+### Descrição Adicional
 
 ## Configurações dos Produtos/Serviços
 
