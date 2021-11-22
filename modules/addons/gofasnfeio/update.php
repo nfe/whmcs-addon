@@ -70,26 +70,90 @@ if (!function_exists('gnfe_verifyInstall')) {
 
 if (!function_exists('create_table_product_code')) {
     function create_table_product_code() {
+        //$actualVersion = Capsule::table('tbladdonmodules')->where([['module', 'gofasnfeio'], ['setting', 'version']])->value('value');
+
         if (Capsule::schema()->hasTable('tblproductcode')) {
-            return '';
-        }
+            // issue #99
+            // v1.4.5
+            //coleta a descrição da tabela para saber o tipo de suas colunas
+            $tableDescription = Capsule::select('describe tblproductcode');
+            // filtra apenas a coluna desejada
+            $serviceCodeColumn = array_filter($tableDescription, function ($var) {
+                return($var->Field == 'code_service');
+            });
+            $serviceCodeColumnType = false;
+            $serviceCodeColumnIsInt = false;
+            // se $serviceCodeColumn for um array faz a magica
+            if (is_array($serviceCodeColumn)) {
+                // percorre o resultado do filtro e retorna apenas o tipo da coluna desejada
+                foreach ($serviceCodeColumn as $column) {
+                    if ($column->Field === 'code_service') {
+                        $serviceCodeColumnType = $column->Type;
+                    }
+                }
+                // verifica se coluna é do tipo int
+                $serviceCodeColumnIsInt = preg_match_all('/^int/', $serviceCodeColumnType);
+            }
+            // se a coluna existir e for do tipo int, migra para o novo tipo
+            if ($serviceCodeColumnIsInt) {
+                // certifica-se de que não existe a tabela
+                if (!Capsule::schema()->hasTable('tblproductcode_tmp')) {
+                    // renomeia a tabela atual
+                    Capsule::schema()->rename('tblproductcode', 'tblproductcode_tmp');
+                }
 
-        $pdo = Capsule::connection()->getPdo();
-        $pdo->beginTransaction();
-
-        try {
-            $statement = $pdo->prepare('CREATE TABLE tblproductcode (
+                // recria a tabela
+                try {
+                    $pdo = Capsule::connection()->getPdo();
+                    $pdo->beginTransaction();
+                    $statement = $pdo->prepare('CREATE TABLE tblproductcode (
                     id int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
                     product_id int(10) NOT NULL,
-                    code_service int(10) NOT NULL,
+                    code_service varchar(20) NOT NULL,
                     create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     update_at TIMESTAMP NULL,
                     ID_user int(10) NOT NULL)');
-            $statement->execute();
-            $pdo->commit();
-        } catch (\Exception $e) {
-            $pdo->rollBack();
+                    $statement->execute();
+                    $pdo->commit();
+                } catch (\Exception $e) {
+                    $pdo->rollBack();
+                }
+
+                // copia os dados da tabela transitória
+                try {
+                    $pdo = Capsule::connection()->getPdo();
+                    $pdo->beginTransaction();
+                    $serviceCodeStatement = $pdo->prepare('INSERT INTO tblproductcode 
+                    (product_id, code_service, create_at, update_at, ID_user) 
+                    SELECT product_id, code_service, create_at, update_at, ID_user FROM tblproductcode_tmp');
+                    $serviceCodeStatement->execute();
+                    $pdo->commit();
+                } catch (\Exception $e) {
+                    $pdo->rollBack();
+                    //echo $e->getMessage();
+                }
+
+            }
+        } else {
+
+            $pdo = Capsule::connection()->getPdo();
+            $pdo->beginTransaction();
+
+            try {
+                $statement = $pdo->prepare('CREATE TABLE tblproductcode (
+                    id int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    product_id int(10) NOT NULL,
+                    code_service varchar(20) NOT NULL,
+                    create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    update_at TIMESTAMP NULL,
+                    ID_user int(10) NOT NULL)');
+                $statement->execute();
+                $pdo->commit();
+            } catch (\Exception $e) {
+                $pdo->rollBack();
+            }
         }
+
     }
 }
 //===================================================================================
