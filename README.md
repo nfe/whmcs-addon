@@ -30,18 +30,42 @@ Automatize a emissão de nota fiscal eletrônica de serviço diretamente em seu 
 * [x] seleciona nas configurações do módulo a opção de enviar a nota fiscal por e-mail automaticamente.
 * [x] valida CPF/CNPJ do cliente e não emite a nota fiscal caso inválido
 
-## Como usar este Módulo
+## Antes de começar
+
+Antes de realizar a instalação do módulo, leia com atenção as informações a seguir, elas são importantes para que todo o processo de instalação possa ocorrer sem problemas.
+
+### Campos Personalizados
+
+O módulo irá requerer os seguintes campos personalizados para o cliente:
+
+| Campo | Criação | Preenchimento |
+| :---: | :---: | :---: |
+| CPF/CNPJ | Obrigatória | Obrigatório |
+| Inscrição Municipal | Obrigatória | Opcional |
+
+Na administração do WHMCS, crie um campo personalizado de cliente para registrar o CPF/CNPJ necessário para a emissão da NFSe e outro para a Inscrição Municipal.
+
+**Caso já exista** um campo personalizado de cliente configurado e utilizado para registrar o número do documento (CPF/CNPJ), **não será necessário criar outro**.
+
+O campo `Inscrição Estadual` é de criação obrigatória, mas de preenchimento opcional pelo cliente, necessário para emissão de notas para pessoa jurídica.
+
+> **Atenção:** O módulo identificará automaticamente se o número de documento informado no campo personalizado se trata de CPF ou CNPJ e emitirá a nota em conformidade com o tipo de pessoa (física ou jurídica).
+
+> **Dica:** é possível utilizar campos personalizados diferentes para preenchimento de CPF e CNPJ.
 
 ### Requisitos
 
-- WHMCS versão 7.2 ou superior
-- PHP 5.6 ou superior
-- Tarefas cron do WHMCS devem estar funcionando a cada 5 minutos, conforme descrito na documentação oficial (https://docs.whmcs.com/Crons);
-- É necessário um portal de pagamento ativado e que a criação de faturas do WHMCS esteja funcional, sendo que as notas fiscais são emitidas no momento da criação ou após o pagamento das faturas geradas manual ou automaticamente pelo WHMCS.
+Os requisitos a seguir são necessários para o funcionamento adequado do módulo e integração.
 
-### Documentação
+1. WHMCS versão 7.2 ou superior;
+2. PHP 5.6 ou superior;
+3. Chave de API da NFE.io;
+4. Automação do WHMCS devidamente configurada ([https://docs.whmcs.com/Automation_Settings](https://docs.whmcs.com/Automation_Settings));
+5. Tarefas cron do Sistema sendo executadas conforme recomendações do WHMCS [https://docs.whmcs.com/Crons#System_Cron](https://docs.whmcs.com/Crons#System_Cron).
 
-O módulo de emissão de notas fiscais para WHMCS via [NFE.io][nfeio] é simples de instalar como qualquer módulo adicional e possui uma documentação bem organizada para auxiliar o processo de instalação e configuração para você começar a emitir notas fiscais automaticamente em seu WHMCS!
+## Instalação
+
+Este documento irá mostrar como instalar com sucesso o [Módulo Nota Fiscal para WHMCS via NFE.io](https://github.com/nfe/whmcs-addon). Ela irá guiar passo a passo por todo o processo de instalação.
 
 * [Instalação][manual-instalacao]
 * [Configuração][manual-configuracao]
