@@ -63,10 +63,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     {
         return Capsule::table($this->tableName)
             ->leftJoin('tblclients', "{$this->tableName}.user_id", '=', 'tblclients.id')
-            ->orderByDesc("{$this->tableName}.id")
+            ->orderBy("{$this->tableName}.id", 'desc')
             ->select("{$this->tableName}.*", 'tblclients.firstname', 'tblclients.lastname', 'tblclients.companyname')
-            ->get()
-            ->toArray();
+            ->get();
     }
 
     /**

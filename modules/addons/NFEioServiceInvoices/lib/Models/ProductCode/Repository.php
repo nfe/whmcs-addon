@@ -2,7 +2,7 @@
 
 namespace NFEioServiceInvoices\Models\ProductCode;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
+use WHMCS\Database\Capsule;
 
 /**
  * Classe responsável pela definição do modelo de dados
@@ -45,10 +45,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     {
         return Capsule::table('tblproducts')
             ->leftJoin($this->tableName, 'tblproducts.id', '=', $this->tableName.'.product_id')
-            ->orderByDesc('tblproducts.id')
+            ->orderBy('tblproducts.id', 'desc')
             ->select('tblproducts.id', 'tblproducts.name', $this->tableName.'.code_service')
-            ->get()
-            ->toArray();
+            ->get();
     }
 
     public function save($data)
@@ -103,7 +102,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             {
                 $table->increments('id');
                 $table->integer('product_id');
-                $table->integer('code_service');
+                $table->string('code_service', 10);
                 $table->timestamp('create_at');
                 $table->timestamp('update_at');
                 $table->integer('ID_user');
