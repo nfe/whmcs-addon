@@ -1,3 +1,4 @@
+# Módulo Nota Fiscal para WHMCS via NFE.io
 
 > Automatize a emissão de notas fiscais no WHMCS com a [NFE.io][nfeio]!
 
@@ -65,11 +66,105 @@ Os requisitos a seguir são necessários para o funcionamento adequado do módul
 
 ## Instalação
 
-Este documento irá mostrar como instalar com sucesso o [Módulo Nota Fiscal para WHMCS via NFE.io](https://github.com/nfe/whmcs-addon). Ela irá guiar passo a passo por todo o processo de instalação.
+Para instalar o módulo no WHMCS realize os seguintes passos.
 
-* [Instalação][manual-instalacao]
-* [Configuração][manual-configuracao]
-* [Atualização][manual-atualizacao] (v1.4 para 2.0)
+### Baixar o módulo
+
+Faça o download arquivo zip da última versão módulo neste link [https://github.com/nfe/whmcs-addon/releases/latest](https://github.com/nfe/whmcs-addon/releases/latest)
+
+### Descompactar o zip
+
+Descompacte o zip baixado, o conteúdo do diretório extraído deve ser semelhante a este:
+
+* modules
+    * addons
+        * NFEioServiceInvoices
+
+![](https://nfe.github.io/whmcs-addon/assets/img/nfeio-whmcs-docs-instalacao-01.png)
+
+### Enviar arquivos para o WHMCS
+
+Carregue o diretório `modules` existente no arquivo descompactado para o diretório de instalação do seu WHMCS.
+
+Por exemplo, tendo o WHMCS instalado em `public_html`, carregue o diretório `modules` em `public_html`.
+
+![](https://nfe.github.io/whmcs-addon/assets/img/nfeio-whmcs-docs-instalacao-02.png)
+
+> **Dica:** O arquivo descompactado já está na estrutura associada aos módulos addon do WHMCS `modules/addons`. Ao carregar o diretório `modules` você automaticamente carregará o diretório do módulo `modules/addons/NFEioServiceInvoices`.
+
+### Ativar o módulo addon
+
+Após realizar o carregamento dos arquivos do módulo, ele está disponível para ativação e configuração no WHMCS.
+
+Veja a seguir os passos para ativação do módulo no WHMCS 8 e WHMCS 7.
+
+#### WHMCS 8.X
+
+Para ativar o módulo adicional no WHMCS versão 8.x vá até o ícone de chave no canto superior direito e clique em `Opções`.
+
+![](https://nfe.github.io/whmcs-addon/assets/img/nfeio-whmcs-docs-instalacao-03.png)
+
+O campo de busca em `Opções` digite `addon` e acesse a opção `Módulos Addon`.
+
+![](https://nfe.github.io/whmcs-addon/assets/img/nfeio-whmcs-docs-instalacao-04.png)
+
+Localize o módulo addon **NFE.io NFSe** e clique no botão `Ativar`.
+
+![](https://nfe.github.io/whmcs-addon/assets/img/nfeio-whmcs-docs-instalacao-05.png)
+
+#### WHMCS 7.X
+
+Para ativar o módulo adicional no WHMCS versão 7.x acesse o menu `Opções -> Módulos Addons`.
+
+![](https://nfe.github.io/whmcs-addon/assets/img/nfeio-whmcs-docs-instalacao-06.png)
+
+Localize o módulo addon **NFE.io NFSe** e clique no botão `Ativar`.
+
+![](https://nfe.github.io/whmcs-addon/assets/img/nfeio-whmcs-docs-instalacao-05.png)
+
+## Configuração do addon
+
+Após ativar o [Módulo Nota Fiscal para WHMCS via NFE.io](https://github.com/nfe/whmcs-addon) as seguintes opções devem ser configuradas.
+
+![](https://nfe.github.io/whmcs-addon/assets/img/nfeio-whmcs-docs-instalacao-07.png)
+
+#### API Key
+
+> campo obrigatório
+
+Chave de acesso privada gerado na sua conta NFE.io, necessária para a autenticação das chamadas à API.
+
+Obtenha uma chave de acesso a API neste link [https://app.nfe.io/account/apikeys](https://app.nfe.io/account/apikeys)
+
+#### ID da Empresa
+
+> campo obrigatório
+
+Informe o ID da empresa ao qual serão associadas as notas fiscais gerados pelo WHMCS.
+
+Obtenha o ID da empresa neste link [https://app.nfe.io/companies/](https://app.nfe.io/account/apikeys)
+
+#### Código do Serviço Principal
+
+> campo obrigatório
+
+Código de serviço que será usado como padrão para geração das notas fiscais pelo WHMCS. Este código irá variar de acordo com a categoria de tributação do negócio no município.
+
+Saiba mais sobre o código de serviço neste link [https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/#o-que-e-codigo-de-servico](https://app.nfe.io/account/apikeys)
+
+#### Ambiente de desenvolvimento
+
+Emite as notas em modo "depuragem" sem valor real no lado da NFE.io, **ative apenas em caso de necessidade ou homologação**.
+
+#### Debug
+
+Marque essa opção para salvar informações de diagnóstico no Log de Módulo do WHMCS, **ative apenas em caso de necessidade**.
+
+#### Controle de Acesso
+
+Escolha os grupos de administradores ou  operadores que terão para acessar o módulo.
+
+> **dica:** informe todos os grupos de operadores que precisem acessar e operar o módulo.
 
 
 [nfeio]: https://nfe.io/
