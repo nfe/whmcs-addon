@@ -119,7 +119,6 @@ class Controller {
         $vars['assetsURL'] = $assetsURL;
         $moduleLink = $vars['modulelink'];
         $action = 'configuration';
-        //$moduleConfigurationRepo = new \NFEioServiceInvoices\Models\ModuleConfiguration\Repository();
         $config = new \NFEioServiceInvoices\Configuration();
         $storage = new \WHMCSExpert\Addon\Storage($config->getStorageKey());
         $post = isset($_POST) ? $_POST : null;
