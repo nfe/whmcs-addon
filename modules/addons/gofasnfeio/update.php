@@ -70,25 +70,22 @@ if (!function_exists('gnfe_verifyInstall')) {
 
 if (!function_exists('create_table_product_code')) {
     function create_table_product_code() {
-        if (Capsule::schema()->hasTable('tblproductcode')) {
-            return '';
-        }
-
-        $pdo = Capsule::connection()->getPdo();
-        $pdo->beginTransaction();
-
-        try {
-            $statement = $pdo->prepare('CREATE TABLE tblproductcode (
+        if (!Capsule::schema()->hasTable('tblproductcode')) {
+            $pdo = Capsule::connection()->getPdo();
+            $pdo->beginTransaction();
+            try {
+                $statement = $pdo->prepare('CREATE TABLE tblproductcode (
                     id int(10) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
                     product_id int(10) NOT NULL,
-                    code_service int(10) NOT NULL,
+                    code_service varchar(20) NOT NULL,
                     create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     update_at TIMESTAMP NULL,
                     ID_user int(10) NOT NULL)');
-            $statement->execute();
-            $pdo->commit();
-        } catch (\Exception $e) {
-            $pdo->rollBack();
+                $statement->execute();
+                $pdo->commit();
+            } catch (\Exception $e) {
+                $pdo->rollBack();
+            }
         }
     }
 }
