@@ -8,6 +8,7 @@ use WHMCS\Database\Capsule;
 
 $params = gnfe_config();
 
+// condição que se certifica da existência de configuração para emissão de NF X dias após pgto da fatura
 if (isset($params['issue_note_after']) && (int)$params['issue_note_after'] > 0) {
 
     $todayDate = date("Y-m-d");
@@ -16,6 +17,7 @@ if (isset($params['issue_note_after']) && (int)$params['issue_note_after'] > 0) 
     // instancia o dia atual
     $invoicesPaidOnDay = date_create($todayDate);
     // subtrai a quantidade de dias com base no dia atual para chegar no dia que deverá ser verificado
+    // a ocorrência do pagamento. Ex.: pega todas as faturas pagas no dia 06/12/2021.
     date_sub($invoicesPaidOnDay, new DateInterval("P{$issueNoteAfterDays}D"));
 
     // seleciona todas as faturas que tenham sido pagas no dia calculado em $invoicesPaidOnDay
@@ -31,7 +33,8 @@ if (isset($params['issue_note_after']) && (int)$params['issue_note_after'] > 0) 
         }
     }
 
-    // seleciona todas as possiveis NF já geradas para as faturas encontradas
+    // seleciona todas as possiveis NF já geradas para as faturas encontradas. Isso evita gerar NF em duplicidade
+    // caso já existam notas emitidas.
     $alreadyGenerateNFData = [];
     $queryNfs = Capsule::table('gofasnfeio')->whereIn('invoice_id', $invoicesToGenerateID)->select('invoice_id')->get();
     if (count($queryNfs) > 0) {
@@ -59,7 +62,7 @@ if (isset($params['issue_note_after']) && (int)$params['issue_note_after'] > 0) 
     if (count($invoicesIdToGenerateNF) > 0) {
         foreach ($invoicesIdToGenerateNF as $invoice) {
             $queue = gnfe_queue_nfe($invoice);
-            logModuleCall('nfeio', 'dailycronjob emissão de notas', $invoice, $queue);
+            logModuleCall('nfeio', 'daily cronjob queue de notas na fila', $invoice, $queue);
 
         }
     }
