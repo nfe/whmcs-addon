@@ -15,10 +15,10 @@ if (Capsule::table('tbladdonmodules')->where('setting', '=', 'last_cron')->count
     Capsule::table('tbladdonmodules')->where('setting', '=', 'last_cron')->update(['value' => $dataAtual]);
 }
 
-$hasNfWaiting = Capsule::table('gofasnfeio')->where('status', '=', 'Waiting')->count();
+$hasNfWaiting = Capsule::table('gofasnfeio')->whereBetween('created_at', [$params['initial_date'], $dataAtual])->where('status', '=', 'Waiting')->count();
 
 if ($hasNfWaiting) {
-    $queryNf = Capsule::table('gofasnfeio')->orderBy('id', 'desc')->where('status', '=', 'Waiting')->get(['id', 'invoice_id', 'services_amount']);
+    $queryNf = Capsule::table('gofasnfeio')->orderBy('id', 'desc')->whereBetween('created_at', [$params['initial_date'], $dataAtual])->where('status', '=', 'Waiting')->get(['id', 'invoice_id', 'services_amount']);
     foreach ($queryNf as $waiting) {
 
         $getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
