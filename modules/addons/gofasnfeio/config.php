@@ -41,7 +41,7 @@ if (!function_exists('gofasnfeio_config')) {
         // --------------------------------------------------------------------------------------------
 
         // Versão do módulo deste arquivo.
-        $module_version = '1.4.5';
+        $module_version = '1.4.6';
         $module_version_int = (int) preg_replace('/[^0-9]/', '', $module_version);
 
         // Versão do módulo que consta no banco de dados.
