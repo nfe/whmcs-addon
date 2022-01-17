@@ -1,4 +1,8 @@
-## 2.0
+## 2.0.1
+
+* Refatoração do processo de emissão de notas automaticamente conforme a questão #103
+
+## 2.0.0
 
 ### Rebrand do Módulo
 
