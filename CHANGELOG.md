@@ -1,3 +1,8 @@
+## [2.0.2] - 2021-01-27
+### Corrigido
+- Corrige a exibição do dropdown "Emitir nota fiscal quando" #107
+- Corrige o erro quando o administrador tenta salvar uma edição do perfil do cliente, consequência da ausência do dropdown "Emitir nota fiscal quando" #106
+
 ## 2.0.1
 
 * Refatoração do processo de emissão de notas automaticamente conforme a questão #103
