@@ -285,19 +285,20 @@ class Hooks
     function customclientissueinvoice($vars)
     {
         $_table = $this->clientConfigurationRepo->tableName();
+        $result = [];
 
         try {
             if (Capsule::schema()->hasTable($_table)) {
-                return ['Emitir nota fiscal quando' => $this->functions->gnfe_show_issue_invoice_conds($vars['userid'])];
+                $result =  ['Emitir nota fiscal quando' => $this->functions->gnfe_show_issue_invoice_conds($vars['userid'])];
             } else {
-                return [
-                    'Módulo NFE.io' => 'Não existem opções'
-                ];
+                $result =  ['Módulo NFE.io' => 'Não existem opções'];
             }
 
         } catch (\Exception $exception) {
             echo $exception->getMessage();
         }
+
+        return $result;
 
 
     }
