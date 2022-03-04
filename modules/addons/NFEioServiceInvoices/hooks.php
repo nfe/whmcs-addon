@@ -24,9 +24,8 @@ require_once __DIR__ . DS . 'Loader.php';
 
 
 add_hook('InvoiceCreation', 1, function ($vars) {
-    $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
-    $legacyHooks->dailycronjob();
-    $legacyHooks->invoicecreation($vars);
+    $hook = new \NFEioServiceInvoices\Hooks\InvoiceCreated($vars);
+    $hook->createTaxBill();
 });
 
 add_hook('InvoicePaid', 1, function ($vars) {

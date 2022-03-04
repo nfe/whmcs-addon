@@ -64,4 +64,24 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
     }
 
+    public function getClientIssueCondition($clientId)
+    {
+        $issueCondition = null;
+
+            $value = Capsule::table($this->tableName)
+                ->where('client_id', $clientId)
+                ->where('key', 'issue_nfe_cond')
+                ->value('value');
+
+            $value = strtolower($value);
+
+            if ($value !== null & $value !== 'seguir configuração do módulo nfe.io') {
+                $issueCondition = $value;
+            } else {
+                $issueCondition = 'seguir configuração do módulo nfe.io';
+            }
+
+        return $issueCondition;
+    }
+
 }
