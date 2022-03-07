@@ -63,7 +63,13 @@ add_hook('AdminClientProfileTabFields', 1, function($vars) {
     return $legacyHooks->customclientissueinvoice($vars);
 });
 
-add_hook('AdminInvoicesControlsOutput', 1, function ($vars) {
+/*add_hook('AdminInvoicesControlsOutput', 1, function ($vars) {
     $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
     $legacyHooks->admininvoicescontrolsoutput($vars);
+});*/
+
+add_hook('AdminInvoicesControlsOutput', 1, function ($vars) {
+    $hook = new \NFEioServiceInvoices\Hooks\AdminInvoicesControlsOutput($vars);
+    $hook->run();
+
 });

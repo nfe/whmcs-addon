@@ -19,7 +19,16 @@
     <span class="label label-default">{$data}</span>
   {/if}
 {/function}
-
+{function name=disableButtonAction}
+  {if $data == 'Cancelled' OR $data == 'Error' OR $data == 'IssueFailed'}
+    disabled="true"
+  {/if}
+{/function}
+{function name=disableGenerateButtonAction}
+  {if $data == 'Cancelled' OR $data == 'Issued' OR $data == 'Waiting'}
+    disabled="true"
+  {/if}
+{/function}
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs/dt-1.11.3/af-2.3.7/b-2.0.1/fh-3.2.0/datatables.min.css"/>
 <script type="text/javascript" src="https://cdn.datatables.net/v/bs/dt-1.11.3/af-2.3.7/b-2.0.1/fh-3.2.0/datatables.min.js"></script>
 <div class="row">
@@ -54,12 +63,12 @@
                       </a>
                     </td>
                     <td>R${$nota->services_amount}</td>
-                    <td>{statusLabel data=$nota->flow_status}</td>
+                    <td>{statusLabel data=$nota->status}</td>
                     <td>
-                      <a href="{$modulelink}&action=legacyFunctions&invoice_id={$nota->invoice_id}&gnfe_create=yes" class="btn btn-primary btn-sm" id="gnfe_generate">Emitir NFSe</a>
+                      <a {disableGenerateButtonAction data=$nota->status} href="{$modulelink}&action=legacyFunctions&invoice_id={$nota->invoice_id}&gnfe_create=yes" class="btn btn-primary btn-sm" id="gnfe_generate">Emitir NFSe</a>
                       <a href="https://app.nfe.io/companies/{$company_id}/service-invoices/{$nota->nfe_id}" target="_blank" class="btn btn-success btn-sm" id="gnfe_view">Visualizar</a>
-                      <a href="{$modulelink}&action=legacyFunctions&invoice_id={$nota->invoice_id}&gnfe_cancel={$nota->nfe_id}&services_amount={$nota->services_amount}&environment={$nota->environment}&flow_status={$nota->flow_status}&user_id={$nota->user_id}&created_at={$nota->created_at}" class="btn btn-danger btn-sm" id="gnfe_cancel">Cancelar NFSe</a>
-                      <a href="{$modulelink}&action=legacyFunctions&gnfe_email={$nota->nfe_id}" class="btn btn-info btn-sm" id="gnfe_email">Enviar e-mail</a>
+                      <a {disableButtonAction data=$nota->status} href="{$modulelink}&action=legacyFunctions&invoice_id={$nota->invoice_id}&gnfe_cancel={$nota->nfe_id}&services_amount={$nota->services_amount}&environment={$nota->environment}&flow_status={$nota->flow_status}&user_id={$nota->user_id}&created_at={$nota->created_at}" class="btn btn-danger btn-sm" id="gnfe_cancel">Cancelar NFSe</a>
+                      <a {disableButtonAction data=$nota->status} href="{$modulelink}&action=legacyFunctions&gnfe_email={$nota->nfe_id}" class="btn btn-info btn-sm" id="gnfe_email">Enviar e-mail</a>
                     </td>
                   </tr>
                 {/foreach}

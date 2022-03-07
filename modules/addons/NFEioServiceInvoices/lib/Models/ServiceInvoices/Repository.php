@@ -30,6 +30,25 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'service_code',
         'tics',
     );
+    protected $_limit = 5;
+
+    /**
+     * Define o máximo limite de registros de uma consulta
+     * @param null $limit
+     */
+    public function setLimit($limit)
+    {
+        $this->_limit = $limit;
+    }
+
+    /**
+     * Retorna o máximo limite definido de registros para uma consulta
+     * @return null
+     */
+    public function getLimit()
+    {
+        return $this->_limit;
+    }
 
     function getModelClass()
     {
@@ -108,5 +127,31 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         {
             Capsule::schema()->dropIfExists($this->tableName);
         }
+    }
+
+    /**
+     * Retorna as notas locais existentes para uma determinada fatura
+     * @param $id string ID da Fatura
+     * @return \Illuminate\Support\Collection dados da nota local
+     */
+    public function getServiceInvoicesById($id)
+    {
+        return Capsule::table($this->tableName)
+            ->where('invoice_id', '=', $id)
+            ->orderBy('id', 'desc')
+            ->limit($this->_limit)
+            ->get();
+    }
+
+    /**
+     * Retorna o total de notas locais registradas para uma determinada fatura.
+     * @param $id string ID da fatura
+     * @return int total de registros encontrados
+     */
+    public function getTotalById($id)
+    {
+        return Capsule::table($this->tableName)
+            ->where('invoice_id', '=', $id)
+            ->count();
     }
 }
