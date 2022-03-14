@@ -160,6 +160,16 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             ->count();
     }
 
+    public function hasInvoices($id)
+    {
+        $response = false;
+        $total = self::getTotalById($id);
+
+        if (count($total) > 0) {
+            $response = true;
+        }
+        return $response;
+    }
     /**
      * Atualiza as colunas necessarias para a versão 2.1.0
      * @version 2.1.0

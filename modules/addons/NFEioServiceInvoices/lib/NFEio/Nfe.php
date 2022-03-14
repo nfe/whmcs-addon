@@ -54,16 +54,31 @@ class Nfe
      * @param $invoiceId int|string ID da fatura do WHMCS
      * @return array|bool[] status da inserção na fila
      */
-    public function queue($invoiceId)
+    public function queue($invoiceId, $force = false)
     {
         $invoiceData = \WHMCS\Billing\Invoice::find($invoiceId);
         $invoiceItems = $invoiceData->items()->get();
         $clientData = $invoiceData->client()->get();
         $userId = $clientData[0]['id'];
         $serviceCode = $this->storage->get('service_code');
+        $hasInvoices = $this->serviceInvoicesRepo->hasInvoices($invoiceId);
+
+        // se já houverem notas geradas para esta fatura não faça nada
+        if ($hasInvoices) {
+            logModuleCall('NFEioServiceInvoices', __CLASS__ . '-' . __FUNCTION__, "Fatura: {$invoiceId}", "Já possuí NF gerada.");
+            return [
+              'success' => true,
+              'alreadyHasNf' => true
+            ];
+        }
 
         // percorre cada item da fatura e insere na fila de emissão
         foreach ($invoiceItems as $item) {
+
+            // se o item for juros/mora automática do WHMCS pula a emissão de nota
+            if ($item->type === 'LateFee') {
+                continue;
+            }
 
             try {
                 //
@@ -78,11 +93,12 @@ class Nfe
                  */
                 $uniqueExternalId = 'WHMCS-' . $userId . '-' . $invoiceId . '-' . $item->id;
                 /**
-                 * verifica se já existe um external_id igual
+                 * verifica se existe um external_id igual
                  */
                 $hasExternalId = Capsule::table($this->serviceInvoicesTable)->where('nfe_external_id', '=', $uniqueExternalId)->first();
 
-                if ( is_array($hasExternalId) AND ( isset($hasExternalId['status']) AND $hasExternalId['status'] != 'Cancelled') ) {
+                // se já houver uma nota no banco local com o mesmo external_id pula a emissão de nota
+                if ( is_array($hasExternalId) ) {
                     continue;
                 }
 

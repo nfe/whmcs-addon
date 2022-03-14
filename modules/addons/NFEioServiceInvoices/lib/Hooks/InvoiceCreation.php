@@ -2,13 +2,12 @@
 
 namespace NFEioServiceInvoices\Hooks;
 
-class InvoiceCreated
+class InvoiceCreation
 {
     private $invoiceId;
     private $invoiceStatus;
     private $creationSource;
     private $config;
-    private $legacyFunctions;
 
     public function __construct($vars)
     {
@@ -16,7 +15,6 @@ class InvoiceCreated
         $this->invoiceStatus = $vars['status'] ?: null;
         $this->creationSource = $vars['source'] ?: null;
         $this->config = new \NFEioServiceInvoices\Configuration();
-        $this->legacyFunctions = new \NFEioServiceInvoices\Legacy\Functions();
     }
 
     public function run()
@@ -36,11 +34,25 @@ class InvoiceCreated
             $generateTaxBill = true;
         }
 
-        if ( ($clientIssueCondition === $generateTaxBillWhen OR $moduleIssueCondition === $generateTaxBillWhen) AND $generateTaxBill) {
-            $queue = $nfe->create($this->invoiceId);
-        }
+        $data = [
+            'invoiceID' => $this->invoiceId,
+            'invoiceData' => $invoiceData,
+            'userID' => $userId,
+            'clientIssueCondition' => $clientIssueCondition,
+            'moduleIssueCondition' =>$moduleIssueCondition,
+            'issueNoteAfter' => $issueNoteAfter,
+            'generateTaxBill' => $generateTaxBill,
+            'generateTaxBillWhen' => $generateTaxBillWhen
+        ];
 
-        logModuleCall('NFEioServiceInvoices', "Hook - InvoiceCreated", $invoiceData, $queue);
+        if ($clientIssueCondition == 'seguir configuração do módulo nfe.io' AND $moduleIssueCondition == $generateTaxBillWhen AND $generateTaxBill) {
+            $queue = $nfe->queue($this->invoiceId);
+            logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, $data, $queue);
+        }
+        if ($clientIssueCondition == $generateTaxBillWhen AND $generateTaxBill) {
+            $queue = $nfe->queue($this->invoiceId);
+            logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, $data, $queue);
+        }
 
     }
 }
