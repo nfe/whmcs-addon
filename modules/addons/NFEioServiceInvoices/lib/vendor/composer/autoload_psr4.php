@@ -7,20 +7,8 @@ $baseDir = dirname(dirname(dirname(dirname(dirname($vendorDir)))));
 
 return array(
     'WHMCSExpert\\' => array($vendorDir . '/whmcsexpert/whmcsexpert/src/WHMCSExpert'),
-    'RingCentral\\Psr7\\' => array($vendorDir . '/ringcentral/psr7/src'),
-    'React\\Stream\\' => array($vendorDir . '/react/stream/src'),
-    'React\\Socket\\' => array($vendorDir . '/react/socket/src'),
-    'React\\Promise\\Timer\\' => array($vendorDir . '/react/promise-timer/src'),
-    'React\\Promise\\Stream\\' => array($vendorDir . '/react/promise-stream/src'),
-    'React\\Promise\\' => array($vendorDir . '/react/promise/src'),
-    'React\\Http\\' => array($vendorDir . '/react/http/src'),
-    'React\\EventLoop\\' => array($vendorDir . '/react/event-loop/src'),
-    'React\\Dns\\' => array($vendorDir . '/react/dns/src'),
-    'React\\Cache\\' => array($vendorDir . '/react/cache/src'),
     'Psr\\Http\\Message\\' => array($vendorDir . '/psr/http-message/src'),
     'Plasticbrain\\FlashMessages\\' => array($vendorDir . '/plasticbrain/php-flash-messages/src'),
     'NFEioServiceInvoices\\' => array($baseDir . '/modules/addons/NFEioServiceInvoices/lib'),
-    'Http\\Message\\' => array($vendorDir . '/php-http/message-factory/src', $vendorDir . '/php-http/message/src'),
     'GuzzleHttp\\Psr7\\' => array($vendorDir . '/guzzlehttp/psr7/src'),
-    'Clue\\StreamFilter\\' => array($vendorDir . '/clue/stream-filter/src'),
 );
