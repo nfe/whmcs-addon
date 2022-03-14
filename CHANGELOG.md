@@ -1,4 +1,16 @@
-## [2.0.2] - 2021-01-27
+## 2.1.0-beta - 2022-03-14
+
+### Novo recurso
+
+- Agora ao criar uma nota é gerado um identificador externo único para evitar a criação de NF em duplicidade (#110).
+
+### Corrigido
+
+- Corrigido lógica de emissão para gerar notas distintas para cada item de uma fatura, manual e automático (#108).
+- Corrigido problema no WHMCS 8.2 que somente a nota da primeira fatura era gerada quando executado a cron (#108).
+- Corrigido layout dos itens do módulo ao acessar uma fatura pelo admin do WHMCS (#109).
+
+## 2.0.2 - 2021-01-27
 ### Corrigido
 - Corrige a exibição do dropdown "Emitir nota fiscal quando" #107
 - Corrige o erro quando o administrador tenta salvar uma edição do perfil do cliente, consequência da ausência do dropdown "Emitir nota fiscal quando" #106
