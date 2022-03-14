@@ -231,5 +231,19 @@ class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
     }
 
 
+    public static function upgrade($vars)
+    {
+        try {
+            self::I(true)->configuration()->upgrade($vars);
+            return array(
+                'status' => 'success'
+            );
+        } catch (\Exception $ex) {
+            return array(
+                'status'        => 'error'
+            ,'description'  => $ex->getMessage()
+            );
+        }
+    }
 
 }

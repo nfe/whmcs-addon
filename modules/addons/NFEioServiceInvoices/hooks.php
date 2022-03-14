@@ -24,13 +24,13 @@ require_once __DIR__ . DS . 'Loader.php';
 
 
 add_hook('InvoiceCreation', 1, function ($vars) {
-    $hook = new \NFEioServiceInvoices\Hooks\InvoiceCreated($vars);
-    $hook->createTaxBill();
+    $hook = new \NFEioServiceInvoices\Hooks\InvoiceCreation($vars);
+    $hook->run();
 });
 
 add_hook('InvoicePaid', 1, function ($vars) {
-    $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
-    $legacyHooks->invoicepaid($vars);
+    $hook = new \NFEioServiceInvoices\Hooks\InvoicePaid($vars);
+    $hook->run();
 });
 
 add_hook('InvoiceCancelled', 1, function ($vars) {
@@ -39,13 +39,13 @@ add_hook('InvoiceCancelled', 1, function ($vars) {
 });
 
 add_hook('DailyCronJob', 1, function ($vars) {
-    $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
-    $legacyHooks->dailycronjob();
+    $hook = new \NFEioServiceInvoices\Hooks\DailyCronJob();
+    $hook->run();
 });
 
 add_hook('AfterCronJob', 1, function ($vars) {
-    $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
-    $legacyHooks->aftercronjob();
+    $hook = new \NFEioServiceInvoices\Hooks\AfterCronJob();
+    $hook->run();
 });
 
 add_hook('ProductDelete', 1, function ($vars) {
@@ -62,11 +62,6 @@ add_hook('AdminClientProfileTabFields', 1, function($vars) {
     $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
     return $legacyHooks->customclientissueinvoice($vars);
 });
-
-/*add_hook('AdminInvoicesControlsOutput', 1, function ($vars) {
-    $legacyHooks = new \NFEioServiceInvoices\Legacy\Hooks();
-    $legacyHooks->admininvoicescontrolsoutput($vars);
-});*/
 
 add_hook('AdminInvoicesControlsOutput', 1, function ($vars) {
     $hook = new \NFEioServiceInvoices\Hooks\AdminInvoicesControlsOutput($vars);

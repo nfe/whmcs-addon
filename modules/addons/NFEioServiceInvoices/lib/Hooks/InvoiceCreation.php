@@ -19,8 +19,9 @@ class InvoiceCreated
         $this->legacyFunctions = new \NFEioServiceInvoices\Legacy\Functions();
     }
 
-    public function createTaxBill()
+    public function run()
     {
+        $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
         $storage = new \WHMCSExpert\Addon\Storage($this->config->getStorageKey());
         $invoiceData = localAPI('GetInvoice', array('invoiceid' => $this->invoiceId));
         $userId = $invoiceData['userid'];
@@ -36,10 +37,10 @@ class InvoiceCreated
         }
 
         if ( ($clientIssueCondition === $generateTaxBillWhen OR $moduleIssueCondition === $generateTaxBillWhen) AND $generateTaxBill) {
-            $queue = $this->legacyFunctions->gnfe_queue_nfe($this->invoiceId, true);
+            $queue = $nfe->create($this->invoiceId);
         }
 
-        logModuleCall('NFEioServiceInvoices', __FUNCTION__, $invoiceData, $queue);
+        logModuleCall('NFEioServiceInvoices', "Hook - InvoiceCreated", $invoiceData, $queue);
 
     }
 }

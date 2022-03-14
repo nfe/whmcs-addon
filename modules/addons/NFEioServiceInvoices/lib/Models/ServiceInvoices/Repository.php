@@ -5,9 +5,10 @@ namespace NFEioServiceInvoices\Models\ServiceInvoices;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 
+
 /**
- * Classe responsável pela definição do modelo de dados
- * da tabela mod_nfeio_si_serviceinvoices
+ * Classe responsável pela definição do modelo de dados e operações
+ * na tabela mod_nfeio_si_serviceinvoices
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
@@ -17,8 +18,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'invoice_id',
         'user_id',
         'nfe_id',
+        'nfeio_external_id',
         'status',
         'services_amount',
+        'description',
         'environment',
         'issue_note_conditions',
         'flow_status',
@@ -76,7 +79,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     /**
      * Realiza um join entre produtos e códigos personalizados de serviços
      * e estrutura os dados para a dataTable
-     * @return array
+     *
      */
     public function dataTable()
     {
@@ -102,8 +105,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 $table->string('invoice_id');
                 $table->string('user_id');
                 $table->string('nfe_id');
+                $table->string('nfe_external_id');
                 $table->string('status');
                 $table->decimal('services_amount',$precision = 16,$scale = 2);
+                $table->text('nfe_description');
                 $table->string('environment');
                 $table->string('issue_note_conditions');
                 $table->string('flow_status');
@@ -153,5 +158,29 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return Capsule::table($this->tableName)
             ->where('invoice_id', '=', $id)
             ->count();
+    }
+
+    /**
+     * Atualiza as colunas necessarias para a versão 2.1.0
+     * @version 2.1.0
+     * @return void
+     */
+    public function upgrade_to_2_1_0()
+    {
+        // verifica se a tabela existe antes de qualquer procedimento
+        if (Capsule::schema()->hasTable($this->tableName)) {
+            // adiciona nova columa nfe_external_id
+            if (!Capsule::schema()->hasColumn($this->tableName, 'nfe_external_id')) {
+                Capsule::schema()->table($this->tableName, function ($table) {
+                    $table->string('nfe_external_id')->after('nfe_id')->nullable();
+                });
+            }
+            // adiciona nova coluna nfe_description
+            if (!Capsule::schema()->hasColumn($this->tableName, 'nfe_description')) {
+                Capsule::schema()->table($this->tableName, function ($table) {
+                   $table->text('nfe_description')->after('services_amount')->nullable();
+                });
+            }
+        }
     }
 }

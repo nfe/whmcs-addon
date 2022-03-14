@@ -109,4 +109,15 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             });
         }
     }
+
+    /**
+     * Retorna o código de serviço personalizado para um produto de acordo com o relid de um serviço.
+     * @param $relId int o relid de um serviço (packageid)
+     * @return mixed código de serviço se existir ou null
+     */
+    public function getServiceCodeByRelId($relId)
+    {
+        $productId = Capsule::table('tblhosting')->where('id', '=', $relId)->value('packageid');
+        return Capsule::table($this->tableName)->where('product_id', '=', $productId)->value('code_service');
+    }
 }

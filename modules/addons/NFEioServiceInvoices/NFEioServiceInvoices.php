@@ -108,10 +108,10 @@ function NFEioServiceInvoices_deactivate()
  */
 function NFEioServiceInvoices_upgrade($vars)
 {
+    require_once __DIR__.DS.'Loader.php';
+    new NFEioServiceInvoices\Loader();
+    \NFEioServiceInvoices\Addon::upgrade($vars);
 
-  // Nada por aqui no momento.
-    // Função deixada em branco propositadamente. Por favor não a remova.
-    $currentlyInstalledVersion = $vars['version'];
 }
 
 /**

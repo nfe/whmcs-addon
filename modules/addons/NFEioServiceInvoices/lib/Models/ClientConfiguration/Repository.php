@@ -66,7 +66,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     public function getClientIssueCondition($clientId)
     {
-        $issueCondition = null;
+        $issueCondition = 'seguir configuração do módulo nfe.io';
 
             $value = Capsule::table($this->tableName)
                 ->where('client_id', $clientId)
@@ -75,10 +75,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
             $value = strtolower($value);
 
-            if ($value !== null & $value !== 'seguir configuração do módulo nfe.io') {
+            if (!is_null($value) OR $value !== $issueCondition) {
                 $issueCondition = $value;
-            } else {
-                $issueCondition = 'seguir configuração do módulo nfe.io';
             }
 
         return $issueCondition;

@@ -244,7 +244,7 @@ class Controller {
         if ($post['btnSave'] === 'true') {
             $response = $productCodeRepo->save($post);
             if ($response) {
-                $msg->success("Código {$post['service_code']} para {$post['product_name']} atualizado.", "{$vars['modulelink']}&action=servicesCode");
+                $msg->success("{$post['product_name']} atualizado com sucesso.", "{$vars['modulelink']}&action=servicesCode");
             } else {
                 $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=servicesCode");
             }

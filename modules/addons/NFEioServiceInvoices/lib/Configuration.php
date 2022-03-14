@@ -23,7 +23,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
 
     private $encryptHash = '';
 
-    public $version = '2.0.2';
+    public $version = '2.1.0';
 
     public $tablePrefix = 'mod_nfeio_si_';
 
@@ -276,7 +276,12 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
 
     public function upgrade($vars)
     {
-
+        $currentlyInstalledVersion = $vars['version'];
+        // upgrade to 2.1
+        if (version_compare($currentlyInstalledVersion, '2.1.0', 'lt')) {
+            $serviceInvoiceRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+            $serviceInvoiceRepo->upgrade_to_2_1_0();
+        }
     }
 
 }

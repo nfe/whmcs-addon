@@ -42,6 +42,8 @@ class AdminInvoicesControlsOutput
         $totalServiceInvoices = $serviceInvoicesRepo->getTotalById($this->invoiceId);
         $serviceInvoicesQueryLimit = $serviceInvoicesRepo->getLimit();
         $localServiceInvoices = $serviceInvoicesRepo->getServiceInvoicesById($this->invoiceId);
+        $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
+
         $vars = [
             'invoiceId' => $this->invoiceId,
             'invoiceStatus' => \NFEioServiceInvoices\Helpers\Invoices::getInvoiceStatus($this->invoiceId),
@@ -52,11 +54,12 @@ class AdminInvoicesControlsOutput
         ];
 
         if ($request === 'create' && $totalServiceInvoices == 0) {
-            $queue = $legacyFunctions->gnfe_queue_nfe($this->invoiceId, true);
-            if($queue === 'success') {
+            $queue = $nfe->queue($this->invoiceId);
+            //$queue = $legacyFunctions->gnfe_queue_nfe($this->invoiceId, true);
+            if($queue['success']) {
                 $msg->success('Nota adicionada a fila de criação.');
             } else {
-                $msg->error('Problemas ao tentar criar a nota.');
+                $msg->error("Problemas ao tentar criar a nota: {$queue['message']}");
             }
         }
 
