@@ -165,7 +165,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         $response = false;
         $total = self::getTotalById($id);
 
-        if (count($total) > 0) {
+        if ($total > 0) {
             $response = true;
         }
         return $response;

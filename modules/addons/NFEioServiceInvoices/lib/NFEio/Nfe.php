@@ -62,10 +62,11 @@ class Nfe
         $userId = $clientData[0]['id'];
         $serviceCode = $this->storage->get('service_code');
         $hasInvoices = $this->serviceInvoicesRepo->hasInvoices($invoiceId);
+        $totalById = $this->serviceInvoicesRepo->getTotalById($invoiceId);
 
         // se já houverem notas geradas para esta fatura não faça nada
         if ($hasInvoices) {
-            logModuleCall('NFEioServiceInvoices', __CLASS__ . '-' . __FUNCTION__, "Fatura: {$invoiceId}", "Já possuí NF gerada.");
+            logModuleCall('NFEioServiceInvoices', __CLASS__ . '-' . __FUNCTION__, "Fatura: {$invoiceId}", "Já possuí NF gerada: {$hasInvoices} - {$totalById}.");
             return [
               'success' => true,
               'alreadyHasNf' => true

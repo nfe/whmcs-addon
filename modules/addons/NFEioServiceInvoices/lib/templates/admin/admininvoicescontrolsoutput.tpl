@@ -50,7 +50,8 @@
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <thead>
-                    <th class="text-center">NF ID</th>
+                    <th class="text-center">ID</th>
+                    <th class="text-center">ID Externo</th>
                     <th class="text-center">Status</th>
                     <th class="text-center">Gerada Em</th>
                     <th class="text-center">Ações</th>
@@ -58,9 +59,10 @@
                     <tbody>
                     {foreach from=$localServiceInvoices item=nota name=nota}
                         <tr>
-                            <td>{$nota->nfe_id}</td>
-                            <td>{statusLabel data=$nota->status}</td>
-                            <td>{$nota->created_at|date_format:"%d/%m/%Y %H:%M:%S"}</td>
+                            <td class="text-center">{$nota->nfe_id}</td>
+                            <td class="text-center">{$nota->nfe_external_id}</td>
+                            <td class="text-center">{statusLabel data=$nota->status}</td>
+                            <td class="text-center">{$nota->created_at|date_format:"%d/%m/%Y %H:%M:%S"}</td>
                             <td>
                                 <form action="" method="post" id="nfeio_frm_cancel_{$smarty.foreach.nf.iteration}">
                                     <input type="hidden" name="nfeiosi" value="cancel">
