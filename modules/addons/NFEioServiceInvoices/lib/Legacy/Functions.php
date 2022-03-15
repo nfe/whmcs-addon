@@ -2,7 +2,7 @@
 
 namespace NFEioServiceInvoices\Legacy;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
+use \WHMCS\Database\Capsule;
 use NFEioServiceInvoices\Addon;
 use WHMCSExpert\Addon\Storage;
 

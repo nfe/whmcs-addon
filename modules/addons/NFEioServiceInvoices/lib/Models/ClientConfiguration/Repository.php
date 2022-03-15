@@ -2,7 +2,7 @@
 
 namespace NFEioServiceInvoices\Models\ClientConfiguration;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
+use \WHMCS\Database\Capsule;
 
 /**
  * Classe responsável pela definição do modelo de dados

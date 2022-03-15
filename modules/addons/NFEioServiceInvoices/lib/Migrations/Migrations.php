@@ -4,7 +4,7 @@ namespace NFEioServiceInvoices\Migrations;
 
 use NFEioServiceInvoices\Configuration;
 use NFEioServiceInvoices\Helpers\Versions;
-use Illuminate\Database\Capsule\Manager as Capsule;
+use \WHMCS\Database\Capsule;
 use WHMCSExpert\Addon\Storage;
 
 class Migrations

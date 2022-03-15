@@ -2,7 +2,7 @@
 
 namespace NFEioServiceInvoices\Helpers;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
+use \WHMCS\Database\Capsule;
 
 /**
  * Classe de ajuda com métodos para verificações e comparações de versões utilizadas no módulo

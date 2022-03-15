@@ -2,7 +2,7 @@
 
 namespace NFEioServiceInvoices;
 
-use WHMCS\Database\Capsule;
+use \WHMCS\Database\Capsule;
 use WHMCSExpert as main;
 use NFEioServiceInvoices\Configuration;
 
