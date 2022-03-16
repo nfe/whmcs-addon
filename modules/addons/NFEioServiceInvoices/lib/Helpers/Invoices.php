@@ -52,4 +52,11 @@ class Invoices
 
     }
 
+    public static function getIssHeldAmount($amount, $issHeld)
+    {
+        $heldAmount = ($amount * $issHeld) / 100;
+
+        return $heldAmount;
+    }
+
 }

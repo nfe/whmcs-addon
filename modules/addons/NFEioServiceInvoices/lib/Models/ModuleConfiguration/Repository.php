@@ -237,7 +237,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         ],
         'send_invoice_url' => [
             'type' => 'checkbox',
-            'label' => 'Exibir Link da Fatura na NFSe',
+            'label' => 'Link da Fatura na NFSe',
             'name' => 'send_invoice_url',
             'id' => 'sendInvoiceUrl_Field',
             'required' => false,
@@ -261,6 +261,15 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'required' => false,
             'disabled' => true,
             'description' => 'Legado',
+        ],
+        'iss_held' => [
+            'type' => 'text',
+            'label' => 'Retenção de ISS',
+            'name' => 'iss_held',
+            'id' => 'issHeld_Field',
+            'required' => false,
+            'disabled' => false,
+            'description' => 'Alíquota (%) padrão de retenção de ISS. Será aplicado a todos os produtos/serviços.',
         ]
     );
 

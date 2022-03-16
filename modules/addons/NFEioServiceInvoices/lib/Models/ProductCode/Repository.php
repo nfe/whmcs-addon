@@ -16,6 +16,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'id',
         'product_id',
         'code_service',
+        'iss_held',
         'create_at',
         'update_at',
         'ID_user',
@@ -44,9 +45,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     public function dataTable()
     {
         return Capsule::table('tblproducts')
-            ->leftJoin($this->tableName, 'tblproducts.id', '=', $this->tableName.'.product_id')
+            ->leftJoin($this->tableName, 'tblproducts.id', '=', "{$this->tableName}.product_id")
             ->orderBy('tblproducts.id', 'desc')
-            ->select('tblproducts.id', 'tblproducts.name', $this->tableName.'.code_service')
+            ->select('tblproducts.id', 'tblproducts.name', "{$this->tableName}.code_service", "{$this->tableName}.iss_held")
             ->get();
     }
 
@@ -61,6 +62,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 [ 'product_id' => $data['product_id'] ],
                 [
                     'code_service' => $data['service_code'],
+                    'iss_held' => $data['iss_held'],
                     'ID_user' => 1,
                 ]
             );
@@ -72,9 +74,27 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     public function delete($data)
     {
         try {
+            if (!empty($data['iss_held'])) {
+                return Capsule::table($this->tableName)
+                    ->where('product_id', '=',  $data['product_id'])
+                    ->update(['code_service' => null]);
+            } else {
+                return Capsule::table($this->tableName)
+                    ->where('product_id', '=',  $data['product_id'])
+                    ->delete();
+            }
+
+        } catch (\Exception $exception) {
+            echo $exception->getMessage();
+        }
+    }
+
+    public function resetRatesAndFees($data)
+    {
+        try {
             return Capsule::table($this->tableName)
                 ->where('product_id', '=',  $data['product_id'])
-                ->delete();
+                ->update(['iss_held' => null]);
         } catch (\Exception $exception) {
             echo $exception->getMessage();
         }
@@ -103,6 +123,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 $table->increments('id');
                 $table->integer('product_id');
                 $table->string('code_service', 10);
+                $table->float('iss_held', 5, 2);
                 $table->timestamp('create_at');
                 $table->timestamp('update_at');
                 $table->integer('ID_user');
@@ -119,5 +140,28 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     {
         $productId = Capsule::table('tblhosting')->where('id', '=', $relId)->value('packageid');
         return Capsule::table($this->tableName)->where('product_id', '=', $productId)->value('code_service');
+    }
+
+    /**
+     * Retorna o valor da alíquota de retenção de ISS para um produto de acordo com o relid de um serviço.
+     * @param $relId int o relid de um produto/serviço (packageid)
+     * @return float|null alíquota de retenção se existente (%)
+     */
+    public function getIssHeldByRelId($relId)
+    {
+        $productId = Capsule::table('tblhosting')->where('id', '=', $relId)->value('packageid');
+        return Capsule::table($this->tableName)->where('product_id', '=', $productId)->value('iss_held');
+
+    }
+
+    public function upgrade_to_2_1_0()
+    {
+        if (Capsule::schema()->hasTable($this->tableName)) {
+        if (!Capsule::schema()->hasColumn($this->tableName, 'iss_held')) {
+            Capsule::schema()->table($this->tableName, function ($table) {
+                $table->float('iss_held', 5, 2)->after('code_service')->nullable();
+            });
+        }
+        }
     }
 }

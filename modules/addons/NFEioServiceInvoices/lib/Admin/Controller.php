@@ -140,6 +140,7 @@ class Controller {
         $send_invoice_url = isset($post['send_invoice_url']) ? $post['send_invoice_url'] : '';
         $desc_custom = isset($post['descCustom']) ? $post['descCustom'] : '';
         //$footer = isset($post['footer']) ? $post['footer'] : ' ';
+        $iss_held = isset($post['iss_held']) ? $post['iss_held'] : '';
 
         // verifica cada campo e realiza a inserção das configurações no banco
         try {
@@ -173,6 +174,7 @@ class Controller {
             if ($issue_note_default_cond) { $storage->set('issue_note_default_cond', $issue_note_default_cond); }
             if ($invoice_details) { $storage->set('InvoiceDetails', $invoice_details); }
             //if ($footer) { $storage->set('footer', $footer); }
+            if ($iss_held) { $storage->set('iss_held', $iss_held); }
 
             $msg->success("Informações atualizadas com sucesso!", "{$moduleLink}&action={$action}");
 
@@ -321,6 +323,71 @@ class Controller {
             echo urldecode(base64_decode($_REQUEST['gnfe_message']));
         }
 
+    }
+
+    public function ratesAndFees($vars)
+    {
+        try {
+
+            $msg = new FlashMessages;
+            $template = new Template(Addon::getModuleTemplatesDir());
+            $config = new \NFEioServiceInvoices\Configuration();
+            $servicesCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
+            // metodo para verificar se existe algum campo obrigatório não preenchido.
+            $config->verifyMandatoryFields($vars);
+            // URL absoluta dos assets
+            $assetsURL = Addon::I()->getAssetsURL();
+            $vars['assetsURL'] = $assetsURL;
+            $vars['dtData'] = $servicesCodeRepo->dataTable();
+            // parametro para o atributo action do formulário principal da página
+            $vars['formAction'] = 'ratesAndFeesSave';
+
+            //d(version_compare('2.1.0-beta.2', '2.1.0', "lt"));
+
+            // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
+            $oldVersion = Versions::getOldNfeioModuleVersion();
+            // se tiver registro de versão antiga define mensagem
+            if ($oldVersion) {
+                $msg->error("<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de nptas.", '', true);
+            }
+
+            if ($msg->hasMessages()) {
+                $msg->display();
+            }
+
+            return $template->fetch('ratesfees', $vars);
+
+        } catch (\Exception $e) {
+            echo $e->getMessage();
+        }
+    }
+
+    public function ratesAndFeesSave($vars)
+    {
+        $msg = new FlashMessages();
+        $post = $_POST;
+        $productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
+
+        if (!isset($post) && !is_array($post)) {
+            $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=ratesAndFees");
+        }
+
+
+        if ($post['btnSave'] === 'true') {
+            $response = $productCodeRepo->save($post);
+            if ($response) {
+                $msg->success("{$post['product_name']} atualizado com sucesso.", "{$vars['modulelink']}&action=ratesAndFees");
+            } else {
+                $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=ratesAndFees");
+            }
+        }
+
+        if ($post['btnDelete'] === 'true') {
+            $productCodeRepo->resetRatesAndFees($post);
+            $msg->warning("Alíquotas para {$post['product_name']} removidas.", "{$vars['modulelink']}&action=ratesAndFees");
+
+        }
     }
 
     /**

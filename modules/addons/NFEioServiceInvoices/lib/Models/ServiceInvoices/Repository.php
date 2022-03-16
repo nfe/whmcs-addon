@@ -21,6 +21,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'nfeio_external_id',
         'status',
         'services_amount',
+        'iss_held',
         'description',
         'environment',
         'issue_note_conditions',
@@ -108,6 +109,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 $table->string('nfe_external_id');
                 $table->string('status');
                 $table->decimal('services_amount',$precision = 16,$scale = 2);
+                $table->decimal('iss_held', 16, 2);
                 $table->text('nfe_description');
                 $table->string('environment');
                 $table->string('issue_note_conditions');
@@ -189,6 +191,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             if (!Capsule::schema()->hasColumn($this->tableName, 'nfe_description')) {
                 Capsule::schema()->table($this->tableName, function ($table) {
                    $table->text('nfe_description')->after('services_amount')->nullable();
+                });
+            }
+            // adiciona nova coluna iss_held que conterá o valor em R$ da retenção do ISS para a NF
+            if (!Capsule::schema()->hasColumn($this->tableName, 'iss_held')) {
+                Capsule::schema()->table($this->tableName, function ($table) {
+                    $table->decimal('iss_held', 16, 2)->after('services_amount')->nullable();
                 });
             }
         }

@@ -60,7 +60,6 @@
                     {foreach from=$localServiceInvoices item=nota name=nota}
                         <tr>
                             <td class="text-center">{$nota->nfe_id}</td>
-                            <td class="text-center">{$nota->nfe_external_id}</td>
                             <td class="text-center">{statusLabel data=$nota->status}</td>
                             <td class="text-center">{$nota->created_at|date_format:"%d/%m/%Y %H:%M:%S"}</td>
                             <td>

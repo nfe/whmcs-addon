@@ -79,6 +79,28 @@
           </div>
         </div>
         {* /rps_number *}
+        {* iss_held *}
+        <div class="form-group">
+          <label class="control-label col-sm-3" for="{$moduleFields.iss_held.id}">{$moduleFields.iss_held.label}:</label>
+          <div class="col-sm-9">
+            <div class="input-group">
+              <input
+                      class="form-control"
+                      type="{$moduleFields.iss_held.type}"
+                      name="{$moduleFields.iss_held.name}"
+                      id="{$moduleFields.iss_held.id}"
+                      aria-describedby="{$moduleFields.iss_held.id}HelpBlock"
+                      {if $moduleFields.iss_held.required}required{/if}
+                      {if $moduleFields.iss_held.disabled}disabled{/if}
+                      {if $iss_held}value="{$iss_held}"{/if}
+              >
+              <div class="input-group-addon">%</div>
+            </div>
+
+            <span class="help-block" id="{$moduleFields.iss_held.id}HelpBlock">{$moduleFields.iss_held.description}</span>
+          </div>
+        </div>
+        {* /iss_held *}
         {* gnfe_email_nfe_config *}
         <div class="form-group">
           <label class="control-label col-sm-3" for="{$moduleFields.gnfe_email_nfe_config.id}">{$moduleFields.gnfe_email_nfe_config.label}:</label>
