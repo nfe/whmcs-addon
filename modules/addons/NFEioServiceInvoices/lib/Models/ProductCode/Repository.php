@@ -156,12 +156,14 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     public function upgrade_to_2_1_0()
     {
+        // verifica se a tabela existe
         if (Capsule::schema()->hasTable($this->tableName)) {
-        if (!Capsule::schema()->hasColumn($this->tableName, 'iss_held')) {
-            Capsule::schema()->table($this->tableName, function ($table) {
-                $table->float('iss_held', 5, 2)->after('code_service')->nullable();
-            });
-        }
+            // se não houver coluna adiciona
+            if (!Capsule::schema()->hasColumn($this->tableName, 'iss_held')) {
+                Capsule::schema()->table($this->tableName, function ($table) {
+                    $table->float('iss_held', 5, 2)->after('code_service')->nullable();
+                });
+            }
         }
     }
 }

@@ -174,6 +174,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     }
     /**
      * Atualiza as colunas necessarias para a versão 2.1.0
+     * @author Andre Bellafronte
      * @version 2.1.0
      * @return void
      */

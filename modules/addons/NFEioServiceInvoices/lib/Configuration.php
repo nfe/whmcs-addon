@@ -232,6 +232,8 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
         \NFEioServiceInvoices\Migrations\Migrations::migrateServiceInvoices();
         // executa as rotinas de sql para a model ServiceInvoices
         $serviceInvoicesRepo->createServiceInvoicesTable();
+        // garante que em uma migração de v1.4 para v2.1 as novas colunas estejam presentes
+        $serviceInvoicesRepo->upgrade_to_2_1_0();
 
         // rotinas de ativação da model ProductCode (tabela productcode)
         $productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
@@ -239,6 +241,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
         \NFEioServiceInvoices\Migrations\Migrations::migrateProductCodes();
         // executa as rotinas de sql para a model ProductCode
         $productCodeRepo->createProductCodeTable();
+        $productCodeRepo->upgrade_to_2_1_0();
 
         // rotinas de ativação da model ClientConfiguration (tabela custom_configs)
         $clientConfigurationRepo = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
