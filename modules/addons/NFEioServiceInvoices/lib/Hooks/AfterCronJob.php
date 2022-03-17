@@ -63,6 +63,9 @@ class AfterCronJob
             }
 
             logModuleCall('NFEioServiceInvoices', 'Hook - AfterCronJob', "{$hasNfWaiting} notas a serem geradas", $queryNf);
+        } else {
+            logModuleCall('NFEioServiceInvoices', 'Hook - AfterCronJob', "", "Nenhuma ação a ser executada");
+
         }
     }
 
