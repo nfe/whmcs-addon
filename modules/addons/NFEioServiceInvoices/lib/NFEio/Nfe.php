@@ -61,7 +61,7 @@ class Nfe
         $clientData = $invoiceData->client()->get();
         $userId = $clientData[0]['id'];
         $serviceCode = $this->storage->get('service_code');
-        $issHeld = $this->storage->get('iss_held');
+        $issHeld = floatval($this->storage->get('iss_held'));
         $hasInvoices = $this->serviceInvoicesRepo->hasInvoices($invoiceId);
         $totalById = $this->serviceInvoicesRepo->getTotalById($invoiceId);
 
@@ -137,14 +137,14 @@ class Nfe
                  * se não houver retenção personalizada e houver retenção global diferente de zero, usa valor global
                  * para cálculo.
                  */
-                if (empty($customIssHeld) AND (!empty($issHeld) AND $issHeld != 0) ) {
+                if (is_null($customIssHeld) AND $issHeld != 0) {
                     $data['iss_held'] = \NFEioServiceInvoices\Helpers\Invoices::getIssHeldAmount($item->amount, $issHeld);
                 }
 
                 /**
                  * se houver retenção personalizada e for diferente de zero, usa valor personalizado para cálculo.
                  */
-                if (!empty($customIssHeld) AND $customIssHeld != 0) {
+                if (!is_null($customIssHeld) AND $customIssHeld != 0) {
                     $data['iss_held'] = \NFEioServiceInvoices\Helpers\Invoices::getIssHeldAmount($item->amount, $customIssHeld);
                 }
 
