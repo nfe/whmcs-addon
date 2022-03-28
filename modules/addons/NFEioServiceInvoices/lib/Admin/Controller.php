@@ -140,7 +140,7 @@ class Controller {
         $send_invoice_url = isset($post['send_invoice_url']) ? $post['send_invoice_url'] : '';
         $desc_custom = isset($post['descCustom']) ? $post['descCustom'] : '';
         //$footer = isset($post['footer']) ? $post['footer'] : ' ';
-        $iss_held = isset($post['iss_held']) ? $post['iss_held'] : '';
+        $iss_held = isset($post['iss_held']) ? $post['iss_held'] : 0;
 
         // verifica cada campo e realiza a inserção das configurações no banco
         try {
@@ -166,6 +166,8 @@ class Controller {
             $storage->set('cpf_camp', $cpf_camp);
             // cnpj_camp
             $storage->set('cnpj_camp', $cnpj_camp);
+            // iss held
+            $storage->set('iss_held', $iss_held);
 
             if ($api_key) { $storage->set('api_key', $api_key); }
             if ($company_id) { $storage->set('company_id', $company_id); }
@@ -174,7 +176,6 @@ class Controller {
             if ($issue_note_default_cond) { $storage->set('issue_note_default_cond', $issue_note_default_cond); }
             if ($invoice_details) { $storage->set('InvoiceDetails', $invoice_details); }
             //if ($footer) { $storage->set('footer', $footer); }
-            if ($iss_held) { $storage->set('iss_held', $iss_held); }
 
             $msg->success("Informações atualizadas com sucesso!", "{$moduleLink}&action={$action}");
 
