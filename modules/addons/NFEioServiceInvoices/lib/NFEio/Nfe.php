@@ -82,6 +82,11 @@ class Nfe
                 continue;
             }
 
+            // se o item possuir valor zero ou menor, não emite nota para o mesmo
+            if ($item->amount <= 0) {
+                continue;
+            }
+
             try {
                 //
                 /**
