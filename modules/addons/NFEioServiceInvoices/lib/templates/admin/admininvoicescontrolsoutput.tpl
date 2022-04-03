@@ -51,7 +51,7 @@
                 <table class="table table-bordered">
                     <thead>
                     <th class="text-center">ID</th>
-                    <th class="text-center">ID Externo</th>
+                    <th class="text-center">Valor</th>
                     <th class="text-center">Status</th>
                     <th class="text-center">Gerada Em</th>
                     <th class="text-center">Ações</th>
@@ -60,6 +60,7 @@
                     {foreach from=$localServiceInvoices item=nota name=nota}
                         <tr>
                             <td class="text-center">{$nota->nfe_id}</td>
+                            <td class="text-center">{$nota->services_amount}</td>
                             <td class="text-center">{statusLabel data=$nota->status}</td>
                             <td class="text-center">{$nota->created_at|date_format:"%d/%m/%Y %H:%M:%S"}</td>
                             <td>
