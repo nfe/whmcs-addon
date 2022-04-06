@@ -59,8 +59,8 @@ if ($post) {
     $invoice_id = Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', '=', $post['id'])->get(['invoice_id'])[0];
 
     if ($post['status'] == 'Error') {
-        logModuleCall('gofas_nfeio', 'callback', '', $post, 'ERROR', '');
+        logModuleCall('gofas_nfeio', 'callback', 'ERROR', $post);
     } else {
-        logModuleCall('gofas_nfeio', 'callback', '', $post, 'OK', '');
+        logModuleCall('gofas_nfeio', 'callback', 'OK', $post);
     }
 }
