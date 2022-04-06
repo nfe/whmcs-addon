@@ -23,10 +23,17 @@ class Controller {
      */
     public function downloadNfPdf($vars)
     {
-        $nfId = $_GET['nfid'];
-        $legacyFunctions = new \NFEioServiceInvoices\Legacy\Functions();
-        $legacyFunctions->gnfe_pdf_nfe($nfId);
-        exit();
+        $currentUser = new \WHMCS\Authentication\CurrentUser;
+        $client = $currentUser->client();
+        if ($client) {
+            $nfId = $_GET['nfid'];
+            $legacyFunctions = new \NFEioServiceInvoices\Legacy\Functions();
+            $legacyFunctions->gnfe_pdf_nfe($nfId);
+            exit();
+        } else {
+            http_response_code(401);
+
+        }
     }
 
     /**
