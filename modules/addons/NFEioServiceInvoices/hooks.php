@@ -68,3 +68,8 @@ add_hook('AdminInvoicesControlsOutput', 1, function ($vars) {
     $hook->run();
 
 });
+
+add_hook('ClientAreaPageViewInvoice', 1, function($vars) {
+    $hook = new \NFEioServiceInvoices\Hooks\ClientAreaPageViewInvoice($vars);
+    return $hook->run();
+});

@@ -498,30 +498,38 @@ class Functions
     function gnfe_pdf_nfe($nf) {
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id') . '/serviceinvoices/' . $nf . '/pdf');
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-type: application/pdf', 'Authorization: ' . $this->gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-type: text/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($curl, CURLOPT_TIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_HEADER, 0);
         curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
-        header('Content-type: application/pdf');
         $result = curl_exec($curl);
         curl_close($curl);
+        header('Content-type: application/pdf');
+        header("Content-Disposition: attachment; filename=".$nf.".pdf");
 
-        return $result;
+        echo $result;
     }
 
     function gnfe_xml_nfe($nf) {
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id') . '/serviceinvoices/' . $nf . '/xml');
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        $response = curl_exec($curl);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($curl, CURLOPT_TIMEOUT, 10);
+        curl_setopt($curl, CURLOPT_HEADER, 0);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
+        $result = curl_exec($curl);
         curl_close($curl);
+        //header('Content-type: application/xml');
+        //header("Content-Disposition: attachment; filename=".$nf.".xml");
+        //$file = file_put_contents("{$nf}.xml", $result);
 
-        return json_decode($response);
+        return $result;
     }
 
     function gnfe_whmcs_url() {

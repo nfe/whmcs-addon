@@ -35,7 +35,7 @@ if(!defined('DS'))define('DS',DIRECTORY_SEPARATOR);
 
 use \WHMCS\Database\Capsule;
 use NFEioServiceInvoices\Admin\AdminDispatcher;
-//use WHMCS\Module\Addon\NFEioServiceInvoices\Client\ClientDispatcher;
+use NFEioServiceInvoices\Client\ClientDispatcher;
 
 /**
  * Define addon module configuration parameters.
@@ -184,20 +184,12 @@ function NFEioServiceInvoices_output($vars)
  *
  * @return array
  */
-/*function NFEioServiceInvoices_clientarea($vars)
+function NFEioServiceInvoices_clientarea($vars)
 {
     // Get common module parameters
     $modulelink = $vars['modulelink']; // eg. index.php?m=addonmodule
     $version = $vars['version']; // eg. 1.0
     $_lang = $vars['_lang']; // an array of the currently loaded language variables
-
-    // Get module configuration parameters
-    $configTextField = $vars['Text Field Name'];
-    $configPasswordField = $vars['Password Field Name'];
-    $configCheckboxField = $vars['Checkbox Field Name'];
-    $configDropdownField = $vars['Dropdown Field Name'];
-    $configRadioField = $vars['Radio Field Name'];
-    $configTextareaField = $vars['Textarea Field Name'];
 
     // Dispatch and handle request here. What follows is a demonstration of one
     // possible way of handling this using a very basic dispatcher implementation.
@@ -206,4 +198,4 @@ function NFEioServiceInvoices_output($vars)
 
     $dispatcher = new ClientDispatcher();
     return $dispatcher->dispatch($action, $vars);
-}*/
+}

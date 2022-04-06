@@ -3,85 +3,53 @@
 
 namespace NFEioServiceInvoices\Client;
 
-require_once(dirname(dirname(__DIR__)) . '/autoload.php');
+if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
+
+require_once(dirname(dirname(__DIR__)) . DS . 'Loader.php');
 
 /**
- * Sample Client Area Controller
+ * Classe responsável pelos controllers da area do cliente
+ * @version 2.1
+ * @author Andre Bellafronte
  */
 class Controller {
 
     /**
-     * Index action.
-     *
-     * @param array $vars Module configuration parameters
-     *
-     * @return array
+     * Método para download da NF em PDF na area do cliente.
+     * @version 2.1
+     * @author Andre Bellafronte
+     * @param $vars array variável WHMCS
+     * @return void PDF
      */
-    public function index($vars)
+    public function downloadNfPdf($vars)
     {
-        // Get common module parameters
-        $modulelink = $vars['modulelink']; // eg. addonmodules.php?module=addonmodule
-        $version = $vars['version']; // eg. 1.0
-        $LANG = $vars['_lang']; // an array of the currently loaded language variables
-
-        // Get module configuration parameters
-        $configTextField = $vars['Text Field Name'];
-        $configPasswordField = $vars['Password Field Name'];
-        $configCheckboxField = $vars['Checkbox Field Name'];
-        $configDropdownField = $vars['Dropdown Field Name'];
-        $configRadioField = $vars['Radio Field Name'];
-        $configTextareaField = $vars['Textarea Field Name'];
-
-        return array(
-            'pagetitle' => 'Sample Addon Module',
-            'breadcrumb' => array(
-                'index.php?m=addonmodule' => 'Sample Addon Module',
-            ),
-            'templatefile' => 'publicpage',
-            'requirelogin' => false, // Set true to restrict access to authenticated client users
-            'vars' => array(
-                'modulelink' => $modulelink,
-                'configTextField' => $configTextField,
-                'customVariable' => 'your own content goes here',
-            ),
-        );
+        $nfId = $_GET['nfid'];
+        $legacyFunctions = new \NFEioServiceInvoices\Legacy\Functions();
+        $legacyFunctions->gnfe_pdf_nfe($nfId);
+        exit();
     }
 
     /**
-     * Secret action.
-     *
-     * @param array $vars Module configuration parameters
-     *
-     * @return array
+     * Método para download da NF em XML na area do cliente.
+     * @version 2.1
+     * @author Andre Bellafronte
+     * @param $vars array variável WHMCS
+     * @return void XML
      */
-    public function secret($vars)
+    public function downloadNfXml($vars)
     {
-        // Get common module parameters
-        $modulelink = $vars['modulelink']; // eg. addonmodules.php?module=addonmodule
-        $version = $vars['version']; // eg. 1.0
-        $LANG = $vars['_lang']; // an array of the currently loaded language variables
+        $currentUser = new \WHMCS\Authentication\CurrentUser;
+        $client = $currentUser->client();
+        if($client) {
+            $nfId = $_GET['nfid'];
+            $legacyFunctions = new \NFEioServiceInvoices\Legacy\Functions();
+            header('Content-type: application/xml');
+            header("Content-Disposition: attachment; filename=".$nfId.".xml");
+            echo $legacyFunctions->gnfe_xml_nfe($nfId);
+            exit();
+        } else {
+            http_response_code(401);
+        }
 
-        // Get module configuration parameters
-        $configTextField = $vars['Text Field Name'];
-        $configPasswordField = $vars['Password Field Name'];
-        $configCheckboxField = $vars['Checkbox Field Name'];
-        $configDropdownField = $vars['Dropdown Field Name'];
-        $configRadioField = $vars['Radio Field Name'];
-        $configTextareaField = $vars['Textarea Field Name'];
-
-        return array(
-            'pagetitle' => 'Sample Addon Module',
-            'breadcrumb' => array(
-                'index.php?m=addonmodule' => 'Sample Addon Module',
-                'index.php?m=addonmodule&action=secret' => 'Secret Page',
-            ),
-            'templatefile' => 'client/secretpage',
-            'requirelogin' => true, // Set true to restrict access to authenticated client users
-            'vars' => array(
-                'modulelink' => $modulelink,
-                'configTextField' => $configTextField,
-                'customVariable' => 'your own content goes here',
-            ),
-        );
     }
 }
