@@ -42,7 +42,16 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * e estrutura os dados para a dataTable
      * @return array
      */
-    public function dataTable()
+    public function servicesCodeDataTable()
+    {
+        return Capsule::table('tblproducts')
+            ->leftJoin($this->tableName, 'tblproducts.id', '=', "{$this->tableName}.product_id")
+            ->orderBy('tblproducts.id', 'desc')
+            ->select('tblproducts.id', 'tblproducts.name', "{$this->tableName}.code_service", "{$this->tableName}.iss_held")
+            ->get();
+    }
+
+    public function ratesFeesDataTable()
     {
         return Capsule::table('tblproducts')
             ->leftJoin($this->tableName, 'tblproducts.id', '=', "{$this->tableName}.product_id")

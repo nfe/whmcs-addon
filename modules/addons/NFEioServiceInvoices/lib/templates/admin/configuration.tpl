@@ -1,6 +1,6 @@
 {include file="includes/menu.tpl"}
 <div class="row">
-<div class="col-md-6 col-md-offset-3">
+<div class="col-md-8 col-md-offset-2">
   <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title text-center">Configurações</h3>
@@ -9,8 +9,8 @@
       <form action="{$modulelink}&action={$formAction}" method="post" class="form-horizontal">
         {* api_key *}
         <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.api_key.id}">{$moduleFields.api_key.label}:</label>
-          <div class="col-sm-9">
+          <label class="control-label col-sm-4" for="{$moduleFields.api_key.id}">{$moduleFields.api_key.label}:</label>
+          <div class="col-sm-8">
             <input
                     class="form-control"
                     type="{$moduleFields.api_key.type}"
@@ -27,8 +27,8 @@
         {* /api_key *}
         {* company_id *}
         <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.company_id.id}">{$moduleFields.company_id.label}:</label>
-          <div class="col-sm-9">
+          <label class="control-label col-sm-4" for="{$moduleFields.company_id.id}">{$moduleFields.company_id.label}:</label>
+          <div class="col-sm-8">
             <input
                     class="form-control"
                     type="{$moduleFields.company_id.type}"
@@ -45,8 +45,8 @@
         {* /company_id *}
         {* service_code *}
         <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.service_code.id}">{$moduleFields.service_code.label}:</label>
-          <div class="col-sm-9">
+          <label class="control-label col-sm-4" for="{$moduleFields.service_code.id}">{$moduleFields.service_code.label}:</label>
+          <div class="col-sm-3">
             <input
                     class="form-control"
                     type="{$moduleFields.service_code.type}"
@@ -57,38 +57,27 @@
                     {if $moduleFields.service_code.disabled}disabled{/if}
                     {if $service_code}value="{$service_code}"{/if}
             >
-            <span class="help-block" id="{$moduleFields.service_code.id}HelpBlock">{$moduleFields.service_code.description}</span>
+          </div>
+          <div class="row">
+            <div class="col-sm-8 col-sm-offset-4">
+              <span class="help-block" id="{$moduleFields.service_code.id}HelpBlock">{$moduleFields.service_code.description}</span>
+
+            </div>
           </div>
         </div>
         {* /service_code *}
-        {* rps_number *}
-        <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.rps_number.id}">{$moduleFields.rps_number.label}:</label>
-          <div class="col-sm-9">
-            <input
-                    class="form-control"
-                    type="{$moduleFields.rps_number.type}"
-                    name="{$moduleFields.rps_number.name}"
-                    id="{$moduleFields.rps_number.id}"
-                    aria-describedby="{$moduleFields.rps_number.id}HelpBlock"
-                    {if $moduleFields.rps_number.required}required{/if}
-                    {if $moduleFields.rps_number.disabled}disabled{/if}
-                    {if $rps_number}value="{$rps_number}"{/if}
-            >
-            <span class="help-block" id="{$moduleFields.rps_number.id}HelpBlock">{$moduleFields.rps_number.description}</span>
-          </div>
-        </div>
-        {* /rps_number *}
+
         {* iss_held *}
         <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.iss_held.id}">{$moduleFields.iss_held.label}:</label>
-          <div class="col-sm-9">
+          <label class="control-label col-sm-4" for="{$moduleFields.iss_held.id}">{$moduleFields.iss_held.label}:</label>
+          <div class="col-sm-2">
             <div class="input-group">
               <input
                       class="form-control"
                       type="{$moduleFields.iss_held.type}"
                       name="{$moduleFields.iss_held.name}"
                       id="{$moduleFields.iss_held.id}"
+                      size="3"
                       aria-describedby="{$moduleFields.iss_held.id}HelpBlock"
                       {if $moduleFields.iss_held.required}required{/if}
                       {if $moduleFields.iss_held.disabled}disabled{/if}
@@ -97,36 +86,42 @@
               <div class="input-group-addon">%</div>
             </div>
 
-            <span class="help-block" id="{$moduleFields.iss_held.id}HelpBlock">{$moduleFields.iss_held.description}</span>
           </div>
-        </div>
-        {* /iss_held *}
-        {* gnfe_email_nfe_config *}
-        <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.gnfe_email_nfe_config.id}">{$moduleFields.gnfe_email_nfe_config.label}:</label>
-          <div class="col-sm-9">
-            <div class="checkbox">
-              <label>
-                <input
-                        type="{$moduleFields.gnfe_email_nfe_config.type}"
-                        name="{$moduleFields.gnfe_email_nfe_config.name}"
-                        id="{$moduleFields.gnfe_email_nfe_config.id}"
-                        aria-describedby="{$moduleFields.gnfe_email_nfe_config.id}HelpBlock"
-                        {if $moduleFields.gnfe_email_nfe_config.required}required{/if}
-                        {if $moduleFields.gnfe_email_nfe_config.disabled}disabled{/if}
-                        {if $gnfe_email_nfe_config == 'on'}checked{/if}
-                >
-                {$moduleFields.gnfe_email_nfe_config.label}
-              </label>
-              <span class="help-block" id="{$moduleFields.gnfe_email_nfe_config.id}HelpBlock">{$moduleFields.gnfe_email_nfe_config.description}</span>
+          <div class="row">
+            <div class="col-sm-8 col-sm-offset-4">
+              <span class="help-block" id="{$moduleFields.iss_held.id}HelpBlock">{$moduleFields.iss_held.description}</span>
+
             </div>
           </div>
         </div>
-        {* /gnfe_email_nfe_config *}
+        {* /iss_held *}
+        {* discount_items *}
+        <div class="form-group">
+          <label class="control-label col-sm-4" for="{$moduleFields.discount_items.id}">{$moduleFields.discount_items.label}:</label>
+          <div class="col-sm-8">
+            <div class="checkbox">
+              <label>
+                <input
+                        type="{$moduleFields.discount_items.type}"
+                        name="{$moduleFields.discount_items.name}"
+                        id="{$moduleFields.discount_items.id}"
+                        aria-describedby="{$moduleFields.discount_items.id}HelpBlock"
+                        {if $moduleFields.discount_items.required}required{/if}
+                        {if $moduleFields.discount_items.disabled}disabled{/if}
+                        {if $discount_items == 'on'}checked{/if}
+                        {if $discount_items}value="{$discount_items}"{/if}
+                >
+                {$moduleFields.discount_items.label}
+              </label>
+            </div>
+            <span class="help-block" id="{$moduleFields.discount_items.id}HelpBlock">{$moduleFields.discount_items.description}</span>
+          </div>
+        </div>
+        {* /discount_items *}
         {* issue_note_default_cond *}
         <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.issue_note_default_cond.id}" aria-describedby="{$moduleFields.issue_note_default_cond.id}HelpBlock">{$moduleFields.issue_note_default_cond.label}:</label>
-          <div class="col-sm-9">
+          <label class="control-label col-sm-4" for="{$moduleFields.issue_note_default_cond.id}" aria-describedby="{$moduleFields.issue_note_default_cond.id}HelpBlock">{$moduleFields.issue_note_default_cond.label}:</label>
+          <div class="col-sm-8">
             <span class="help-block" id="{$moduleFields.issue_note_default_cond.id}HelpBlock">{$moduleFields.issue_note_default_cond.description}</span>
             {if $moduleFields.issue_note_default_cond.type == 'radio' && isset($moduleFields.issue_note_default_cond.options)}
               {foreach from=$moduleFields.issue_note_default_cond.options item=option name=option}
@@ -150,8 +145,8 @@
         {* issue_note_default_cond *}
         {* issue_note_after *}
         <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.issue_note_after.id}">{$moduleFields.issue_note_after.label}:</label>
-          <div class="col-sm-9">
+          <label class="control-label col-sm-4" for="{$moduleFields.issue_note_after.id}">{$moduleFields.issue_note_after.label}:</label>
+          <div class="col-sm-8">
             <input
                     class="form-control"
                     type="{$moduleFields.issue_note_after.type}"
@@ -168,8 +163,8 @@
         {* /issue_note_after *}
         {* cancel_invoice_cancel_nfe *}
         <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.cancel_invoice_cancel_nfe.id}">{$moduleFields.cancel_invoice_cancel_nfe.label}:</label>
-          <div class="col-sm-9">
+          <label class="control-label col-sm-4" for="{$moduleFields.cancel_invoice_cancel_nfe.id}">{$moduleFields.cancel_invoice_cancel_nfe.label}:</label>
+          <div class="col-sm-8">
             <div class="checkbox">
               <label>
                 <input
@@ -191,9 +186,9 @@
         {* cancel_invoice_cancel_nfe *}
         {* insc_municipal *}
         <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.insc_municipal.id}">{$moduleFields.insc_municipal.label}:</label>
+          <label class="control-label col-sm-4" for="{$moduleFields.insc_municipal.id}">{$moduleFields.insc_municipal.label}:</label>
 
-          <div class="col-sm-9">
+          <div class="col-sm-8">
             <select class="form-control" name="{$moduleFields.insc_municipal.name}" id="{$moduleFields.insc_municipal.id}">
               <option value="">---</option>
               {foreach from=$customFieldsClientsOptions item=resultado}
@@ -205,8 +200,8 @@
         {* /insc_municipal *}
         {* cpf_camp *}
         <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.cpf_camp.id}">{$moduleFields.cpf_camp.label}:</label>
-          <div class="col-sm-9">
+          <label class="control-label col-sm-4" for="{$moduleFields.cpf_camp.id}">{$moduleFields.cpf_camp.label}:</label>
+          <div class="col-sm-8">
             <select class="form-control" name="{$moduleFields.cpf_camp.name}" id="{$moduleFields.cpf_camp.id}">
               <option value="">---</option>
               {foreach from=$customFieldsClientsOptions item=resultado}
@@ -218,8 +213,8 @@
         {* /cpf_camp *}
         {* cnpj_camp *}
         <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.cnpj_camp.id}">{$moduleFields.cnpj_camp.label}:</label>
-          <div class="col-sm-9">
+          <label class="control-label col-sm-4" for="{$moduleFields.cnpj_camp.id}">{$moduleFields.cnpj_camp.label}:</label>
+          <div class="col-sm-8">
             <select class="form-control" name="{$moduleFields.cnpj_camp.name}" id="{$moduleFields.cnpj_camp.id}">
               <option value="">---</option>
               {foreach from=$customFieldsClientsOptions item=resultado}
@@ -229,33 +224,10 @@
           </div>
         </div>
         {* /cnpj_camp *}
-        {* tax *}
-        <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.tax.id}">{$moduleFields.tax.label}:</label>
-          <div class="col-sm-9">
-            <div class="checkbox">
-              <label>
-                <input
-                        type="{$moduleFields.tax.type}"
-                        name="{$moduleFields.tax.name}"
-                        id="{$moduleFields.tax.id}"
-                        aria-describedby="{$moduleFields.cancel_invoice_cancel_nfe.id}HelpBlock"
-                        {if $moduleFields.tax.required}required{/if}
-                        {if $moduleFields.tax.disabled}disabled{/if}
-                        {if $tax == 'on'}checked{/if}
-                >
-                {$moduleFields.tax.label}
-              </label>
-              <span class="help-block" id="{$moduleFields.tax.id}HelpBlock">{$moduleFields.tax.description}</span>
-            </div>
-
-          </div>
-        </div>
-        {* /tax *}
         {* InvoiceDetails *}
         <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.InvoiceDetails.id}">{$moduleFields.InvoiceDetails.label}:</label>
-          <div class="col-sm-9">
+          <label class="control-label col-sm-4" for="{$moduleFields.InvoiceDetails.id}">{$moduleFields.InvoiceDetails.label}:</label>
+          <div class="col-sm-8">
             <span class="help-block" id="{$moduleFields.InvoiceDetails.id}HelpBlock">{$moduleFields.InvoiceDetails.description}</span>
             {if $moduleFields.InvoiceDetails.type == 'radio' && isset($moduleFields.InvoiceDetails.options)}
               {foreach from=$moduleFields.InvoiceDetails.options item=option name=option}
@@ -279,8 +251,8 @@
         {* /InvoiceDetails *}
         {* send_invoice_url *}
         <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.send_invoice_url.id}">{$moduleFields.send_invoice_url.label}:</label>
-          <div class="col-sm-9">
+          <label class="control-label col-sm-4" for="{$moduleFields.send_invoice_url.id}">{$moduleFields.send_invoice_url.label}:</label>
+          <div class="col-sm-8">
             <div class="checkbox">
               <label>
                 <input
@@ -301,10 +273,32 @@
           </div>
         </div>
         {* /send_invoice_url *}
+        {* gnfe_email_nfe_config *}
+        <div class="form-group">
+          <label class="control-label col-sm-4" for="{$moduleFields.gnfe_email_nfe_config.id}">{$moduleFields.gnfe_email_nfe_config.label}:</label>
+          <div class="col-sm-8">
+            <div class="checkbox">
+              <label>
+                <input
+                        type="{$moduleFields.gnfe_email_nfe_config.type}"
+                        name="{$moduleFields.gnfe_email_nfe_config.name}"
+                        id="{$moduleFields.gnfe_email_nfe_config.id}"
+                        aria-describedby="{$moduleFields.gnfe_email_nfe_config.id}HelpBlock"
+                        {if $moduleFields.gnfe_email_nfe_config.required}required{/if}
+                        {if $moduleFields.gnfe_email_nfe_config.disabled}disabled{/if}
+                        {if $gnfe_email_nfe_config == 'on'}checked{/if}
+                >
+                {$moduleFields.gnfe_email_nfe_config.label}
+              </label>
+              <span class="help-block" id="{$moduleFields.gnfe_email_nfe_config.id}HelpBlock">{$moduleFields.gnfe_email_nfe_config.description}</span>
+            </div>
+          </div>
+        </div>
+        {* /gnfe_email_nfe_config *}
         {* descCustom *}
         <div class="form-group">
-          <label class="control-label col-sm-3" for="{$moduleFields.descCustom.id}">{$moduleFields.descCustom.label}:</label>
-          <div class="col-sm-9">
+          <label class="control-label col-sm-4" for="{$moduleFields.descCustom.id}">{$moduleFields.descCustom.label}:</label>
+          <div class="col-sm-8">
             <input
                     class="form-control"
                     type="{$moduleFields.descCustom.type}"

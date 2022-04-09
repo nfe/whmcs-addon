@@ -141,6 +141,7 @@ class Controller {
         $desc_custom = isset($post['descCustom']) ? $post['descCustom'] : '';
         //$footer = isset($post['footer']) ? $post['footer'] : ' ';
         $iss_held = isset($post['iss_held']) ? $post['iss_held'] : 0;
+        $discount_items = isset($post['discount_items']) ? $post['discount_items'] : '';
 
         // verifica cada campo e realiza a inserção das configurações no banco
         try {
@@ -168,6 +169,8 @@ class Controller {
             $storage->set('cnpj_camp', $cnpj_camp);
             // iss held
             $storage->set('iss_held', $iss_held);
+            // discount_items
+            $storage->set('discount_items', $discount_items);
 
             if ($api_key) { $storage->set('api_key', $api_key); }
             if ($company_id) { $storage->set('company_id', $company_id); }
@@ -205,7 +208,7 @@ class Controller {
             $assetsURL = Addon::I()->getAssetsURL();
 
             $vars['assetsURL'] = $assetsURL;
-            $vars['dtData'] = $servicesCodeRepo->dataTable();
+            $vars['dtData'] = $servicesCodeRepo->servicesCodeDataTable();
             // parametro para o atributo action dos formulários da página
             $vars['formAction'] = 'servicesCodeSave';
 
@@ -339,7 +342,7 @@ class Controller {
             // URL absoluta dos assets
             $assetsURL = Addon::I()->getAssetsURL();
             $vars['assetsURL'] = $assetsURL;
-            $vars['dtData'] = $servicesCodeRepo->dataTable();
+            $vars['dtData'] = $servicesCodeRepo->servicesCodeDataTable();
             // parametro para o atributo action do formulário principal da página
             $vars['formAction'] = 'ratesAndFeesSave';
 

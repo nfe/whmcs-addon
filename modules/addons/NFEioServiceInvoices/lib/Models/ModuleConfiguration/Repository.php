@@ -5,7 +5,7 @@ namespace NFEioServiceInvoices\Models\ModuleConfiguration;
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 /**
- * Classe responsável pela definição do modelo de dados dos registros persoanlizados de configuração do módulo
+ * Classe responsável pela definição do modelo de dados dos registros personalizados de configuração do módulo
  * apresentados ao administrador WHMCS na area de configuração do módulo.
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
@@ -34,7 +34,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'InvoiceDetails',
         'send_invoice_url',
         'descCustom',
-        'footer'
+        'footer',
+        'iss_held',
+        'discount_items'
     );
 
     /**
@@ -61,7 +63,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'InvoiceDetails',
         'send_invoice_url',
         'descCustom',
-        'footer'
+        'footer',
+        'iss_held',
+        'discount_items'
     );
 
     /**
@@ -88,7 +92,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'id' => 'apiKey_Field',
             'required' => true,
             'disabled' => true,
-            'description' => 'Obter chave de acesso',
+            'description' => 'Chave de API da sua conta NFE.io',
         ],
         'company_id' => [
             'type' => 'text',
@@ -97,7 +101,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'id' => 'companyId_Field',
             'required' => true,
             'disabled' => true,
-            'description' => 'Obter ID da empresa',
+            'description' => 'ID da empresa na NFE.io',
         ],
         'service_code' => [
             'type' => 'text',
@@ -106,7 +110,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'id' => 'serviceCode_Field',
             'required' => true,
             'disabled' => true,
-            'description' => 'O que é Código de Serviço?',
+            'description' => 'Informe o código de serviço principal. Este código será usado por padrão para emissão de notas.',
         ],
         'rps_number' => [
             'type' => 'text',
@@ -119,12 +123,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         ],
         'gnfe_email_nfe_config' => [
             'type' => 'checkbox',
-            'label' => 'Disparar e-mail com a nota',
+            'label' => 'Enviar e-mail',
             'name' => 'gnfe_email_nfe_config',
             'id' => 'gnfeEmailNfeConfig_Field',
             'required' => false,
             'disabled' => false,
-            'description' => 'Permitir o disparo da nota fiscal via NFE.io para o e-mail do usuário.',
+            'description' => 'Enviar e-mail com nota fiscal via NFE.io para o cliente.',
         ],
         'intro' => [
             'type' => 'text',
@@ -137,7 +141,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         ],
         'issue_note_default_cond' => [
             'type' => 'radio',
-            'label' => 'Quando emitir NFE',
+            'label' => 'Emitir NFE',
             'name' => 'issue_note_default_cond',
             'id' => 'issueNoteDefaultCond_Field',
             'required' => true,
@@ -169,7 +173,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         ],
         'cancel_invoice_cancel_nfe' => [
             'type' => 'checkbox',
-            'label' => 'Cancelar NFE Quando Cancelar Fatura',
+            'label' => 'Cancelar NFE ao Cancelar Fatura',
             'name' => 'cancel_invoice_cancel_nfe',
             'id' => 'cancelInvoiceCancelNfe_Field',
             'required' => false,
@@ -242,7 +246,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'id' => 'sendInvoiceUrl_Field',
             'required' => false,
             'disabled' => false,
-            'description' => 'Exibir link da fatura na nota fiscal?',
+            'description' => 'Incluir o link da fatura na descrição da nota fiscal.',
         ],
         'descCustom' => [
             'type' => 'text',
@@ -251,7 +255,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'id' => 'descCustom_Field',
             'required' => false,
             'disabled' => false,
-            'description' => 'Adicione uma informação personalizada na nota fiscal. Esta informação será acrescida após detalhes da NFSe.',
+            'description' => 'Adicione uma informação personalizada na nota fiscal. Esta informação será exibida após a descrição.',
         ],
         'footer' => [
             'type' => 'text',
@@ -270,7 +274,16 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'required' => false,
             'disabled' => false,
             'description' => 'Alíquota (%) padrão de retenção de ISS. Será aplicado a todos os produtos/serviços.',
-        ]
+        ],
+        'discount_items' => [
+            'type' => 'checkbox',
+            'label' => 'Deduzir descontos da fatura na NF',
+            'name' => 'discount_items',
+            'id' => 'discountItems_Field',
+            'required' => false,
+            'disabled' => false,
+            'description' => 'Deduzir descontos/abatimentos existentes na fatura do valor total da nota a ser emitida.',
+        ],
     );
 
     /**
@@ -339,8 +352,14 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
 
         $functions = new \NFEioServiceInvoices\Legacy\Functions();
+        $config = new \NFEioServiceInvoices\Configuration();
+        $storageKey = $config->getStorageKey();
+        $storage = new \WHMCSExpert\Addon\Storage($storageKey);
+
         // inicia valores para chave issue_note_conditions
         $functions->gnfe_insert_issue_nfe_cond_in_database();
+        // define 'on' como padrão para discount_items
+        $storage->set('discount_items', 'on');
 
 
     }
