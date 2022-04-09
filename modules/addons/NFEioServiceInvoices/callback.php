@@ -23,7 +23,7 @@ if ($post) {
     $params = $functions->gnfe_config();
 
     if ($post['status'] == 'Error') {
-        logModuleCall('gofas_nfeio', 'callback_error', 'ERROR', $post);
+        logModuleCall('NFEioServiceInvoices', 'callback_error', 'ERROR', $post);
         // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/406
         http_response_code(406);
         exit();
