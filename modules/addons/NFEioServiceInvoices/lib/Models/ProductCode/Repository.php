@@ -51,27 +51,14 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             ->get();
     }
 
-    public function ratesFeesDataTable()
-    {
-        return Capsule::table('tblproducts')
-            ->leftJoin($this->tableName, 'tblproducts.id', '=', "{$this->tableName}.product_id")
-            ->orderBy('tblproducts.id', 'desc')
-            ->select('tblproducts.id', 'tblproducts.name', "{$this->tableName}.code_service", "{$this->tableName}.iss_held")
-            ->get();
-    }
-
     public function save($data)
     {
-        /*if (!in_array( 'product_id', $data) && !in_array('service_code', $data)) {
-            return false;
-        }*/
 
         try {
             return Capsule::table($this->tableName)->updateOrInsert(
                 [ 'product_id' => $data['product_id'] ],
                 [
                     'code_service' => $data['service_code'],
-                    'iss_held' => $data['iss_held'],
                     'ID_user' => 1,
                 ]
             );
@@ -132,7 +119,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 $table->increments('id');
                 $table->integer('product_id');
                 $table->string('code_service', 10);
-                $table->float('iss_held', 5, 2);
                 $table->timestamp('create_at');
                 $table->timestamp('update_at');
                 $table->integer('ID_user');

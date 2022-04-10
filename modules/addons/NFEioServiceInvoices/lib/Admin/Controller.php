@@ -329,7 +329,7 @@ class Controller {
 
     }
 
-    public function ratesAndFees($vars)
+    public function aliquots($vars)
     {
         try {
 
@@ -337,16 +337,16 @@ class Controller {
             $template = new Template(Addon::getModuleTemplatesDir());
             $config = new \NFEioServiceInvoices\Configuration();
             $servicesCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
+            $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
             // metodo para verificar se existe algum campo obrigatório não preenchido.
             $config->verifyMandatoryFields($vars);
             // URL absoluta dos assets
             $assetsURL = Addon::I()->getAssetsURL();
             $vars['assetsURL'] = $assetsURL;
-            $vars['dtData'] = $servicesCodeRepo->servicesCodeDataTable();
+            $vars['dtData'] = $aliquotsRepo->aliquotsDataTable();
             // parametro para o atributo action do formulário principal da página
-            $vars['formAction'] = 'ratesAndFeesSave';
+            $vars['formAction'] = 'aliquotsSave';
 
-            //d(version_compare('2.1.0-beta.2', '2.1.0', "lt"));
 
             // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
             $oldVersion = Versions::getOldNfeioModuleVersion();
@@ -360,36 +360,37 @@ class Controller {
                 $msg->display();
             }
 
-            return $template->fetch('ratesfees', $vars);
+            return $template->fetch('aliquots', $vars);
 
         } catch (\Exception $e) {
             echo $e->getMessage();
         }
     }
 
-    public function ratesAndFeesSave($vars)
+    public function aliquotsSave($vars)
     {
         $msg = new FlashMessages();
         $post = $_POST;
         $productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
+        $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
 
         if (!isset($post) && !is_array($post)) {
-            $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=ratesAndFees");
+            $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=aliquots");
         }
 
 
         if ($post['btnSave'] === 'true') {
-            $response = $productCodeRepo->save($post);
+            $response = $aliquotsRepo->save($post);
             if ($response) {
-                $msg->success("{$post['product_name']} atualizado com sucesso.", "{$vars['modulelink']}&action=ratesAndFees");
+                $msg->success("Alíquota atualizada com sucesso.", "{$vars['modulelink']}&action=aliquots");
             } else {
-                $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=ratesAndFees");
+                $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=aliquots");
             }
         }
 
         if ($post['btnDelete'] === 'true') {
-            $productCodeRepo->resetRatesAndFees($post);
-            $msg->warning("Alíquotas para {$post['product_name']} removidas.", "{$vars['modulelink']}&action=ratesAndFees");
+            $aliquotsRepo->delete($post);
+            $msg->warning("Alíquota removida com sucesso.", "{$vars['modulelink']}&action=aliquots");
 
         }
     }

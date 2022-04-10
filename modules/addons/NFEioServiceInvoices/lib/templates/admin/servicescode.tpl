@@ -28,7 +28,6 @@
                     <td>{$produto->name}</td>
                     <td><input class="form-control" type="text" name="service_code" required value="{$produto->code_service}"></td>
                     <td>
-                      <input type="hidden" name="iss_held" value="{$produto->iss_held}">
                       <input type="hidden" name="product_id" value="{$produto->id}">
                       <input type="hidden" name="product_name" value="{$produto->name}">
                       <button type="submit" class="btn btn-success btn-sm" name="btnSave" value="true">Salvar Código</button>

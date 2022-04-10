@@ -23,7 +23,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
 
     private $encryptHash = '';
 
-    public $version = '2.1.0-beta.3';
+    public $version = '2.1.0.rc.1';
 
     public $tablePrefix = 'mod_nfeio_si_';
 
@@ -241,7 +241,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
         \NFEioServiceInvoices\Migrations\Migrations::migrateProductCodes();
         // executa as rotinas de sql para a model ProductCode
         $productCodeRepo->createProductCodeTable();
-        $productCodeRepo->upgrade_to_2_1_0();
+        //$productCodeRepo->upgrade_to_2_1_0();
 
         // rotinas de ativação da model ClientConfiguration (tabela custom_configs)
         $clientConfigurationRepo = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
@@ -249,6 +249,11 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
         \NFEioServiceInvoices\Migrations\Migrations::migrateClientsConfigurations();
         // executa as rotinas de sql para a model ClientConfiguration
         $clientConfigurationRepo->createClientCustomConfigTable();
+
+        // Aliquots Model
+        $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
+        // cria a tabela para retenção de aliquotas
+        $aliquotsRepo->createAliquotsTable();
 
         // Migração das configurações do módulo versão inferior a 2
         \NFEioServiceInvoices\Migrations\Migrations::migrateConfigurations();
@@ -284,8 +289,8 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
         if (version_compare($currentlyInstalledVersion, '2.1.0', 'lt')) {
             $serviceInvoiceRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
             $serviceInvoiceRepo->upgrade_to_2_1_0();
-            $productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
-            $productCodeRepo->upgrade_to_2_1_0();
+            $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
+            $aliquotsRepo->createAliquotsTable();
         }
     }
 

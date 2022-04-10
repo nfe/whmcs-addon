@@ -15,7 +15,7 @@
       <ul class="nav navbar-nav">
         <li role="presentation" {if $smarty.get.action eq "index"}class="active"{/if}><a href="{$modulelink}&action=index"><span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span> Notas Fiscais (NFSe)</a></li>
         <li role="presentation" {if $smarty.get.action eq "servicesCode"}class="active"{/if}><a href="{$modulelink}&action=servicesCode"><span class="glyphicon glyphicon-equalizer" aria-hidden="true"></span> Código de Serviço</a></li>
-        <li role="presentation" {if $smarty.get.action eq "ratesAndFees"}class="active"{/if}><a href="{$modulelink}&action=ratesAndFees"><span class="glyphicon glyphicon-scale" aria-hidden="true"></span> Alíquotas & Retenções</a></li>
+        <li role="presentation" {if $smarty.get.action eq "aliquots"}class="active"{/if}><a href="{$modulelink}&action=aliquots"><span class="glyphicon glyphicon-scale" aria-hidden="true"></span> Alíquotas & Retenções</a></li>
 
 
       </ul>
