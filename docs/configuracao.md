@@ -33,15 +33,15 @@ Código de serviço que será usado como padrão para geração das notas fiscai
 
 > Configurado na etapa de instalação do módulo.
 
-### RPS
+### Retenção de ISS
 
-Campo legado RPS.
+Alíquota em porcentagem (%) padrão de retenção de ISS. Será aplicado a todos os produtos/serviços.
 
-### Disparar e-mail com a nota
+### Deduzir descontos da fatura na NF
 
-Habilita a opção de envio da nota fiscal por e-mail ao cliente.
+Deduzir descontos/abatimentos existentes na fatura do valor total da nota a ser emitida. Quando uma fatura possuir um item de desconto ou item com valor negativo, o mesmo será deduzido do valor total da nota a ser emitida. Se uma fatura possuir vários itens de desconto para diferentes serviços, os descontos serão somados e descontados com base no grupo de código de serviço.
 
-> O e-mail será enviado para o endereço principal cadastrado no perfil do cliente diretamente pela NFE.io.
+Opção habilitada por padrão.
 
 ### Quando emitir NFE
 
@@ -77,10 +77,6 @@ Selecione o campo personalizado criado anteriormente que será responsável pelo
 
 Selecione o campo personalizado criado anteriormente que será responsável pelo CNPJ do cliente. Selecione o mesmo campo personalizado do CPF caso seja um campo único para ambos os números de documento (CPF/CNPJ).
 
-### Aplicar Impostos em todos os produtos
-
-Esta opção define que todos os serviços terão impostos aplicados, caso contrário a aplicação de imposto é selecionada de forma individual por serviço.
-
 ### Descrição da NFSe
 
 Selecione a informação que será exibida no campo de descrição da nota fiscal.
@@ -97,9 +93,15 @@ Exibe o nome de todos os serviços vinculados a fatura.
 
 Exibe o número da fatura em uma linha e o nome de todos os serviços vinculados a fatura em outra linha.
 
-### Exibir Link da Fatura na NFSe
+### Link da Fatura na NFSe
 
-Exibe o link da fatura juntamente com a descrição da NFSe na mensagem da nota.
+Inclui o link da fatura juntamente com a descrição da NFSe na mensagem da nota.
+
+### Enviar e-mail
+
+Habilita a opção de envio da nota fiscal por e-mail ao cliente.
+
+> O e-mail será enviado para o endereço principal cadastrado no perfil do cliente diretamente pela NFE.io.
 
 ### Descrição Adicional
 
@@ -123,6 +125,16 @@ Para excluir um código personalizado de um produto, e voltar a utilizar a confi
 
 > **Dica:** use o campo `Pesquisar` localizado no canto superior da tabela para pesquisar os produtos desejados pelo nome ou ID.
 
+## Alíquotas & Retenções
+
+No menu **Alíquotas & Retenções** é possível definir alíquotas de retenção de ISS personalizadas para os diferentes códigos de serviços.
+
+![image](https://user-images.githubusercontent.com/5316107/162669588-9e43281f-9b90-417e-873c-cebf2060e67b.png)
+
+Caso existam códigos de serviços personalizados cadastrados, você poderá informar alíquotas diferentes para cada um, independente do valor definido na configuração global do módulo.
+
+Códigos de serviço com **alíquota com valor 0 (zero)** não sofrerão cálculo de retenção de ISS.
+
 ## Emissão Personalizada por cliente
 
 É possível definir uma **opção de emissão personalizada por cliente**, esta opção de emissão sobrescreve a configuração global de emissão configurada.
@@ -135,7 +147,15 @@ Para inserir uma opção personalizada de emissão, acesse o perfil do cliente d
 
 Para inserir um link da nota fiscal do PDF e XML, edite o arquivo `viewinvoice.tpl` da pasta do template do WHMCS, utilize o exemplo abaixo:
 
-```xhtml
-{if $status eq "Paid" || $clientsdetails.userid eq "6429"}<i class="fal fa-file-invoice" aria-hidden="true"></i> NOTA FISCAL  <a href="/modules/addons/gofasnfeio/pdf.php?invoice_id={$invoiceid}" target="_blank" class="btn btn-link" tite="Nota Fiscal disponível 24 horas após confirmação de pagamento.">PDF</a> | <a href="/modules/addons/gofasnfeio/xml.php?invoice_id={$invoiceid}" target="_blank" class="btn btn-link" tite="Nota Fiscal disponível 24 horas após confirmação de pagamento.">XML</a>{/if}
-
+```smarty
+{include file="../../modules/addons/NFEioServiceInvoices/lib/templates/clientarea/viewinvoice.tpl"}
 ```
+
+Recomendamos a inserção da tabela logo acima da linha:
+```smarty
+<p class="text-center d-print-none"><a href="clientarea.php?action=invoices">{lang key='invoicesbacktoclientarea'}</a></p>
+```
+
+Exemplo de exibição do downwload da NF na visualização da fatura pelo cliente.
+
+![image](https://user-images.githubusercontent.com/5316107/162670459-e63ba40f-9d38-41dd-9f83-18123e5945fa.png)
