@@ -52,11 +52,17 @@ class Invoices
 
     }
 
+    /**
+     * Calcula o valor de retenção para o ISS
+     * @param $amount
+     * @param $issHeld
+     * @return float
+     */
     public static function getIssHeldAmount($amount, $issHeld)
     {
         $heldAmount = ($amount * $issHeld) / 100;
 
-        return $heldAmount;
+        return round($heldAmount, 2);
     }
 
 }

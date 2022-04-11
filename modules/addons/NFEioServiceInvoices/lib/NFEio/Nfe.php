@@ -34,6 +34,10 @@ class Nfe
      * @var \NFEioServiceInvoices\Legacy\Functions
      */
     private $legacyFunctions;
+    /**
+     * @var \NFEioServiceInvoices\Models\Aliquots\Repository
+     */
+    private $aliquotsRepo;
 
 
     public function __construct()
@@ -44,7 +48,153 @@ class Nfe
         $this->moduleConfig = new \NFEioServiceInvoices\Configuration();
         $this->storage = new \WHMCSExpert\Addon\Storage($this->moduleConfig->getStorageKey());
         $this->legacyFunctions = new \NFEioServiceInvoices\Legacy\Functions();
+        $this->aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
     }
+
+    /**
+     * Prepara o item para ser transmitido
+     *
+     * @param $userId int ID do cliente
+     * @param $invoiceId int ID da fatura
+     * @param $serviceCode string Código do serviço
+     * @param $item object Item da fatura
+     * @return array item preparado para transmissão
+     */
+    private function prepareItemsToTransmit($userId, $invoiceId, $serviceCode, $item)
+    {
+
+        // se descontos em itens estiver desabilitado e valor do item for igual ou menor a zero, retorna nada
+        if ($this->storage->get('discount_items') != 'on' AND floatval($item->amount) <= 0) {
+            return array();
+        }
+
+        return array(
+            'userId' => $userId,
+            'invoiceId' => $invoiceId,
+            'itemId' => $item->id,
+            'itemRelId' => $item->relid,
+            'itemType' => $item->type,
+            'itemDescription' => $item->description,
+            'itemAmount' => floatval($item->amount),
+            'itemServiceCode' => $serviceCode,
+        );
+
+
+    }
+
+    /**
+     * Verifica se o tipo de item informado é um dos tipos permitidos a terem um código de serviço personalizado.
+     * Atualmente os códigos de serviços personalizados são configurados apenas para produtos/serviços, setup
+     * e códigos promocionais (pois possuem relid do produto pai). Itens como dominios, addons e etc não possuem
+     * código de serviço personalizado.
+     * @param $itemType string tipo do item
+     * @return bool true caso permitido, false não permitido
+     */
+    private function allowedItemType($itemType)
+    {
+        $allowed = false;
+
+        switch ($itemType) {
+            case 'Setup':
+            case 'Hosting':
+            case 'PromoHosting':
+                $allowed = true;
+                break;
+        }
+
+        return $allowed;
+    }
+
+    private function buildItemsToTransmit($items, $invoiceId, $userId)
+    {
+        // ISS padrão
+        $issHeld = floatval($this->storage->get('iss_held'));
+        $result = [];
+
+        // percorre $items para construir os itens a serem emitidos
+        foreach ($items as $serviceCode => $item) {
+
+            // é possível que item tenha coleções vazias devido a remoção de itens de desconto
+            // então é necessário limpar a coleção dos elementos vazios
+            array_filter($item);
+            $itemsDescription = '';
+            $itemsTotal = 0;
+            $nfData = [
+                'invoice_id' => $invoiceId,
+                'user_id' => $userId,
+                'nfe_id' => 'waiting',
+                'status' => 'Waiting',
+                'environment' => 'waiting',
+                'flow_status' => 'waiting',
+                'pdf' => 'waiting',
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => 'waiting',
+                'rpsSerialNumber' => 'waiting',
+                'service_code' => $serviceCode,
+            ];
+
+
+            // percorre cada item para realizar as agregações e somatórias
+            foreach ($item as $value) {
+                // concatena todas as descrições dos itens
+                $itemsDescription = $itemsDescription . $value['itemDescription'] . "\n";
+                // soma os valores de cada item para o total da nota
+                $itemsTotal = $itemsTotal + $value['itemAmount'];
+            }
+            // adiciona a descrição da nota no formato parametrizado
+            $nfData['nfe_description'] = \NFEioServiceInvoices\Helpers\Invoices::generateNfServiceDescription($invoiceId, $itemsDescription);
+            // adiciona o valor total calculado para os itens
+            $nfData['services_amount'] = $itemsTotal;
+            // gera id unico externo
+            $nfData['nfe_external_id'] = $this->generateUniqueExternalId($userId, $invoiceId, $itemsTotal);
+
+            // verifica se há calculo de retenção de ISS personalizado
+            $customIssHeld = $this->aliquotsRepo->getIssHeldByServiceCode($serviceCode);
+
+            /**
+             * se não houver retenção personalizada e houver retenção global diferente de zero, usa valor global
+             * para cálculo.
+             */
+            if (is_null($customIssHeld) AND $issHeld != 0) {
+                $nfData['iss_held'] = \NFEioServiceInvoices\Helpers\Invoices::getIssHeldAmount($itemsTotal, $issHeld);
+            }
+
+            /**
+             * se houver retenção personalizada e for diferente de zero, usa valor personalizado para cálculo.
+             */
+            if (!is_null($customIssHeld) AND $customIssHeld != 0) {
+                $nfData['iss_held'] = \NFEioServiceInvoices\Helpers\Invoices::getIssHeldAmount($itemsTotal, $customIssHeld);
+            }
+            // se valor total dos itens for maior que zero adiciona as informações para retorno
+            if ($itemsTotal > 0) {
+                $result[] = $nfData;
+            }
+
+        }
+
+        return $result;
+
+    }
+
+    /**
+     * Gera um ID único para cada nota. O valor resultante é o md5 da combinação da constante inicial WHMCS
+     * seguido do ID do usuário, ID da fatura e total dos itens.
+     * Nesta lógica cada conjunto de itens faturado possuirá um ID único evitando que seja inserido na fila
+     * de emissão itens que porventura já tenham sido transmitidos ou gerados.
+     * Estrutura: WHMCS-[USER_ID]-[INVOICE_ID]-[TOTAL]
+     * Exemplo: WHMCS-13-113-131
+     * Resultado: número hexadecimal de 32 caracteres
+     * @param $userId
+     * @param $invoiceId
+     * @param $itemsTotal
+     * @return string
+     */
+    private function generateUniqueExternalId($userId, $invoiceId, $itemsTotal)
+    {
+        return md5('WHMCS-' . $userId . '-' . $invoiceId . '-' . $itemsTotal);
+    }
+
+
 
     /**
      * Cria a nota fiscal com base na fatura e insere na fila (tabela) para emissão.
@@ -60,107 +210,51 @@ class Nfe
         $invoiceItems = $invoiceData->items()->get();
         $clientData = $invoiceData->client()->get();
         $userId = $clientData[0]['id'];
-        $serviceCode = $this->storage->get('service_code');
-        $issHeld = floatval($this->storage->get('iss_held'));
-        $hasInvoices = $this->serviceInvoicesRepo->hasInvoices($invoiceId);
-        $totalById = $this->serviceInvoicesRepo->getTotalById($invoiceId);
+        $defaultServiceCode = $this->storage->get('service_code');
+        $itemsByServiceCode = [];
 
-        // se já houverem notas geradas para esta fatura não faça nada
-        if ($hasInvoices) {
-            logModuleCall('NFEioServiceInvoices', __CLASS__ . '-' . __FUNCTION__, "Fatura: {$invoiceId}", "Já possuí NF gerada: {$hasInvoices} - {$totalById}.");
-            return [
-              'success' => true,
-              'alreadyHasNf' => true
-            ];
-        }
-
-        // percorre cada item da fatura e insere na fila de emissão
+        // percorre cada item da fatura para preparar as agregações de items por tipo de serviço
         foreach ($invoiceItems as $item) {
 
-            // se o item for juros/mora automática do WHMCS pula a emissão de nota
+            // código do serviço recebe o valor padrão
+            $serviceCode = $defaultServiceCode;
+
+            // se o item for juros/mora automática do WHMCS, não considera para fins de cálculo de nota
             if ($item->type === 'LateFee') {
                 continue;
             }
 
-            // se o item possuir valor zero ou menor, não emite nota para o mesmo
-            if ($item->amount <= 0) {
-                continue;
+            // se o item tiver um 'relid' e seu tipo for uns dos permitidos verifica se tem código personalizado
+            if ($item->relid != 0 AND $this->allowedItemType($item->type)) {
+                $customServiceCode = $this->productCodeRepo->getServiceCodeByRelId($item->relid);
+                if ($customServiceCode) {
+                    $serviceCode = $customServiceCode;
+                }
             }
 
-            try {
-                //
-                /**
-                 * Gera um ID único para cada nota. O valor resultante é uma combinação simples da constante inicial WHMCS
-                 * seguido do ID do usuário, ID da fatura e ID do item da fatura.
-                 * Nesta lógica cada item faturado possuirá um ID único mas totalmente reproduzível novamente para verificação
-                 * ou validação e evitando que seja inserido na fila de emissão itens que porventura já tenham sido faturados
-                 * ou gerados.
-                 * Estrutura: WHMCS-[USER_ID]-[INVOICE_ID]-[ITEM_ID]
-                 * Exemplo: WHMCS-12-113-605
-                 */
-                $uniqueExternalId = 'WHMCS-' . $userId . '-' . $invoiceId . '-' . $item->id;
+            // prepara o item e o adiciona em um array associativo com o código do serviço
+            $itemsByServiceCode[$serviceCode][] = $this->prepareItemsToTransmit($userId, $invoiceId, $serviceCode, $item);
+
+
+        }
+
+        $nfToEmit = $this->buildItemsToTransmit($itemsByServiceCode, $invoiceId, $userId);
+
+        if (count($nfToEmit) > 0) {
+            foreach ($nfToEmit as $nf) {
                 /**
                  * verifica se existe um external_id igual
                  */
-                $hasExternalId = Capsule::table($this->serviceInvoicesTable)->where('nfe_external_id', '=', $uniqueExternalId)->first();
+                $hasExternalId = Capsule::table($this->serviceInvoicesTable)->where('nfe_external_id', '=', $nf['nfe_external_id'])->first();
 
                 // se já houver uma nota no banco local com o mesmo external_id pula a emissão de nota
                 if ( is_array($hasExternalId) ) {
+                    logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, "Um external_id idêntico foi encontrado para {$nf['nfe_external_id']}, NF não adicionada para transmissão", $hasExternalId);
                     continue;
                 }
 
-                if ($item->relid != 0 AND $item->type != 'Item') {
-                    $customServiceCode = $this->productCodeRepo->getServiceCodeByRelId($item->relid);
-                    if ($customServiceCode) {
-                        $serviceCode = $customServiceCode;
-                    }
-                }
-
-                $serviceDescription = \NFEioServiceInvoices\Helpers\Invoices::generateNfServiceDescription($invoiceId, $item->description);
-
-                $data = [
-                    'invoice_id' => $invoiceId,
-                    'user_id' => $userId,
-                    'nfe_id' => 'waiting',
-                    'nfe_external_id' => $uniqueExternalId,
-                    'status' => 'Waiting',
-                    'services_amount' => $item->amount,
-                    'nfe_description' => $serviceDescription,
-                    'environment' => 'waiting',
-                    'flow_status' => 'waiting',
-                    'pdf' => 'waiting',
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'updated_at' => 'waiting',
-                    'rpsSerialNumber' => 'waiting',
-                    'service_code' => $serviceCode,
-                ];
-
-                // verifica se há calculo de retenção de ISS personalizado
-                $customIssHeld = $this->productCodeRepo->getIssHeldByRelId($item->relid);
-
-                /**
-                 * se não houver retenção personalizada e houver retenção global diferente de zero, usa valor global
-                 * para cálculo.
-                 */
-                if (is_null($customIssHeld) AND $issHeld != 0) {
-                    $data['iss_held'] = \NFEioServiceInvoices\Helpers\Invoices::getIssHeldAmount($item->amount, $issHeld);
-                }
-
-                /**
-                 * se houver retenção personalizada e for diferente de zero, usa valor personalizado para cálculo.
-                 */
-                if (!is_null($customIssHeld) AND $customIssHeld != 0) {
-                    $data['iss_held'] = \NFEioServiceInvoices\Helpers\Invoices::getIssHeldAmount($item->amount, $customIssHeld);
-                }
-
-                $result = Capsule::table($this->serviceInvoicesTable)->insert($data);
-
-                logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, $data, $result);
-
-            } catch (\Exception $exception) {
-                logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, '', $exception->getMessage());
-
-                return ['success' => false, 'message' => $exception->getMessage()];
+                $result = Capsule::table($this->serviceInvoicesTable)->insert($nf);
+                logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, $nf, $result);
 
             }
         }
@@ -252,9 +346,9 @@ class Nfe
 
             if (!$nfeResponse->message) {
                 $gnfe_update_nfe = $this->legacyFunctions->gnfe_update_nfe($nfeResponse, $clientId, $invoiceId, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $nfDbId);
-                logModuleCall('gofas_nfeio', 'sendNFE', $postData, $nfeResponse, 'OK', '');
+                logModuleCall('NFEioServiceInvoices', 'transmit_nf_success', $postData, $nfeResponse);
             } else {
-                logModuleCall('gofas_nfeio', 'sendNFE', $postData, $nfeResponse, 'ERROR', '');
+                logModuleCall('NFEioServiceInvoices', 'transmit_nf_error', $postData, $nfeResponse);
 
             }
 
