@@ -16,8 +16,8 @@ Antes de realizar a instalação do módulo, leia com atenção as informações
 
 Os requisitos a seguir são necessários para o funcionamento adequado do módulo e integração.
 
-1. WHMCS versão 7.2 ou superior;
-2. PHP 5.6 ou superior;
+1. WHMCS versão 8 ou superior;
+2. PHP 7.2 ou superior;
 3. Chave de API da NFE.io;
 4. Automação do WHMCS devidamente configurada ([https://docs.whmcs.com/Automation_Settings](https://docs.whmcs.com/Automation_Settings));
 5. Tarefas cron do Sistema sendo executadas conforme recomendações do WHMCS [https://docs.whmcs.com/Crons#System_Cron](https://docs.whmcs.com/Crons#System_Cron).
@@ -84,16 +84,6 @@ Para ativar o módulo adicional no WHMCS versão 8.x vá até o ícone de chave 
 O campo de busca em `Opções` digite `addon` e acesse a opção `Módulos Addon`.
 
 ![](../assets/img/nfeio-whmcs-docs-instalacao-04.png)
-
-Localize o módulo addon **NFE.io NFSe** e clique no botão `Ativar`.
-
-![](../assets/img/nfeio-whmcs-docs-instalacao-05.png)
-
-#### WHMCS 7.X
-
-Para ativar o módulo adicional no WHMCS versão 7.x acesse o menu `Opções -> Módulos Addons`.
-
-![](../assets/img/nfeio-whmcs-docs-instalacao-06.png)
 
 Localize o módulo addon **NFE.io NFSe** e clique no botão `Ativar`.
 
