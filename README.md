@@ -72,8 +72,8 @@ O campo `Inscrição Estadual` é de criação obrigatória, mas de preenchiment
 
 Os requisitos a seguir são necessários para o funcionamento adequado do módulo e integração.
 
-1. WHMCS versão 7.2 ou superior;
-2. PHP 5.6 ou superior;
+1. WHMCS versão 8 ou superior;
+2. PHP 7.2 ou superior;
 3. Chave de API da NFE.io;
 4. Automação do WHMCS devidamente configurada ([https://docs.whmcs.com/Automation_Settings](https://docs.whmcs.com/Automation_Settings));
 5. Tarefas cron do Sistema sendo executadas conforme recomendações do WHMCS [https://docs.whmcs.com/Crons#System_Cron](https://docs.whmcs.com/Crons#System_Cron).
@@ -85,6 +85,8 @@ Para instalar o módulo no WHMCS realize os seguintes passos.
 ### Baixar o módulo
 
 Faça o download arquivo zip da última versão módulo neste link [https://github.com/nfe/whmcs-addon/releases/latest](https://github.com/nfe/whmcs-addon/releases/latest)
+
+Veja a lista completa de versões em https://github.com/nfe/whmcs-addon/releases
 
 ### Descompactar o zip
 
