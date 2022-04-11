@@ -15,7 +15,7 @@ A partir desta versão, faturas que possuírem diferentes itens com mesmo códig
 * Logs: melhorado registro de logs para debug do callback (#55)(#116).
 * Alíquotas e Retenções: Agora o valor de retenção para ISS pode ser personalizado por código de serviço e não mais por produto. Com isso evita a possibilidade de produtos com mesmo código de serviço possuam diferentes alíquotas de retenção de ISS (#74).
 * Emitir NF para itens faturáveis: A partir desta versão é possível emitir nota fiscal para qualquer tipo de item faturável (hora ou item). Itens faturáveis receberão as configurações de código de serviço, alíquotas e descontos padrões do módulo (#111).
-* Emissão em duplicidade: Melhorado mecânismo que evita a geração de notas fiscais duplicadas para a mesma fatura (#110).
+* Emissão em duplicidade: Melhorado mecanismo que evita a geração de notas fiscais duplicadas para a mesma fatura (#110).
 
 ### Corrigido
 
