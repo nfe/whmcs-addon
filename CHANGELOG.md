@@ -1,6 +1,23 @@
-## 2.1.0 - 2022-04-10
+## 2.1.0 - 2022-04-11
 
+### Novo Recurso
 
+#### Calculo de descontos existentes na fatura 
+
+Agora é possível deduzir os descontos de uma fatura na nota fiscal. Quando uma fatura possuir um item de desconto ou item com valor negativo, o mesmo será deduzido do valor total da nota a ser emitida. Se uma fatura possuir vários itens de desconto para diferentes serviços, os descontos serão somados e descontados com base no grupo de código de serviço. Este recurso pode ser desativado na configuração do módulo (ativado por padrão) (#118).
+
+#### Emissão de notas com itens consolidados
+
+A partir desta versão, faturas que possuírem diferentes itens com mesmo código de serviço terão seus valores, descontos e descrições consolidadas para emissão em uma única nota fiscal. Se uma fatura possuir itens com diferentes códigos de serviços, os itens com mesmo código serão consolidados em diferentes notas fiscais (#119).
+
+### Melhorado
+
+* registro de logs para debug do callback (#55) (#116).
+* Alíquotas e Retenções: agora o valor de retenção para ISS pode ser personalizado por código de serviço e não mais por produto. Com isso evita a possibilidade de produtos com mesmo código de serviço possuam diferentes alíquotas de retenção de ISS (#74). 
+
+### Corrigido
+
+* Possibilidade de clique nos botões de ações na administração mesmo estando desabilitado (#117)
 
 ## 2.1.0-beta.3 - 2022-04-06
 
