@@ -21,6 +21,10 @@ A partir desta versão, faturas que possuírem diferentes itens com mesmo códig
 
 * Possibilidade de clique nos botões de ações na administração mesmo estando desabilitado (#117)
 
+### Removido
+
+* WHMCS 7: Removida compatibilidade com WHMCS 7.
+
 #### Documentação
 
 Documentação do módulo atualizada https://nfe.github.io/whmcs-addon/
