@@ -1,3 +1,42 @@
+## 2.1.0 - 2022-04-10
+
+
+
+## 2.1.0-beta.3 - 2022-04-06
+
+### Corrigido
+
+* **Alíquotas & Retenções**: Edição do campo retenção de ISS na configuração global, não estava persistindo as alterações (da62d68e81742190b124b63e62b4981a198d23c7).
+* **Emissão de NF**: Itens de fatura com valor negativo gerava emissão no NF (#115).
+
+### Melhorado
+
+* **Administração**: Exibição da tabela com informações das notas na visualização da fatura pelo administrador (3837188e88d27183db8ee209edec8601707211d1).
+
+### Refatorado
+
+* **Cliente**: Exibição e download em PDF e XML das notas fiscais de uma fatura pelo cliente (#69).
+
+**Full Changelog**: https://github.com/nfe/whmcs-addon/compare/v2.1.0-beta.2...v2.1.0-beta.3
+
+## 2.1.0-beta.2 - 2022-03-18
+
+### Novo recurso
+
+* **Alíquotas & Retenções**: Agora é possível informar a alíquota de retenção do ISS para produtos/serviços em um novo menu na administração do módulo #74
+
+### Corrigido
+
+* **Emissão de NF**: Corrigido indicação de quando emitir a NF personalizada por cliente, a função responsável pela verificação de quando emitir poderia retornar nulo em algumas situações, fazendo com que a nota não fosse emitida conforme a condição desejada.
+* Corrigido _namespace_ do banco de dados em algumas classes.
+
+### Melhorado
+
+* **Registro de logs**: Adicionado registro de log na rotina da cron do módulo para que o WHMCS mesmo que não haja notas a serem emitidas grave a informação, facilitando a depuração de eventuais problemas.
+* **Migração da v1.4**:  Alterada lógica para compatibilidade quando realizado migração da v1.4 para a v2.1 devido à necessidade de inserção de novas colunas nas tabelas migradas. #112
+
+**Full Changelog**: https://github.com/nfe/whmcs-addon/compare/v2.0.0...v2.1.0-beta.2
+
 ## 2.1.0-beta - 2022-03-14
 
 ### Novo recurso
@@ -11,6 +50,7 @@
 - Corrigido layout dos itens do módulo ao acessar uma fatura pelo admin do WHMCS (#109).
 
 ## 2.0.2 - 2021-01-27
+
 ### Corrigido
 - Corrige a exibição do dropdown "Emitir nota fiscal quando" #107
 - Corrige o erro quando o administrador tenta salvar uma edição do perfil do cliente, consequência da ausência do dropdown "Emitir nota fiscal quando" #106
