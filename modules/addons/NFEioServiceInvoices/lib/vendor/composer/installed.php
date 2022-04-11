@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../../../../../',
         'aliases' => array(),
-        'reference' => 'c707c46aad56bb9a9de98a1ffa84f178b0d4a47f',
+        'reference' => '4c88dc60d62ac5cb8f58c56ef06d16dbdf8ab721',
         'name' => '__root__',
         'dev' => false,
     ),
@@ -16,7 +16,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../../../../../',
             'aliases' => array(),
-            'reference' => 'c707c46aad56bb9a9de98a1ffa84f178b0d4a47f',
+            'reference' => '4c88dc60d62ac5cb8f58c56ef06d16dbdf8ab721',
             'dev_requirement' => false,
         ),
         'guzzlehttp/psr7' => array(

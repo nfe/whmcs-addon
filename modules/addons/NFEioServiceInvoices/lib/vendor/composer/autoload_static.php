@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit12d49dcc996ff742bf4970577543e63e
+class ComposerStaticInitf9ad421a8365f1ba64f3e0a3cda42a48
 {
     public static $files = array (
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
@@ -95,12 +95,14 @@ class ComposerStaticInit12d49dcc996ff742bf4970577543e63e
         'NFEioServiceInvoices\\Helpers\\Versions' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Helpers/Versions.php',
         'NFEioServiceInvoices\\Hooks\\AdminInvoicesControlsOutput' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Hooks/AdminInvoicesControlsOutput.php',
         'NFEioServiceInvoices\\Hooks\\AfterCronJob' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Hooks/AfterCronJob.php',
+        'NFEioServiceInvoices\\Hooks\\ClientAreaPageViewInvoice' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Hooks/ClientAreaPageViewInvoice.php',
         'NFEioServiceInvoices\\Hooks\\DailyCronJob' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Hooks/DailyCronJob.php',
         'NFEioServiceInvoices\\Hooks\\InvoiceCreation' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Hooks/InvoiceCreation.php',
         'NFEioServiceInvoices\\Hooks\\InvoicePaid' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Hooks/InvoicePaid.php',
         'NFEioServiceInvoices\\Legacy\\Functions' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Legacy/Functions.php',
         'NFEioServiceInvoices\\Legacy\\Hooks' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Legacy/Hooks.php',
         'NFEioServiceInvoices\\Migrations\\Migrations' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Migrations/Migrations.php',
+        'NFEioServiceInvoices\\Models\\Aliquots\\Repository' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Models/Aliquots/Repository.php',
         'NFEioServiceInvoices\\Models\\ClientConfiguration\\Repository' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Models/ClientConfiguration/Repository.php',
         'NFEioServiceInvoices\\Models\\ModuleConfiguration\\Repository' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Models/ModuleConfiguration/Repository.php',
         'NFEioServiceInvoices\\Models\\ProductCode\\Repository' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Models/ProductCode/Repository.php',
@@ -142,9 +144,9 @@ class ComposerStaticInit12d49dcc996ff742bf4970577543e63e
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit12d49dcc996ff742bf4970577543e63e::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit12d49dcc996ff742bf4970577543e63e::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit12d49dcc996ff742bf4970577543e63e::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitf9ad421a8365f1ba64f3e0a3cda42a48::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitf9ad421a8365f1ba64f3e0a3cda42a48::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitf9ad421a8365f1ba64f3e0a3cda42a48::$classMap;
 
         }, null, ClassLoader::class);
     }
