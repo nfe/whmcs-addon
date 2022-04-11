@@ -35,6 +35,20 @@ Automatize a emissão de nota fiscal eletrônica de serviço diretamente em seu 
 
 Antes de realizar a instalação do módulo, leia com atenção as informações a seguir, elas são importantes para que todo o processo de instalação possa ocorrer sem problemas.
 
+### Documentação
+
+A documentação completa do módulo está disponível também em https://nfe.github.io/whmcs-addon/
+
+### Compatibilidade
+
+#### WHMCS
+
+O módulo de emissão de nota fiscal para WHMCS da NFE.io é compatível com versões do WHMCS 8 ou superiores. A tabela com o "suporte de longo termo" do WHMCS pode ser acessada em https://docs.whmcs.com/Long_Term_Support#WHMCS_Version_.26_LTS_Schedule 
+
+#### PHP
+
+O módulo suporta PHP com versões superior a 7.2. Para visualizar a matrix de compatibilidade de PHP do WHMCS acesse https://docs.whmcs.com/PHP_Version_Support_Matrix
+
 ### Campos Personalizados
 
 O módulo irá requerer os seguintes campos personalizados para o cliente:
