@@ -35,8 +35,8 @@ Automatize a emissão de nota fiscal eletrônica de serviço diretamente em seu 
 
 ### Requisitos
 
-- WHMCS versão 7.2 ou superior
-- PHP 5.6 ou superior
+- WHMCS versão 8 ou superior
+- PHP 7.2 ou superior
 - Tarefas cron do WHMCS devem estar funcionando a cada 5 minutos, conforme descrito na documentação oficial (https://docs.whmcs.com/Crons);
 - É necessário um portal de pagamento ativado e que a criação de faturas do WHMCS esteja funcional, sendo que as notas fiscais são emitidas no momento da criação ou após o pagamento das faturas geradas manual ou automaticamente pelo WHMCS.
 
