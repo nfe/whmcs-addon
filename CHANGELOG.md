@@ -21,6 +21,10 @@ A partir desta versão, faturas que possuírem diferentes itens com mesmo códig
 
 * Possibilidade de clique nos botões de ações na administração mesmo estando desabilitado (#117)
 
+#### Documentação
+
+Documentação do módulo atualizada https://nfe.github.io/whmcs-addon/
+
 ## 2.1.0-beta.3 - 2022-04-06
 
 ### Corrigido
