@@ -1,3 +1,9 @@
+## 2.1.1 - 2022-05-31
+
+### Correção
+
+* Corrigido erro de `SQLSTATE` ao acessar página de configuração de códigos de serviços #122
+
 ## 2.1.0 - 2022-04-11
 
 ### Novo Recurso

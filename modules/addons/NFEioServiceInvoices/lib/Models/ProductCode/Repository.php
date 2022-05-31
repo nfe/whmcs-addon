@@ -47,7 +47,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return Capsule::table('tblproducts')
             ->leftJoin($this->tableName, 'tblproducts.id', '=', "{$this->tableName}.product_id")
             ->orderBy('tblproducts.id', 'desc')
-            ->select('tblproducts.id', 'tblproducts.name', "{$this->tableName}.code_service", "{$this->tableName}.iss_held")
+            ->select('tblproducts.id', 'tblproducts.name', "{$this->tableName}.code_service")
             ->get();
     }
 
