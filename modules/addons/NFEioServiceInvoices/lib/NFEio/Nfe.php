@@ -356,6 +356,13 @@ class Nfe
 
     }
 
+    /**
+     * Atualiza o status de uma NF no banco local
+     * @param $nfRemoteId string ID remoto da NF (nfe_id)
+     * @param $status string Status da NF
+     * @return string 'success' para sucesso
+     * @version 2.1.2
+     */
     public function updateLocalNfeStatus($nfRemoteId, $status) {
 
         $_tableName = $this->serviceInvoicesRepo->tableName();
