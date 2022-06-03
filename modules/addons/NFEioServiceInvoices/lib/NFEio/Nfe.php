@@ -355,4 +355,18 @@ class Nfe
         }
 
     }
+
+    public function updateLocalNfeStatus($nfRemoteId, $status) {
+
+        $_tableName = $this->serviceInvoicesRepo->tableName();
+
+        try {
+            Capsule::table($_tableName)->where('nfe_id', '=', $nfRemoteId)->update(['status' => $status]);
+        } catch (\Exception $e) {
+            return $e->getMessage();
+        }
+
+        return 'success';
+
+    }
 }
