@@ -278,6 +278,7 @@ class Controller {
         $moduleLink = $vars['modulelink'];
         $moduleAction = 'index';
         $redirectUrl = $moduleLink.'&action='.$moduleAction;
+        $nfe = new \NFEioServiceInvoices\NFEio\Nfe;
 
         // create
         if ($_REQUEST['gnfe_create']) {
@@ -298,16 +299,35 @@ class Controller {
                 }
             }
         }
+        // reissue
+        if ($_REQUEST['nfeio_reissue'] AND ( isset($_REQUEST['nfe_id']) AND !empty($_REQUEST['nfe_id']) )) {
+            $nfId = $_REQUEST['nfe_id'];
+            $result = $nfe->reissueNfbyId($nfId);
+
+            if ($result === 'success') {
+                $msg->success('NF reemitida com sucesso', $redirectUrl);
+            } else {
+                $msg->error("Erro ao reemitir NF: {$result}", $redirectUrl);
+
+            }
+        }
 
         // cancel
         if ($_REQUEST['gnfe_cancel']) {
             $delete_nfe = $functions->gnfe_delete_nfe($_REQUEST['gnfe_cancel']);
-            if (!$delete_nfe->message) {
-                $gnfe_update_nfe = $functions->gnfe_update_nfe((object) ['id' => $_REQUEST['gnfe_cancel'], 'status' => 'Cancelled', 'servicesAmount' => $_REQUEST['services_amount'], 'environment' => $_REQUEST['environment'], 'flow_status' => $_REQUEST['flow_status']], $_REQUEST['user_id'], $_REQUEST['invoice_id'], 'n/a', $_REQUEST['created_at'], date('Y-m-d H:i:s'));
-                $msg->success("Nota fiscal cancelada com sucesso", $redirectUrl);
-            }
+            $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
             if ($delete_nfe->message) {
-                $msg->error($delete_nfe->message, $redirectUrl);
+                $response = $nfe->updateLocalNfeStatus($_REQUEST['gnfe_cancel'], 'Cancelled');
+
+                logModuleCall('nfeioserviceinvoices', 'cancel_nf', $_REQUEST['gnfe_cancel'], "NF API Response: \n {$delete_nfe->message} \n NF LOCAL Response: \n {$response}");
+
+                $msg->warning("Nota fiscal cancelada, mas com aviso: {$delete_nfe->message}", $redirectUrl);
+            } else {
+
+                logModuleCall('nfeioserviceinvoices', 'cancel_nf', $_REQUEST['gnfe_cancel'], $delete_nfe);
+
+                $msg->success("Nota fiscal cancelada com sucesso", $redirectUrl);
+
             }
         }
 

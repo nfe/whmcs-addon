@@ -633,7 +633,7 @@ class Functions
 
             if (!$id_gofasnfeio) {
                 $id = $invoice_id;
-                $camp = 'invoice_id';
+                $camp = 'nfe_id';
             } else {
                 $id = $id_gofasnfeio;
                 $camp = 'id';

@@ -25,7 +25,7 @@
   {/if}
 {/function}
 {function name=disableGenerateButtonAction}
-  {if $data == 'Cancelled' OR $data == 'Issued' OR $data == 'Waiting'}
+  {if $data != 'Cancelled'}
     disabled="true"
   {/if}
 {/function}
@@ -42,18 +42,20 @@
           <div class="panel-body">
             <table class="table table-hover" id="serviceInvoicesTable">
               <thead>
-                <th>Fatura</th>
-                <th>Data de Criação</th>
-                <th>Cliente</th>
-                <th>Valor</th>
-                <th>Status</th>
-                <th>Ações</th>
+                <th class="text-center">Fatura</th>
+                <th class="text-center">NFe.io ID</th>
+                <th class="text-center">Data de Criação</th>
+                <th class="text-center">Cliente</th>
+                <th class="text-center">Valor</th>
+                <th class="text-center">Status</th>
+                <th class="text-center">Ações</th>
               </thead>
               <tbody>
                 {foreach from=$dtData item=nota }
                   <tr>
-                    <td><a href="invoices.php?action=edit&id={$nota->invoice_id}" target="_blank">{$nota->invoice_id}</a></td>
-                    <td>{$nota->created_at|date_format:"%d/%m/%Y %H:%M"}</td>
+                    <td class="text-center"><a href="invoices.php?action=edit&id={$nota->invoice_id}" target="_blank">{$nota->invoice_id}</a></td>
+                    <td class="text-center">{$nota->nfe_id}</td>
+                    <td class="text-center">{$nota->created_at|date_format:"%d/%m/%Y %H:%M"}</td>
                     <td>
                       <a href="clientssummary.php?userid={$nota->user_id}" target="_blank">
                         {$nota->firstname} {$nota->lastname}
@@ -63,9 +65,9 @@
                       </a>
                     </td>
                     <td>R${$nota->services_amount}</td>
-                    <td>{statusLabel data=$nota->status}</td>
-                    <td>
-                      <button {disableGenerateButtonAction data=$nota->status} onclick="goTo('{$modulelink}&action=legacyFunctions&invoice_id={$nota->invoice_id}&gnfe_create=yes', '_self');" class="btn btn-primary btn-sm" id="gnfe_generate">Emitir NFSe</button>
+                    <td class="text-center">{statusLabel data=$nota->status}</td>
+                    <td class="text-right">
+                      <button {disableGenerateButtonAction data=$nota->status} onclick="goTo('{$modulelink}&action=legacyFunctions&nfe_id={$nota->nfe_id}&nfeio_reissue=true', '_self');" class="btn btn-primary btn-sm" id="gnfe_generate">Reemitir NFSe</button>
                       <button onclick="goTo('https://app.nfe.io/companies/{$company_id}/service-invoices/{$nota->nfe_id}', '_blank');" formtarget="_blank" class="btn btn-success btn-sm" id="gnfe_view">Visualizar</button>
                       <button {disableButtonAction data=$nota->status} onclick="goTo('{$modulelink}&action=legacyFunctions&invoice_id={$nota->invoice_id}&gnfe_cancel={$nota->nfe_id}&services_amount={$nota->services_amount}&environment={$nota->environment}&flow_status={$nota->flow_status}&user_id={$nota->user_id}&created_at={$nota->created_at}', '_self');" class="btn btn-danger btn-sm" id="gnfe_cancel">Cancelar NFSe</button>
                       <button {disableButtonAction data=$nota->status} onclick="goTo('{$modulelink}&action=legacyFunctions&gnfe_email={$nota->nfe_id}', '_self');" class="btn btn-info btn-sm" id="gnfe_email">Enviar e-mail</button>

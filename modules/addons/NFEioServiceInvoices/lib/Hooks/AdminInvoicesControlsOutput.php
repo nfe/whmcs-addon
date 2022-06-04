@@ -67,11 +67,13 @@ class AdminInvoicesControlsOutput
             $nfeId = $_POST['nfeiosi_id'];
             $result = $legacyFunctions->gnfe_delete_nfe($nfeId);
             if (!$result->message) {
+                logModuleCall('nfeioserviceinvoices', 'cancel_nf', $nfeId, $result);
                 $msg->info("Nota cancelada com sucesso.");
 
             } else {
-                $msg->error("Problemas ao cancelar a nota: {$result->message}.");
-
+                $response = $nfe->updateLocalNfeStatus($nfeId, 'Cancelled');
+                logModuleCall('nfeioserviceinvoices', 'cancel_nf', $nfeId, "NF API Response: \n {$result->message} \n NF LOCAL Response: \n {$response}");
+                $msg->warning("Nota fiscal cancelada, mas com aviso: {$result->message}.");
             }
         }
 
