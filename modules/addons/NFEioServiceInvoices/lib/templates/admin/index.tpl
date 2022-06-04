@@ -67,7 +67,7 @@
                     <td>R${$nota->services_amount}</td>
                     <td class="text-center">{statusLabel data=$nota->status}</td>
                     <td class="text-right">
-                      <button {disableGenerateButtonAction data=$nota->status} onclick="goTo('{$modulelink}&action=legacyFunctions&invoice_id={$nota->invoice_id}&gnfe_create=yes', '_self');" class="btn btn-primary btn-sm" id="gnfe_generate">Emitir NFSe</button>
+                      <button {disableGenerateButtonAction data=$nota->status} onclick="goTo('{$modulelink}&action=legacyFunctions&nfe_id={$nota->nfe_id}&nfeio_reissue=true', '_self');" class="btn btn-primary btn-sm" id="gnfe_generate">Reemitir NFSe</button>
                       <button onclick="goTo('https://app.nfe.io/companies/{$company_id}/service-invoices/{$nota->nfe_id}', '_blank');" formtarget="_blank" class="btn btn-success btn-sm" id="gnfe_view">Visualizar</button>
                       <button {disableButtonAction data=$nota->status} onclick="goTo('{$modulelink}&action=legacyFunctions&invoice_id={$nota->invoice_id}&gnfe_cancel={$nota->nfe_id}&services_amount={$nota->services_amount}&environment={$nota->environment}&flow_status={$nota->flow_status}&user_id={$nota->user_id}&created_at={$nota->created_at}', '_self');" class="btn btn-danger btn-sm" id="gnfe_cancel">Cancelar NFSe</button>
                       <button {disableButtonAction data=$nota->status} onclick="goTo('{$modulelink}&action=legacyFunctions&gnfe_email={$nota->nfe_id}', '_self');" class="btn btn-info btn-sm" id="gnfe_email">Enviar e-mail</button>

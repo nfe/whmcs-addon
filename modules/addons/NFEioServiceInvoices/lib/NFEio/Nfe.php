@@ -189,9 +189,24 @@ class Nfe
      * @param $itemsTotal
      * @return string
      */
-    private function generateUniqueExternalId($userId, $invoiceId, $itemsTotal)
+    private function generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $reissue = false)
     {
-        return md5('WHMCS-' . $userId . '-' . $invoiceId . '-' . $itemsTotal);
+        $separator = '-';
+        $prefix = 'WHMCS';
+
+        // se o ID  a ser gerado for para uma reemissão da NF, retorna um padrão diferente
+        // para não conflitar com qualquer ID já existente
+        if ($reissue) {
+            $suffix = 'REISSUE';
+            // usa um timestamp para tornar cada reemissão unica para a criação do ID
+            $dateTimeNow = date('Y-m-d H:i:s');
+            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $itemsTotal . $separator . $suffix . $separator . $dateTimeNow);
+        } else {
+            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $itemsTotal);
+
+        }
+
+        return $result;
     }
 
 
@@ -363,7 +378,8 @@ class Nfe
      * @return string 'success' para sucesso
      * @version 2.1.2
      */
-    public function updateLocalNfeStatus($nfRemoteId, $status) {
+    public function updateLocalNfeStatus($nfRemoteId, $status)
+    {
 
         $_tableName = $this->serviceInvoicesRepo->tableName();
 
@@ -374,6 +390,64 @@ class Nfe
         }
 
         return 'success';
+
+    }
+
+    /**
+     * Reemite uma nota com base no ID original copiando os dados já existentes.
+     * @param $nfId string ID da nota na NFE.io (nfe_id)
+     * @return string retorna sucesso ou mensagem de erro
+     * @version v2.1
+     */
+    // TODO: desenvolver uma versão para fazer reemissão de todos os itens ou notas de uma fatura especifica, lendo novamente todos os dados da fatura e do cliente
+    public function reissueNfbyId($nfId)
+    {
+        $_tableName = $this->serviceInvoicesRepo->tableName();
+        $nfData = Capsule::table($_tableName)->where('nfe_id', '=', $nfId)->first();
+        $userId = $nfData->user_id;
+        $invoiceId = $nfData->invoice_id;
+        $amount = $nfData->services_amount;
+        $issHeld = $nfData->iss_held;
+        $nfDescription = $nfData->nfe_description;
+        $environment = $nfData->environment;
+        $issueNoteConditions = $nfData->issue_note_conditions;
+        $serviceCode = $nfData->service_code;
+        $tics = $nfData->tics;
+        $dateNow = date('Y-m-d H:i:s');
+        // gera um novo ID externo unico para a reemissão do item/NF
+        $externalUniqueId = $this->generateUniqueExternalId($userId, $invoiceId, $amount, true);
+
+        $reissueNfData = [
+            'invoice_id' => $invoiceId,
+            'user_id' => $userId,
+            'nfe_id' => 'waiting',
+            'nfe_external_id' => $externalUniqueId,
+            'status' => 'Waiting',
+            'services_amount' => $amount,
+            'iss_held' => $issHeld,
+            'nfe_description' => $nfDescription,
+            'environment' => $environment,
+            'issue_note_conditions' => $issueNoteConditions,
+            'flow_status' => 'waiting',
+            'pdf' => 'waiting',
+            'rpsSerialNumber' => 'waiting',
+            'created_at' => $dateNow,
+            'updated_at' => 'waiting',
+            'service_code' => $serviceCode,
+            'tics' => ' ',
+        ];
+
+        try {
+
+            $result = Capsule::table($_tableName)->insert($reissueNfData);
+            logModuleCall('NFEioServiceInvoices', __CLASS__ .'/'. __FUNCTION__, $reissueNfData, $result);
+            return 'success';
+
+
+        } catch (\Exception $e) {
+            logModuleCall('NFEioServiceInvoices', __CLASS__ .'/'. __FUNCTION__, $reissueNfData, $e->getMessage());
+            return $e->getMessage();
+        }
 
     }
 }

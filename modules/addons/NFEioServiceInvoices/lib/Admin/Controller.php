@@ -278,6 +278,7 @@ class Controller {
         $moduleLink = $vars['modulelink'];
         $moduleAction = 'index';
         $redirectUrl = $moduleLink.'&action='.$moduleAction;
+        $nfe = new \NFEioServiceInvoices\NFEio\Nfe;
 
         // create
         if ($_REQUEST['gnfe_create']) {
@@ -296,6 +297,18 @@ class Controller {
                 if ($queue !== 'success') {
                     $msg->error("Erro ao salvar nota fiscal no DB: nota fiscal já solicitada", $redirectUrl);
                 }
+            }
+        }
+        // reissue
+        if ($_REQUEST['nfeio_reissue'] AND ( isset($_REQUEST['nfe_id']) AND !empty($_REQUEST['nfe_id']) )) {
+            $nfId = $_REQUEST['nfe_id'];
+            $result = $nfe->reissueNfbyId($nfId);
+
+            if ($result === 'success') {
+                $msg->success('NF reemitida com sucesso', $redirectUrl);
+            } else {
+                $msg->error("Erro ao reemitir NF: {$result}", $redirectUrl);
+
             }
         }
 
