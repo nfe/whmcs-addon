@@ -1,3 +1,14 @@
+## 2.1.2 - 2022-06-04
+
+### Correção
+
+* Corrige inconsistência nos comandos de cancelamento de nota fiscal do módulo que não permitiam a alteração do status caso houvesse erro na emissão. (#125)
+* Corrigido opção para possibilitar que uma nota cancelada possa ser reemitida. Este recurso emite uma nova nota com as mesmas informações da anterior (caso a fatura ou item tenha sido atualizado, essas informações NÃO refletirão na NF reemitida). (#125)
+
+### Melhoria
+
+* Melhoria na diagramação das informações e inserção da coluna para exibição do ID da nota na NFE.io para facilitar identificação.
+
 ## 2.1.1 - 2022-05-31
 
 ### Correção
