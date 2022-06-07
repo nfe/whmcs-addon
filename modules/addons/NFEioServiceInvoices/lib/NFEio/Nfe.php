@@ -105,7 +105,14 @@ class Nfe
         return $allowed;
     }
 
-    private function buildItemsToTransmit($items, $invoiceId, $userId)
+    /**
+     * @param $items
+     * @param $invoiceId
+     * @param $userId
+     * @param $reissue
+     * @return array
+     */
+    private function buildItemsToTransmit($items, $invoiceId, $userId, $reissue = false)
     {
         // ISS padrão
         $issHeld = floatval($this->storage->get('iss_held'));
@@ -146,7 +153,7 @@ class Nfe
             // adiciona o valor total calculado para os itens
             $nfData['services_amount'] = $itemsTotal;
             // gera id unico externo
-            $nfData['nfe_external_id'] = $this->generateUniqueExternalId($userId, $invoiceId, $itemsTotal);
+            $nfData['nfe_external_id'] = $this->generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $reissue);
 
             // verifica se há calculo de retenção de ISS personalizado
             $customIssHeld = $this->aliquotsRepo->getIssHeldByServiceCode($serviceCode);
@@ -217,9 +224,10 @@ class Nfe
      * @version 2.1.0
      * @author Andre Bellafronte
      * @param $invoiceId int|string ID da fatura do WHMCS
+     * @param $reissue boolean informe 'true' quando for reemissão
      * @return array|bool[] status da inserção na fila
      */
-    public function queue($invoiceId, $force = false)
+    public function queue($invoiceId, $reissue = false)
     {
         $invoiceData = \WHMCS\Billing\Invoice::find($invoiceId);
         $invoiceItems = $invoiceData->items()->get();
@@ -253,7 +261,7 @@ class Nfe
 
         }
 
-        $nfToEmit = $this->buildItemsToTransmit($itemsByServiceCode, $invoiceId, $userId);
+        $nfToEmit = $this->buildItemsToTransmit($itemsByServiceCode, $invoiceId, $userId, $reissue);
 
         if (count($nfToEmit) > 0) {
             foreach ($nfToEmit as $nf) {
@@ -399,7 +407,6 @@ class Nfe
      * @return string retorna sucesso ou mensagem de erro
      * @version v2.1
      */
-    // TODO: desenvolver uma versão para fazer reemissão de todos os itens ou notas de uma fatura especifica, lendo novamente todos os dados da fatura e do cliente
     public function reissueNfbyId($nfId)
     {
         $_tableName = $this->serviceInvoicesRepo->tableName();
@@ -447,6 +454,62 @@ class Nfe
         } catch (\Exception $e) {
             logModuleCall('NFEioServiceInvoices', __CLASS__ .'/'. __FUNCTION__, $reissueNfData, $e->getMessage());
             return $e->getMessage();
+        }
+
+    }
+
+    /**
+     * Realiza a reemissão da(s) nota(s) com base no ID da fatura.
+     * @version 2.1
+     * @author Andre Bellafronte <andre@eunarede.com>
+     * @param $invoiceId integer ID da fatura
+     * @return string[] status do resultado
+     *
+     */
+    public function reissueNfSeriesByInvoiceId($invoiceId)
+    {
+
+        // verifica se fatura existe
+        $hasInvoice = \NFEioServiceInvoices\Helpers\Invoices::hasInvoice($invoiceId);
+        if (!$hasInvoice) {
+            return ['status' => 'error', 'message' => 'Fatura não localizada no WHMCS.'];
+        }
+
+        // verifica se todas as notas já existentes para a fatura estão canceladas para permitir a reemissão da série
+        $hasAllCancelled = $this->hasAllNfCancelled($invoiceId);
+        if (!$hasAllCancelled) {
+            return ['status' => 'error', 'message' => 'Impossível reemitir pois ainda existem notas emitidas que não estão canceladas para esta fatura.'];
+        }
+
+        $result = $this->queue($invoiceId, true);
+
+        logModuleCall('NFEioServiceInvoices', __CLASS__ .'/'. __FUNCTION__, $invoiceId, $result);
+
+        return ['status' => 'success'];
+
+    }
+
+    /**
+     * Verifica se a fatura informada possui todas as notas vinculadas com mesmo status 'Cancelled'.
+     * Isso previne que notas sejam reemitidas se anterior não estiver cancelada.
+     * @version 2.1
+     * @author Andre Bellafronte <andre@eunarede.com>
+     * @param $invoiceId integer ID da fatura a ser verificado
+     * @return bool retorna `true` somente quando todas as notas existentes para a fatura possuírem status 'Cancelled'.
+     */
+    private function hasAllNfCancelled($invoiceId)
+    {
+        $status = [];
+        $query = Capsule::table($this->serviceInvoicesTable)->where('invoice_id', $invoiceId)->distinct()->pluck('status');
+
+        foreach ($query as $value) {
+            $status[] = $value;
+        }
+
+        if(count($status) == 1 AND in_array('Cancelled', $status)) {
+            return true;
+        } else {
+            return false;
         }
 
     }

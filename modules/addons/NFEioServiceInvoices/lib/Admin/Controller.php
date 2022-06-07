@@ -416,6 +416,32 @@ class Controller {
     }
 
     /**
+     * Reemite as notas fiscais para uma determinada fatura
+     * @version 2.1
+     * @author Andre Bellafronte <andre@eunarede.com>
+     * @param $vars array variáveis do WHMCS
+     */
+    public function reissueNf($vars)
+    {
+        $msg = new FlashMessages();
+        $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
+        $get = $_GET;
+        $invoiceId = $get['invoice_id'];
+        $moduleLink = $vars['modulelink'];
+        $moduleAction = 'index';
+        $redirectUrl = $moduleLink.'&action='.$moduleAction;
+
+        $response = $nfe->reissueNfSeriesByInvoiceId($invoiceId);
+
+        if ($response['status'] != 'success') {
+            $msg->error($response['message'], $redirectUrl);
+        } else {
+            $msg->info("Nota fiscal enviada para processamento.", $redirectUrl);
+        }
+
+    }
+
+    /**
      * Support action.
      *
      * @param array $vars Module configuration parameters
