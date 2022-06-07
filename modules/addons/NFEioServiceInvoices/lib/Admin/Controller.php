@@ -441,6 +441,25 @@ class Controller {
 
     }
 
+    public function cancelNf($vars)
+    {
+        $msg = new FlashMessages();
+        $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
+        $get = $_GET;
+        $invoiceId = $get['invoice_id'];
+        $moduleLink = $vars['modulelink'];
+        $moduleAction = 'index';
+        $redirectUrl = $moduleLink.'&action='.$moduleAction;
+
+        $response = $nfe->cancelNfSeriesByInvoiceId($invoiceId);
+
+        if ($response['status'] == 'success') {
+            $msg->success("Nota(s) fiscal(is) para fatura #{$invoiceId} canceladas. Sincronização do status pode demorar alguns minutos, por favor aguarde.", $redirectUrl);
+        } else {
+            $msg->info($response['message'], $redirectUrl);
+        }
+    }
+
     /**
      * Support action.
      *

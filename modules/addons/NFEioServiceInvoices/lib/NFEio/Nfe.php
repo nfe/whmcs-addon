@@ -472,13 +472,13 @@ class Nfe
         // verifica se fatura existe
         $hasInvoice = \NFEioServiceInvoices\Helpers\Invoices::hasInvoice($invoiceId);
         if (!$hasInvoice) {
-            return ['status' => 'error', 'message' => 'Fatura não localizada no WHMCS.'];
+            return ['status' => 'error', 'message' => "Fatura #{$invoiceId} não localizada no WHMCS."];
         }
 
         // verifica se todas as notas já existentes para a fatura estão canceladas para permitir a reemissão da série
         $hasAllCancelled = $this->hasAllNfCancelled($invoiceId);
         if (!$hasAllCancelled) {
-            return ['status' => 'error', 'message' => 'Impossível reemitir pois ainda existem notas emitidas que não estão canceladas para esta fatura.'];
+            return ['status' => 'error', 'message' => "Impossível reemitir fatura #{$invoiceId}: ainda existem notas que não foram canceladas para a mesma."];
         }
 
         $result = $this->queue($invoiceId, true);
@@ -510,6 +510,35 @@ class Nfe
             return true;
         } else {
             return false;
+        }
+
+    }
+
+    public function cancelNfSeriesByInvoiceId($invoiceId)
+    {
+        $existingNf = Capsule::table($this->serviceInvoicesTable)->where('invoice_id', $invoiceId)->get();
+
+        if (count($existingNf) > 0) {
+            foreach ($existingNf as $nf) {
+                $result = $this->legacyFunctions->gnfe_delete_nfe($nf->nfe_id);
+                logModuleCall('NFEioServiceInvoices', __CLASS__ .'/'. __FUNCTION__, $nf, $result);
+                // $message sempre retornará erro para notas com status diferente de 'Issued' na API.
+                //  Esta condição garante que status local é alterada para 'Canceled' de qualquer maneira.
+                if ($result->message) {
+                    $this->updateLocalNfeStatus($nf->nfe_id, 'Cancelled');
+                }
+            }
+            return ['status' => 'success'];
+
+        } else {
+            logModuleCall(
+                'NFEioServiceInvoices',
+                __CLASS__ .'/'. __FUNCTION__,
+                ['invoice ID' => $invoiceId],
+                "Não existem notas para a fatura #{$invoiceId}."
+            );
+            return ['status' => 'info', 'message' => "Não existem notas para a fatura #{$invoiceId}."];
+
         }
 
     }
