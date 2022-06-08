@@ -497,7 +497,7 @@ class Nfe
      * @param $invoiceId integer ID da fatura a ser verificado
      * @return bool retorna `true` somente quando todas as notas existentes para a fatura possuírem status 'Cancelled'.
      */
-    private function hasAllNfCancelled($invoiceId)
+    public function hasAllNfCancelled($invoiceId)
     {
         $status = [];
         $query = Capsule::table($this->serviceInvoicesTable)->where('invoice_id', $invoiceId)->distinct()->pluck('status');
@@ -514,6 +514,13 @@ class Nfe
 
     }
 
+    /**
+     * Cancela as notas fiscais existentes para uma fatura.
+     * @version 2.1
+     * @author Andre Bellafronte <andre@eunarede.com>
+     * @param $invoiceId integer ID da fatura
+     * @return string[] status e mensagem do resultado da operação.
+     */
     public function cancelNfSeriesByInvoiceId($invoiceId)
     {
         $existingNf = Capsule::table($this->serviceInvoicesTable)->where('invoice_id', $invoiceId)->get();
