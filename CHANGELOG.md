@@ -1,3 +1,15 @@
+## 2.1.3 - 2022-06-07
+
+### Correção
+
+* Atualizada a lógica de reemissão das notas ficais, agora quando um administrador realizar a ação a nova nota receberá os dados mais recentes tanto da fatura quanto do cliente. Isso possibilita com que qualquer atualização nestas informações reflita na nota reemitida. (#125)
+* Atualizada a lógica de cancelamento das notas ficais. Agora, caso uma fatura possua mais de uma NF, todas serão canceladas. Anteriormente o cancelamento era realizado apenas na nota específica. Com isso é possível cancelar e reemitir notas com informações recentes da fatura do cliente. (#125)
+* Adicionado botões com as ações para cancelamento da nota fiscal e reemissão da série na visualizaçã/edição de uma fatura pelo administrador.
+
+### Atualização
+
+* Atualizado pacotes e dependências do composer.
+
 ## 2.1.2 - 2022-06-04
 
 ### Correção
