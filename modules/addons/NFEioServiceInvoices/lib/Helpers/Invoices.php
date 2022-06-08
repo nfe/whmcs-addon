@@ -65,4 +65,21 @@ class Invoices
         return round($heldAmount, 2);
     }
 
+    /**
+     * Verifica se uma determinada fatura existe no banco de dados com base no seu ID.
+     * @param $invoiceId integer ID da fatura
+     * @return bool true se tiver false se não existir
+     * @version 2.1
+     */
+    public static function hasInvoice($invoiceId)
+    {
+        $result = Capsule::table('tblinvoices')->where('id', '=', $invoiceId)->exists();
+
+        if ($result) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }
