@@ -1,0 +1,25 @@
+{
+  "require": {
+    "whmcsexpert/whmcsexpert": "dev-dev",
+    "plasticbrain/php-flash-messages": "^1",
+    "guzzlehttp/psr7": "^1.8",
+    "ext-curl": "*",
+    "php": ">=5.6"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "@stable",
+    "kint-php/kint": "*",
+    "tracy/tracy": "2.7.6",
+    "phpmetrics/phpmetrics": "^2.7",
+    "illuminate/database": "v5.8.36"
+  },
+  "config": {
+    "vendor-dir": "modules/addons/NFEioServiceInvoices/lib/vendor",
+    "optimize-autoloader": true
+  },
+  "autoload": {
+    "psr-4": {
+      "NFEioServiceInvoices\\": "modules/addons/NFEioServiceInvoices/lib/"
+    }
+  }
+}
