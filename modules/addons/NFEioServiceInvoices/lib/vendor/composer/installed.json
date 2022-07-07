@@ -2,17 +2,17 @@
     "packages": [
         {
             "name": "guzzlehttp/psr7",
-            "version": "1.8.5",
-            "version_normalized": "1.8.5.0",
+            "version": "1.9.0",
+            "version_normalized": "1.9.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "337e3ad8e5716c15f9657bd214d16cc5e69df268"
+                "reference": "e98e3e6d4f86621a9b75f623996e6bbdeb4b9318"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/337e3ad8e5716c15f9657bd214d16cc5e69df268",
-                "reference": "337e3ad8e5716c15f9657bd214d16cc5e69df268",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/e98e3e6d4f86621a9b75f623996e6bbdeb4b9318",
+                "reference": "e98e3e6d4f86621a9b75f623996e6bbdeb4b9318",
                 "shasum": ""
             },
             "require": {
@@ -30,11 +30,11 @@
             "suggest": {
                 "laminas/laminas-httphandlerrunner": "Emit PSR-7 responses"
             },
-            "time": "2022-03-20T21:51:18+00:00",
+            "time": "2022-06-20T21:43:03+00:00",
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.7-dev"
+                    "dev-master": "1.9-dev"
                 }
             },
             "installation-source": "dist",
@@ -95,7 +95,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/1.8.5"
+                "source": "https://github.com/guzzle/psr7/tree/1.9.0"
             },
             "funding": [
                 {
@@ -112,6 +112,68 @@
                 }
             ],
             "install-path": "../guzzlehttp/psr7"
+        },
+        {
+            "name": "nfe/nfe",
+            "version": "2.5",
+            "version_normalized": "2.5.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/nfe/client-php.git",
+                "reference": "eff0d8dc669976b50f00711ee6b8860b079fc3ef"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/nfe/client-php/zipball/eff0d8dc669976b50f00711ee6b8860b079fc3ef",
+                "reference": "eff0d8dc669976b50f00711ee6b8860b079fc3ef",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "ext-mbstring": "*",
+                "php": ">=5.4"
+            },
+            "require-dev": {
+                "simpletest/simpletest": "^1.1"
+            },
+            "time": "2018-04-06T16:32:55+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "classmap": [
+                    "lib/NFe/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "NFe.io team and contributors",
+                    "homepage": "https://github.com/nfe/client-php/contributors"
+                },
+                {
+                    "name": "Renato Alves",
+                    "homepage": "http://ralv.es/"
+                }
+            ],
+            "description": "NFe.io PHP Library",
+            "homepage": "https://nfe.io",
+            "keywords": [
+                "api",
+                "nfe",
+                "nfe.io",
+                "nfse",
+                "nota",
+                "nota fiscal"
+            ],
+            "support": {
+                "issues": "https://github.com/nfe/client-php/issues",
+                "source": "https://github.com/nfe/client-php/tree/master"
+            },
+            "install-path": "../nfe/nfe"
         },
         {
             "name": "plasticbrain/php-flash-messages",
