@@ -29,16 +29,11 @@
         <div class="form-group">
           <label class="control-label col-sm-4" for="{$moduleFields.company_id.id}">{$moduleFields.company_id.label}:</label>
           <div class="col-sm-8">
-            <input
-                    class="form-control"
-                    type="{$moduleFields.company_id.type}"
-                    name="{$moduleFields.company_id.name}"
-                    id="{$moduleFields.company_id.id}"
-                    aria-describedby="{$moduleFields.company_id.id}HelpBlock"
-                    {if $moduleFields.company_id.required}required{/if}
-                    {if $moduleFields.company_id.disabled}disabled{/if}
-                    {if $company_id}value="{$company_id}"{/if}
-            >
+            <select class="form-control" name="{$moduleFields.company_id.name}" id="{$moduleFields.company_id.id}" aria-describedby="{$moduleFields.company_id.id}HelpBlock" {if $moduleFields.company_id.required}required{/if} {if $moduleFields.company_id.disabled}disabled{/if} >
+              {foreach from=$companiesDropDown item=resultado key=id}
+                <option value="{$id}" {if $id == $company_id}selected{/if}>{$resultado}</option>
+              {/foreach}
+            </select>
             <span class="help-block" id="{$moduleFields.company_id.id}HelpBlock">{$moduleFields.company_id.description}</span>
           </div>
         </div>

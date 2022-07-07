@@ -95,12 +95,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'description' => 'Chave de API da sua conta NFE.io',
         ],
         'company_id' => [
-            'type' => 'text',
+            'type' => 'dropdown',
             'label' => 'ID da Empresa',
             'name' => 'company_id',
             'id' => 'companyId_Field',
             'required' => true,
-            'disabled' => true,
+            'disabled' => false,
             'description' => 'ID da empresa na NFE.io',
         ],
         'service_code' => [
@@ -109,7 +109,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'name' => 'service_code',
             'id' => 'serviceCode_Field',
             'required' => true,
-            'disabled' => true,
+            'disabled' => false,
             'description' => 'Informe o código de serviço principal. Este código será usado por padrão para emissão de notas.',
         ],
         'rps_number' => [

@@ -145,16 +145,6 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
                 'Type' => 'text',
                 'Description' => '<a href="https://app.nfe.io/account/apikeys" style="text-decoration:underline;" target="_blank">Obter chave de acesso</a>',
             ],
-            'company_id' => [
-                'FriendlyName' => 'ID da Empresa',
-                'Type' => 'text',
-                'Description' => '<a href="https://app.nfe.io/companies/" style="text-decoration:underline;" target="_blank">Obter ID da empresa</a>',
-            ],
-            'service_code' => [
-                'FriendlyName' => 'Código de Serviço Principal',
-                'Type' => 'text',
-                'Description' => '<a style="text-decoration:underline;" href="https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/#o-que-e-codigo-de-servico" target="_blank">O que é Código de Serviço?</a>',
-            ],
             'NFEioEnvironment' => [
                 'FriendlyName' => 'Ambiente de desenvolvimento',
                 'Type' => 'yesno',

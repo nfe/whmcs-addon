@@ -75,6 +75,7 @@ class Controller {
             $msg = new FlashMessages;
             $template = new Template(Addon::getModuleTemplatesDir());
             $config = new \NFEioServiceInvoices\Configuration();
+            $nfe = new \NFEioServiceInvoices\NFEio\Nfe;
             // metodo para verificar se existe algum campo obrigatório não preenchido.
             $config->verifyMandatoryFields($vars);
             $assetsURL = Addon::I()->getAssetsURL();
@@ -82,8 +83,10 @@ class Controller {
             $moduleConfigurationRepo = new \NFEioServiceInvoices\Models\ModuleConfiguration\Repository();
             $moduleFields = $moduleConfigurationRepo->getFields();
             $customFieldsClientsOptions = CustomFields::getClientFields();
+            $companiesDropDown = $nfe->companiesDropDownValues();
             $vars['customFieldsClientsOptions'] = $customFieldsClientsOptions;
             $vars['moduleFields'] = $moduleFields;
+            $vars['companiesDropDown'] = $companiesDropDown;
             $vars['formAction'] = 'configurationSave';
             $vars['assetsURL'] = $assetsURL;
             $vars['moduleCallBackUrl'] = $moduleCallBackUrl;
