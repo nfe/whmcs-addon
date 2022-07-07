@@ -51,6 +51,41 @@ class Nfe
         $this->aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
     }
 
+    public function companiesDropDownValues()
+    {
+        $companiesData = $this->getCompanies();
+
+        if (!empty($companiesData->message) OR empty($companiesData) OR empty($companiesData['companies'])) {
+            return false;
+        }
+        $companies = [];
+        foreach ($companiesData['companies'] as $company) {
+            $companies[$company->id] = $company->id . ' - ' .strtoupper($company->name);
+        }
+
+        return $companies;
+    }
+
+    /**
+     * Retorna todas as empresas cadastradas para a chave API configurada.
+     * @see https://nfe.io/docs/desenvolvedores/rest-api/nota-fiscal-de-servico-v1/#/Companies/Companies_Get
+     * @version 2.2
+     * @author Andre Bellafronte <andre[@]eunarede[.]com>
+     * @return array|bool coleção com todas as empresas cadastradas na API.
+     */
+    public function getCompanies()
+    {
+        $apiKey = $this->storage->get('api_key');
+        if (is_null($apiKey)) {
+            return false;
+        }
+
+        \NFe_io::setApiKey($apiKey);
+        $companies = \NFe_Company::search();
+
+        return $companies->getAttributes();
+    }
+
     /**
      * Prepara o item para ser transmitido
      *
