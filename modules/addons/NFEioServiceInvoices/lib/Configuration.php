@@ -155,7 +155,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
                 'FriendlyName' => 'Modo Depuração',
                 'Type' => 'yesno',
                 'Default' => 'yes',
-                'Description' => 'Habilita o modo depuração (debug) do módulo.',
+                'Description' => 'Habilitar o módulo em modo depuração (debug).',
             ],
         ];
     }
