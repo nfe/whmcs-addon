@@ -87,21 +87,21 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     public $fields = array(
         'api_key' => [
             'type' => 'text',
-            'label' => 'API KEY',
+            'label' => 'Chave de Acesso',
             'name' => 'api_key',
             'id' => 'apiKey_Field',
             'required' => true,
             'disabled' => true,
-            'description' => 'Chave de API da sua conta NFE.io',
+            'description' => 'Chave de Acesso (API Key) da sua conta NFE.io',
         ],
         'company_id' => [
             'type' => 'dropdown',
-            'label' => 'ID da Empresa',
+            'label' => 'Empresa ID',
             'name' => 'company_id',
             'id' => 'companyId_Field',
             'required' => true,
             'disabled' => false,
-            'description' => 'ID da empresa na NFE.io',
+            'description' => 'Selecione o Prestador (empresa emissora) da NFSe.',
         ],
         'service_code' => [
             'type' => 'text',
@@ -110,7 +110,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'id' => 'serviceCode_Field',
             'required' => true,
             'disabled' => false,
-            'description' => 'Informe o código de serviço principal. Este código será usado por padrão para emissão de notas.',
+            'description' => 'Informe o Código de Serviço Municipal. Este código será usado por padrão para emissão das notas.',
         ],
         'rps_number' => [
             'type' => 'text',
