@@ -141,7 +141,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
     {
         return [
             'api_key' => [
-                'FriendlyName' => 'API Key',
+                'FriendlyName' => 'Chave de Acesso',
                 'Type' => 'text',
                 'Description' => '<a href="https://app.nfe.io/account/apikeys" style="text-decoration:underline;" target="_blank">Obter chave de acesso</a>',
             ],
