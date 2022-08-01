@@ -146,16 +146,16 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
                 'Description' => '<a href="https://app.nfe.io/account/apikeys" style="text-decoration:underline;" target="_blank">Obter chave de acesso</a>',
             ],
             'NFEioEnvironment' => [
-                'FriendlyName' => 'Ambiente de desenvolvimento',
+                'FriendlyName' => 'Ambiente de Desenvolvimento',
                 'Type' => 'yesno',
                 'Default' => 'yes',
-                'Description' => 'Habilitar ambiente de desenvolvimento da NFE.io',
+                'Description' => 'Habilitar o módulo em ambiente de desenvolvimento.',
             ],
             'debug' => [
-                'FriendlyName' => 'Debug',
+                'FriendlyName' => 'Modo Depuração',
                 'Type' => 'yesno',
                 'Default' => 'yes',
-                'Description' => 'Habilitar o modo debug do módulo',
+                'Description' => 'Habilita o modo depuração (debug) do módulo.',
             ],
         ];
     }
