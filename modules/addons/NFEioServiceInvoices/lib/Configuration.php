@@ -23,7 +23,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
 
     private $encryptHash = '';
 
-    public $version = '2.1.3';
+    public $version = '2.1.4';
 
     public $tablePrefix = 'mod_nfeio_si_';
 
@@ -281,6 +281,19 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
             $serviceInvoiceRepo->upgrade_to_2_1_0();
             $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
             $aliquotsRepo->createAliquotsTable();
+        }
+        // versões menores ou iguais a 2.1.3
+        if (version_compare($currentlyInstalledVersion, '2.1.3', 'le')) {
+            $productRepo = new Models\ProductCode\Repository();
+            $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
+            $serviceInvoiceRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+
+            $productRepo->update_servicecode_var_limit();
+            $aliquotsRepo->update_servicecode_var_limit();
+            $serviceInvoiceRepo->update_servicecode_var_limit();
+            /**
+             * @see https://github.com/nfe/whmcs-addon/issues/134
+             */
         }
     }
 
