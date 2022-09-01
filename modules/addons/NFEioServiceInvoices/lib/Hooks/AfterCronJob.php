@@ -39,12 +39,14 @@ class AfterCronJob
         $serviceInvoicesTable = $this->serviceInvoicesRepo->tableName();
         $storage = new \WHMCSExpert\Addon\Storage($storageKey);
         $dataAtual = date('Y-m-d H:i:s');
-        $initialDate = $storage->get('initial_date');
+        // caso não exista valor para initial_date inicia define data que garanta a execução da rotina
+        $initialDate =  empty($storage->get('initial_date')) ? $storage->get('initial_date') : '1970-01-01';
 
         // atualiza a data da ultima cron
         $storage->set('last_cron', $dataAtual);
 
         $hasNfWaiting = Capsule::table($serviceInvoicesTable)->whereBetween('created_at', [$initialDate, $dataAtual])->where('status', '=', 'Waiting')->count();
+        logModuleCall('NFEioServiceInvoices', 'Hook - AfterCronJob', "{$hasNfWaiting} notas a serem geradas", $hasNfWaiting);
 
         if ($hasNfWaiting) {
 

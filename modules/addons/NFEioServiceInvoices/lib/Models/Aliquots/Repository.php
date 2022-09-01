@@ -86,7 +86,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             {
                 $table->increments('id');
                 //codigo o serviço que será viculado
-                $table->string('code_service', 10);
+                $table->string('code_service', 30);
                 // retenção de ISS
                 $table->float('iss_held', 5, 2)->nullable();
                 $table->timestamp('created_at');
@@ -107,6 +107,28 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             return null;
         } else {
             return floatval($issHeld);
+        }
+    }
+
+    /**
+     * Rotina para atualização da quantidade máxima de caracteres permitidos para a coluna code_service.
+     *
+     * @see https://github.com/nfe/whmcs-addon/issues/134
+     * @version 2.2
+     * @since 2.2
+     * @author Andre Bellafronte
+     *
+     */
+    public function update_servicecode_var_limit()
+    {
+        // verifica se a tabela existe
+        if (Capsule::schema()->hasTable($this->tableName)) {
+            // verifica se a coluna existe
+            if (Capsule::schema()->hasColumn($this->tableName, 'code_service')) {
+                $db = Capsule::connection();
+                // atualiza o limite de caracteres para 30
+                $db->statement("ALTER TABLE `mod_nfeio_si_aliquots` CHANGE `code_service` `code_service` VARCHAR(30) NULL");
+            }
         }
     }
 }

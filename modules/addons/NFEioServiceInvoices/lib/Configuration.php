@@ -23,7 +23,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
 
     private $encryptHash = '';
 
-    public $version = '2.1.3';
+    public $version = '2.1.4';
 
     public $tablePrefix = 'mod_nfeio_si_';
 
@@ -141,21 +141,21 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
     {
         return [
             'api_key' => [
-                'FriendlyName' => 'API Key',
+                'FriendlyName' => 'Chave de Acesso',
                 'Type' => 'text',
                 'Description' => '<a href="https://app.nfe.io/account/apikeys" style="text-decoration:underline;" target="_blank">Obter chave de acesso</a>',
             ],
             'NFEioEnvironment' => [
-                'FriendlyName' => 'Ambiente de desenvolvimento',
+                'FriendlyName' => 'Ambiente de Desenvolvimento',
                 'Type' => 'yesno',
                 'Default' => 'yes',
-                'Description' => 'Habilitar ambiente de desenvolvimento da NFE.io',
+                'Description' => 'Habilitar o módulo em ambiente de desenvolvimento.',
             ],
             'debug' => [
-                'FriendlyName' => 'Debug',
+                'FriendlyName' => 'Modo Depuração',
                 'Type' => 'yesno',
                 'Default' => 'yes',
-                'Description' => 'Habilitar o modo debug do módulo',
+                'Description' => 'Habilitar o módulo em modo depuração (debug).',
             ],
         ];
     }
@@ -281,6 +281,19 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
             $serviceInvoiceRepo->upgrade_to_2_1_0();
             $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
             $aliquotsRepo->createAliquotsTable();
+        }
+        // versões menores ou iguais a 2.1.3
+        if (version_compare($currentlyInstalledVersion, '2.1.3', 'le')) {
+            $productRepo = new Models\ProductCode\Repository();
+            $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
+            $serviceInvoiceRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
+
+            $productRepo->update_servicecode_var_limit();
+            $aliquotsRepo->update_servicecode_var_limit();
+            $serviceInvoiceRepo->update_servicecode_var_limit();
+            /**
+             * @see https://github.com/nfe/whmcs-addon/issues/134
+             */
         }
     }
 

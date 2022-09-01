@@ -566,7 +566,7 @@ class Nfe
                 logModuleCall('NFEioServiceInvoices', __CLASS__ .'/'. __FUNCTION__, $nf, $result);
                 // $message sempre retornará erro para notas com status diferente de 'Issued' na API.
                 //  Esta condição garante que status local é alterada para 'Canceled' de qualquer maneira.
-                if ($result->message) {
+                if ($result->message OR empty($result)) {
                     $this->updateLocalNfeStatus($nf->nfe_id, 'Cancelled');
                 }
             }

@@ -119,7 +119,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 $table->string('rpsNumber');
                 $table->timestamp('created_at');
                 $table->timestamp('updated_at');
-                $table->string('service_code')->nullable(true);
+                $table->string('service_code', 30)->nullable(true);
                 $table->string('tics')->nullable(true);
             });
         }
@@ -199,6 +199,28 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 Capsule::schema()->table($this->tableName, function ($table) {
                     $table->decimal('iss_held', 16, 2)->after('services_amount')->nullable();
                 });
+            }
+        }
+    }
+
+    /**
+     * Rotina para atualização da quantidade máxima de caracteres permitidos para a coluna code_service.
+     *
+     * @see https://github.com/nfe/whmcs-addon/issues/134
+     * @version 2.2
+     * @since 2.2
+     * @author Andre Bellafronte
+     *
+     */
+    public function update_servicecode_var_limit()
+    {
+        // verifica se a tabela existe
+        if (Capsule::schema()->hasTable($this->tableName)) {
+            // verifica se a coluna existe
+            if (Capsule::schema()->hasColumn($this->tableName, 'service_code')) {
+                $db = Capsule::connection();
+                // atualiza o limite de caracteres para 30
+                $db->statement("ALTER TABLE `mod_nfeio_si_serviceinvoices` CHANGE `service_code` `service_code` VARCHAR(30) NULL");
             }
         }
     }
