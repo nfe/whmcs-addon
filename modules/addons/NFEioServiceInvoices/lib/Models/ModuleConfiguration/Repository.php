@@ -360,7 +360,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         $functions->gnfe_insert_issue_nfe_cond_in_database();
         // define 'on' como padrão para discount_items
         $storage->set('discount_items', 'on');
-
+        // inicia valor para a chave initial_date
+        $date = date('Y-m-d');
+        $storage->set('initial_date', $date);
 
     }
 
