@@ -361,7 +361,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         // define 'on' como padrão para discount_items
         $storage->set('discount_items', 'on');
         // inicia valor para a chave initial_date
-        $date = date('Y-m-d');
+        $date = date('Y-m-d H:i:s');
         $storage->set('initial_date', $date);
 
     }
