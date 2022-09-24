@@ -1,3 +1,25 @@
+## 2.1.5 - 2022-09-24
+
+### Correções
+
+* Corrige problema de valor para _initial_date_ retornando nulo, o que impedia a seleção das notas que estão em fila para emissão ocorrer como esperado #139.
+
+## 2.1.4 - 2022-09-01
+
+### Melhorias
+
+* Dropdown de seleção de empresas #72 by @andrekutianski in #131
+
+### Correções
+
+* Em algumas situações, quando a nota local não era sincronizada com a API para emissão e fosse realizada a tentativa de cancelar no WHMCS para uma nova reemissão, um erro era retornado pelo motivo da API não a encontrar para cancelamento (retorno nulo). Agora, quando a resposta de cancelamento da API for nula, a nota local será marcada como cancelada. #133
+* Corrige rotina de emissão manual quando initial_date está ausente #132
+* Aumenta quantidade máxima de caracteres para código de serviço personalizado #134
+
+### Estilo
+
+* Melhorado nomes e descrição de campos de configuração para refletirem nomes de campos da NFE.io
+
 ## 2.1.3 - 2022-06-07
 
 ### Correção
