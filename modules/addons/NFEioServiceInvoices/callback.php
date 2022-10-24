@@ -22,29 +22,33 @@ if ($post) {
     //require_once __DIR__ . '/functions.php';
     $params = $functions->gnfe_config();
 
-    if ($post['status'] == 'Error') {
-        logModuleCall('NFEioServiceInvoices', 'callback_error', 'ERROR', $post);
-        // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/406
-        http_response_code(406);
-        exit();
-    }
+    $environment = $params['NFEioEnvironment'];
+
+    $nf_id = $post['id'];
+    $nf_status = $post['status'];
+    $nf_flow_status = $post['flowStatus'];
+    $nf_environment = $post['environment'];
+
+    // total de notas locais existentes para NF
+    $totalNfLocal = Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', '=', $nf_id)->count();
+
 
     //verificar o ambiente
-    if ($params['NFEioEnvironment'] == 'on' && $post['environment'] == 'Production') {
-        logModuleCall('NFEioServiceInvoices', 'callback_error_development', 'Ambiente Development ativo mas recebendo notas de Production', $post);
+    if ($environment == 'on' && $nf_environment == 'Production') {
+        logModuleCall('NFEioServiceInvoices', 'callback_error_development', 'Ambiente Development ativo mas recebendo notas de Production', $post, $params);
         // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/403
-        http_response_code(403);
+        http_response_code(200);
         exit();
-    } elseif ($params['NFEioEnvironment'] == '' && $post['environment'] == 'Development') {
-        logModuleCall('NFEioServiceInvoices', 'callback_error_production', 'Ambiente Production ativo mas recebendo notas de Development', $post);
+    } elseif ($environment == '' && $nf_environment == 'Development') {
+        logModuleCall('NFEioServiceInvoices', 'callback_error_production', 'Ambiente Production ativo mas recebendo notas de Development', $post, $params);
         // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/403
-        http_response_code(403);
+        http_response_code(200);
         exit();
     }
     //fim verificar o ambiente
 
     //verificar se a nfe existe na tabela
-    if (Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', '=', $post['id'])->count() == 0 ) {
+    if ($totalNfLocal == 0 ) {
         logModuleCall('NFEioServiceInvoices', 'callback_error', 'Nota Fiscal não existe no banco local', $post);
         // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/404
         http_response_code(404);
@@ -52,8 +56,25 @@ if ($post) {
     }
     //fim verificar se a nfe existe na tabela
 
-    foreach (Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', '=', $post['id'])->
-    get(['id', 'invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'flow_status', 'pdf', 'created_at', 'updated_at']) as $key => $value) {
+    // seleciona as informações da nota local
+    $nfData = Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', '=', $post['id'])
+        ->get(
+            [
+                'id',
+                'invoice_id',
+                'user_id',
+                'nfe_id',
+                'status',
+                'services_amount',
+                'environment',
+                'flow_status',
+                'pdf',
+                'created_at',
+                'updated_at'
+            ]
+        );
+
+    foreach ($nfData as $key => $value) {
         $nfe_for_invoice[$key] = json_decode(json_encode($value), true);
     }
     $nfe = $nfe_for_invoice['0'];
@@ -79,5 +100,9 @@ if ($post) {
         } catch (\Exception $e) {
             logModuleCall('NFEioServiceInvoices', 'callback_error', "Erro ao atualizar a nota no banco de dados \n\n Nota: \n {$new_nfe} Callback: \n {$post}", $e->getMessage());
         }
+
+        // garante retorno de cabeçalho na resposta
+        // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/404
+        http_response_code(200);
     }
 }
