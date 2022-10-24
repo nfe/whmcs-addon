@@ -2,19 +2,51 @@
     {if $data == 'Waiting'}
         <span class="label label-warning">Aguardando</span>
     {elseif $data == 'Created'}
-        <span class="label label-info">Processando</span>
+        <span class="label label-info">Criada</span>
     {elseif $data == 'Issued'}
         <span class="label label-success">Emitida</span>
     {elseif $data == 'Cancelled'}
         <span class="label label-danger">Cancelada</span>
     {elseif $data == 'Error'}
-        <span class="label label-danger">Falha ao Emitir</span>
+        <span class="label label-danger">Erro</span>
     {elseif $data == 'Error_cep'}
         <span class="label label-danger">CEP do cliente inválido</span>
     {elseif $data == 'None'}
-        <span class="label label-primary">Nenhum</span>
+        <span class="label label-primary">Não Disponível</span>
     {else}
         <span class="label label-danger">{$data}</span>
+    {/if}
+{/function}
+{*https://nfe.io/docs/https/nfeio/docs/documentacao/nota-fiscal-servico-eletronica/duvidas/como-saber-se-sua-nota-fiscal-de-servico-foi-emitida-pela-api/*}
+{function name=flowStatus}
+    {if $data == 'Issued'}
+        Nota emitida
+    {elseif $data == 'Cancelled'}
+        Nota cancelada
+    {elseif $data == 'waiting'}
+        Fila de emissão
+    {elseif $data == 'WaitingCalculateTaxes'}
+        Calculando impostos da nota
+    {elseif $data == 'CancelFailed'}
+        Nota não foi cancelada com sucesso
+    {elseif $data == 'IssueFailed'}
+        Emissão da nota sem sucesso
+    {elseif $data == 'PullFromCityHall'}
+        PullFromCityHall
+    {elseif $data == 'WaitingDefineRpsNumber'}
+        Definindo número de RPS da nota
+    {elseif $data == 'WaitingSend'}
+        Nota enviada para emissão na prefeitura e aguardando confirmação de recebimento da mesma
+    {elseif $data == 'WaitingSendCancel'}
+        Nota enviada para cancelamento na prefeitura e aguardando confirmação de recebimento da mesma
+    {elseif $data == 'WaitingReturn'}
+        Aguardando retorno da prefeitura com confirmação de nota emitida
+    {elseif $data == 'WaitingDownload'}
+        Aguardando download do PDF da nota
+    {elseif $data == 'waiting'}
+        Aguardando na fila para processamento
+    {else}
+        Não disponível
     {/if}
 {/function}
 
@@ -84,7 +116,7 @@
                             <td class="text-center">{$nota->nfe_id}</td>
                             <td class="text-center"><abbr title="{$nota->created_at|date_format:"%H:%M:%S"}">{$nota->created_at|date_format:"%d/%m/%Y"}</abbr></td>
                             <td class="text-center">{$nota->services_amount}</td>
-                            <td class="text-center"><abbr title="Status Flow: {$nota->flow_status}">{statusLabel data=$nota->status}</abbr></td>
+                            <td class="text-center"><abbr title="Status Flow: {flowStatus data=$nota->flow_status}">{statusLabel data=$nota->status}</abbr></td>
                             <td>
                                 <form action="" method="post" id="nfeio_frm_email_{$smarty.foreach.nf.iteration}">
                                     <input type="hidden" name="nfeiosi" value="email">
