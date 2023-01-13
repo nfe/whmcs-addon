@@ -5,15 +5,15 @@ title: Atualização
 layout: page
 ---
 
-Este documento irá mostrar como atualizar e migrar com sucesso o [Módulo Nota Fiscal para WHMCS via NFE.io](https://github.com/nfe/whmcs-addon) para a versão 2.0. Ela irá guiar passo a passo por todo o processo de atualização e migração necessários.
+Este documento irá mostrar como atualizar e migrar com sucesso o [Módulo Nota Fiscal para WHMCS via NFE.io](https://github.com/nfe/whmcs-addon) para a versão 2.x. Ela irá guiar passo a passo por todo o processo de atualização e migração necessários.
 
-> Este documento visa auxiliar no processo de atualização do módulo da versão v1.4 para a versão v2.0
+> Este documento visa auxiliar no processo de atualização do módulo da versão v1.4.x para a versão v2.x
 
 > **ATENÇÃO:** Sempre realize um backup por segurança, tanto do seu WHMCS quanto do seu banco e dados antes de realizar qualquer migração.
 
 ## Ativando as versões em paralelo
 
-A versão 2.0 do módulo possui uma nova estrutura de diretórios, o que possibilita uma ativação em paralelo a versão anterior permitindo assim uma migração rápida e transparente. Ao ativar a nova versão em paralelo, o módulo irá buscar todas as informações da versão anterior e irá importa-las automaticamente.
+A versão 2.x do módulo possui uma nova estrutura de diretórios, o que possibilita uma ativação em paralelo a versão anterior permitindo assim uma migração rápida e transparente. Ao ativar a nova versão em paralelo, o módulo irá buscar todas as informações da versão anterior e irá importa-las automaticamente.
 
 Então é crucial para que o processo de atualização e migração ocorra adequadamente a **ativação em paralelo das duas versões do módulo**.
 
@@ -86,7 +86,7 @@ Localize o módulo antigo, **verifique a versão que deve ser desativada**, voc�
 
 ## Excluindo o módulo anterior (v1.4)
 
-Após desativar o módulo **NFE.io v1.4.x**, será necessário **remover o diretório** `gofasnfeio` existente dentro de `modules/addons` como última etapa da atualização para a versão 2.0.
+Após desativar o módulo **NFE.io v1.4.x**, será necessário **remover o diretório** `gofasnfeio` existente dentro de `modules/addons` como última etapa da atualização para a versão 2.x.
 
 Para isso, utilize seu cliente FTP preferido para acessar o WHMCS, navegue até o diretório `seu_whmcs/modules/addons` para visualizar os módulos adicionais existentes em seu WHMCS e localize o diretório nomeado `gofasnfeio` como demonstrado na imagem a seguir.
 
@@ -94,11 +94,11 @@ Para isso, utilize seu cliente FTP preferido para acessar o WHMCS, navegue até 
 
 Após localizar o diretório, **exclua-o**.
 
-Pronto! Seu módulo de emissão de notas fiscais no WHMCS via NFE.io está atualizado para a versão 2.0!
+Pronto! Seu módulo de emissão de notas fiscais no WHMCS via NFE.io está atualizado para a versão 2.x!
 
 ### Tabelas do Banco de Dados
 
-Este processo de atualização, por segurança, **não exclui ou manipula** as tabelas no banco de dados utilizado pela versão anterior. A versão 2.0 copia todas as informações para novas tabelas e mantém as originais intactas, e a desativação do módulo não aciona nenhuma ação de exclusão. Então **caso você tenha tido algum problema** e precise voltar o módulo para uma versão anterior a atualização, basta desativar a versão 2.0 e **reenviar os arquivos da versão originalmente em uso**.
+Este processo de atualização, por segurança, **não exclui ou manipula** as tabelas no banco de dados utilizado pela versão anterior. A versão 2.x copia todas as informações para novas tabelas e mantém as originais intactas, e a desativação do módulo não aciona nenhuma ação de exclusão. Então **caso você tenha tido algum problema** e precise voltar o módulo para uma versão anterior a atualização, basta desativar a versão 2.x e **reenviar os arquivos da versão originalmente em uso**.
 
 Veja a lista a seguir das tabelas do banco de dados usadas pela versão anterior, caso você desejar fazer um backup manual ou exclui-las no futuro.
 
