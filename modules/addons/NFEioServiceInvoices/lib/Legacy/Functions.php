@@ -53,9 +53,9 @@ class Functions
                 $cnpj_customfield_value = preg_replace('/[^0-9]/', '', $customfieldvalue->value);
             }
         }
-        logModuleCall('gofas_nfeio', 'gnfe_customer-cpf', $cpf_customfield_value, '','', '');
-        logModuleCall('gofas_nfeio', 'gnfe_customer-cnpj', $cnpj_customfield_value, '','', '');
-        logModuleCall('gofas_nfeio', 'gnfe_customer-municipal', $insc_customfield_value, '','', '');
+        logModuleCall('NFEioServiceInvoices', 'gnfe_customer-cpf', $cpf_customfield_value, '','', '');
+        logModuleCall('NFEioServiceInvoices', 'gnfe_customer-cnpj', $cnpj_customfield_value, '','', '');
+        logModuleCall('NFEioServiceInvoices', 'gnfe_customer-municipal', $insc_customfield_value, '','', '');
 
         // Cliente possui CPF e CNPJ
         // CPF com 1 nº a menos, adiciona 0 antes do documento
@@ -170,7 +170,7 @@ class Functions
         $city = json_decode(json_encode(json_decode($response)));
 
         if ($city->message || $err) {
-            logModuleCall('gofas_nfeio', 'gnfe_ibge', $zip, $city->message, 'ERROR', '');
+            logModuleCall('NFEioServiceInvoices', 'gnfe_ibge', $zip, $city->message, 'ERROR', '');
             return 'ERROR';
         } else {
             return $city->city->code;
@@ -264,36 +264,42 @@ class Functions
         $_storageKey = Addon::I()->configuration()->storageKey;
         $storage = new Storage($_storageKey);
 
+        logModuleCall('NFEioServiceInvoices', 'gnfe_issue_nfe - gnfe_webhook_id', $gnfe_webhook_id, $webhook_url);
+
         if ($gnfe_webhook_id) {
             $check_webhook = $this->gnfe_check_webhook($gnfe_webhook_id);
-            $error = '';
-            if ($check_webhook['message']) {
-                logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - check_webhook', $gnfe_webhook_id, $check_webhook['message'], 'ERROR', '');
+            if ($check_webhook == null)
+            {
+                return (object) ['message' => 'Erro ao checar a existência de um webhook já cadastrado'];
             }
         }
+
+        logModuleCall('NFEioServiceInvoices', 'gnfe_issue_nfe - check_webhook', $check_webhook);
+
         if ($gnfe_webhook_id and (string) $check_webhook['hooks']['url'] !== (string) $webhook_url) {
             $delete_webhook = $this->gnfe_delete_webhook($gnfe_webhook_id);
-            $create_webhook = $this->gnfe_create_webhook($webhook_url);
-            if ($create_webhook['message']) {
-                logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - gnfe_create_webhook', $webhook_url, $create_webhook['message'], 'ERROR', '');
+
+            if ($delete_webhook == null)
+            {
+                return (object) ['message' => 'Erro ao deletar webhook que estava com a url divergente'];
             }
+
+            $gnfe_webhook_id = null;
+        }
+
+        if (!$gnfe_webhook_id) {
+            $create_webhook = $this->gnfe_create_webhook($webhook_url);
+            
+            if ($create_webhook == null)
+            {
+                return (object) ['message' => 'Erro ao criar novo webhook'];
+            }
+
             if ($create_webhook['hooks']['id']) {
+                
                 $storage->set('webhook_id', $create_webhook['hooks']['id']);
                 $storage->set('webhook_secret', $create_webhook['hooks']['secret']);
                 logModuleCall($_storageKey, 'webhook_id', $create_webhook);
-            }
-            if ($delete_webhook['message']) {
-                logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - gnfe_delete_webhook', $gnfe_webhook_id, $delete_webhook, 'ERROR', '');
-            }
-        }
-        if (!$gnfe_webhook_id) {
-            $create_webhook = $this->gnfe_create_webhook($webhook_url);
-            if ($create_webhook['message']) {
-                logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - gnfe_create_webhook', $webhook_url, $create_webhook, 'ERROR', '');
-            }
-            if ($create_webhook['hooks']['id']) {
-                $storage->set('webhook_id', $create_webhook['hooks']['id']);
-                $storage->set('webhook_secret', $create_webhook['hooks']['secret']);
             }
         }
 
@@ -308,8 +314,10 @@ class Functions
         $err = curl_error($curl);
         $info = curl_getinfo($curl);
         curl_close($curl);
-        logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - curl_init', $error, $info, '', '');
-        logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - CURLOPT_POSTFIELDS', json_encode($postfields), '', '', '');
+
+        logModuleCall('NFEioServiceInvoices', 'gnfe_issue_nfe - curl_init', $error, $info, '', '');
+        logModuleCall('NFEioServiceInvoices', 'gnfe_issue_nfe - CURLOPT_POSTFIELDS', json_encode($postfields), '', '', '');
+
         if ($err) {
             return (object) ['message' => $err, 'info' => $info];
         } else {
@@ -397,7 +405,7 @@ class Functions
                 ' Http code: ' . $httpCode . '|' .
                 ' Resposta: ' . $response . '|' .
                 ' Consulte: https://nfe.io/docs/desenvolvedores/rest-api/nota-fiscal-de-servico-v1/#/Companies/Companies_Put';
-            logModuleCall('gofas_nfeio', 'gnfe_put_rps', $requestBody, $response, '', '');
+            logModuleCall('NFEioServiceInvoices', 'gnfe_put_rps', $requestBody, $response, '', '');
         } else {
             $nfe_rps = intval($this->gnfe_get_company_info('rpsNumber'));
             $whmcs_rps = intval($this->gnfe_config('rps_number'));
@@ -409,7 +417,7 @@ class Functions
                     ->where('setting', '=', 'rps_number')
                     ->update(['value' => 'RPS administrado pela NFe.']);
             } else {
-                logModuleCall('gofas_nfeio', 'gnfe_put_rps', $requestBody, 'Erro ao tentar passar tratativa de RPS para NFe. ' . $response, '', '');
+                logModuleCall('NFEioServiceInvoices', 'gnfe_put_rps', $requestBody, 'Erro ao tentar passar tratativa de RPS para NFe. ' . $response, '', '');
             }
         }
     }
@@ -423,7 +431,7 @@ class Functions
         $response = curl_exec($curl);
         $info = curl_getinfo($curl);
         $err = curl_error($curl);
-        logModuleCall('gofas_nfeio', 'gnfe_issue_nfe - curl_init', $err, $info, '', '');
+        logModuleCall('NFEioServiceInvoices', 'gnfe_issue_nfe - curl_init', $err, $info, '', '');
         curl_close($curl);
 
         return $info;
@@ -664,15 +672,31 @@ class Functions
     }
 
     function gnfe_check_webhook($id) {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/hooks/' . $id);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        $response = curl_exec($curl);
-        curl_close($curl);
+        try {
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/hooks/' . $id);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            $response = curl_exec($curl);
+            $info = curl_getinfo($curl);
+            curl_close($curl);
 
-        return json_decode(json_encode(json_decode($response)), true);
+            if(!curl_errno($curl))
+            {
+                if ($info['http_code'] == 200)
+                {
+                    return json_decode($response, true);
+                }
+                else {
+                    logModuleCall('NFEioServiceInvoices', 'gnfe_check_webhook', $id, $info['http_code']);
+                }
+            }
+        } catch (Exception $ex) {
+            logModuleCall('NFEioServiceInvoices', 'gnfe_check_webhook', $id, $ex->getMessage());
+        }
+
+        return null;
     }
 
     function gnfe_create_webhook($url) {
@@ -685,23 +709,53 @@ class Functions
             curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode(['url' => $url, 'contentType' => 'application/json', 'secret' => (string)time(), 'events' => ['issue', 'cancel', 'WaitingCalculateTaxes'], 'status' => 'Active',  ]));
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             $response = curl_exec($curl);
+            $info = curl_getinfo($curl);
             curl_close($curl);
-        } catch (Exception $th) {
+
+            if(!curl_errno($curl))
+            {
+                if ($info['http_code'] == 201)
+                {
+                    return json_decode($response, true);
+                }
+                else {
+                    logModuleCall('NFEioServiceInvoices', 'gnfe_create_webhook', $url, $info['http_code']);
+                }
+            }
+        } catch (Exception $ex) {
+            logModuleCall('NFEioServiceInvoices', 'gnfe_create_webhook', $url, $ex->getMessage());
         }
-        return json_decode(json_encode(json_decode($response)), true);
+
+        return null;
     }
 
     function gnfe_delete_webhook($id) {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/hooks/' . $id);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        $response = curl_exec($curl);
-        curl_close($curl);
+        try {
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/hooks/' . $id);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            $response = curl_exec($curl);
+            $info = curl_getinfo($curl);
+            curl_close($curl);
 
-        return json_decode(json_encode(json_decode($response)), true);
+            if(!curl_errno($curl))
+            {
+                if ($info['http_code'] == 200)
+                {
+                    return json_decode($response, true);
+                }
+                else {
+                    logModuleCall('NFEioServiceInvoices', 'gnfe_delete_webhook', $id, $info['http_code']);
+                }
+            }
+        } catch (Exception $ex) {
+            logModuleCall('NFEioServiceInvoices', 'gnfe_delete_webhook', $id, $ex->getMessage());
+        }
+
+        return null;
     }
 
     /**
@@ -843,7 +897,7 @@ class Functions
         $dataAtual = toMySQLDate(getTodaysDate(false)) . ' 23:59:59';
         $dataAnterior = date('Y-m-d',mktime (0, 0, 0, date('m'), date('d') - $days,  date('Y'))) . ' 23:59:59';
 
-        foreach (Capsule::table('tblmodulelog')->where('module','=','gofas_nfeio')->orderBy('date')->whereBetween('date', [$dataAnterior, $dataAtual])->get(['date', 'action', 'request', 'response', 'arrdata']) as $log) {
+        foreach (Capsule::table('tblmodulelog')->where('module','=','NFEioServiceInvoices')->orderBy('date')->whereBetween('date', [$dataAnterior, $dataAtual])->get(['date', 'action', 'request', 'response', 'arrdata']) as $log) {
             $text .= PHP_EOL . '==========================================================================================================================================' . PHP_EOL;
             $text .= '-|date = ' . $log->date . PHP_EOL . '-|action = ' . $log->action . PHP_EOL . '-|request = ' . ($log->request) . PHP_EOL . '-|response = ' . ($log->response) . PHP_EOL . '-|status = ' . ($log->arrdata);
         }
@@ -1007,7 +1061,7 @@ class Functions
 
         //  CPF/CNPJ/NAME
         $customer = $this->gnfe_customer($invoices->userid, $client);
-        logModuleCall('gofas_nfeio', 'gnfe_customer', $customer, '','', '');
+        logModuleCall('NFEioServiceInvoices', 'gnfe_customer', $customer, '','', '');
 
         if ($customer['doc_type'] == 2) {
             if ($client['companyname'] != '') {
@@ -1046,9 +1100,9 @@ class Functions
             $desc .= ' | ' . substr(implode("\n", $line_items), 0, 600) . ' '. $params['descCustom'];
         }
 
-        logModuleCall('gofas_nfeio', 'description-descCustom', $params['descCustom'], '','', '');
-        logModuleCall('gofas_nfeio', 'description-InvoiceDetails', $params['InvoiceDetails'], '','', '');
-        logModuleCall('gofas_nfeio', 'description', $params, '','', '');
+        logModuleCall('NFEioServiceInvoices', 'description-descCustom', $params['descCustom'], '','', '');
+        logModuleCall('NFEioServiceInvoices', 'description-InvoiceDetails', $params['InvoiceDetails'], '','', '');
+        logModuleCall('NFEioServiceInvoices', 'description', $params, '','', '');
 
         //define address
         if (strpos($client['address1'], ',')) {
@@ -1066,10 +1120,10 @@ class Functions
             $client_email = '';
         }
 
-        logModuleCall('gofas_nfeio', 'sendNFE - customer', $customer, '','', '');
+        logModuleCall('NFEioServiceInvoices', 'sendNFE - customer', $customer, '','', '');
         $code = $this->gnfe_ibge(preg_replace('/[^0-9]/', '', $client['postcode']));
         if ($code == 'ERROR') {
-            logModuleCall('gofas_nfeio', 'sendNFE - gnfe_ibge', $customer, '','ERROR', '');
+            logModuleCall('NFEioServiceInvoices', 'sendNFE - gnfe_ibge', $customer, '','ERROR', '');
             $this->update_status_nfe($nfeio->invoice_id, 'Error_cep');
         } else {
             //cria o array do request
@@ -1081,14 +1135,14 @@ class Functions
             $nfe = $this->gnfe_issue_nfe($postfields);
 
             if ($nfe->message) {
-                logModuleCall('gofas_nfeio', 'sendNFE', $postfields, $nfe, 'ERROR', '');
+                logModuleCall('NFEioServiceInvoices', 'sendNFE', $postfields, $nfe, 'ERROR', '');
             }
             if (!$nfe->message) {
-                logModuleCall('gofas_nfeio', 'sendNFE', $postfields, $nfe, 'OK', '');
+                logModuleCall('NFEioServiceInvoices', 'sendNFE', $postfields, $nfe, 'OK', '');
                 $gnfe_update_nfe = $this->gnfe_update_nfe($nfe, $invoices->userid, $invoices->id, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $nfeio->id);
 
                 if ($gnfe_update_nfe && $gnfe_update_nfe !== 'success') {
-                    logModuleCall('gofas_nfeio', 'sendNFE - gnfe_update_nfe', [$nfe, $invoices->userid, $invoices->id, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $nfeio->id], $gnfe_update_nfe, 'ERROR', '');
+                    logModuleCall('NFEioServiceInvoices', 'sendNFE - gnfe_update_nfe', [$nfe, $invoices->userid, $invoices->id, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $nfeio->id], $gnfe_update_nfe, 'ERROR', '');
                 }
             }
         }

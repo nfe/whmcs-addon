@@ -337,6 +337,8 @@ class Nfe
         $clientData = localAPI('GetClientsDetails', ['clientid' => $clientId]);
         $customer = $this->legacyFunctions->gnfe_customer($clientId, $clientData);
 
+        logModuleCall('NFEioServiceInvoices', 'get_client_details', $clientData, $customer);
+
         $emailNfeConfig = (bool) $this->storage->get('gnfe_email_nfe_config');
         $client_email = $emailNfeConfig ? $clientData['email'] : '';
 
@@ -361,57 +363,60 @@ class Nfe
             $number = preg_replace('/[^0-9]/', '', $clientData['address1']);
         }
 
+        if ($clientData['postcode'] == null || $clientData['postcode'] == '')
+        {
+            $this->legacyFunctions->update_status_nfe($invoiceId, 'Error_cep');
+            return;
+        }
+
         $ibgeCode = $this->legacyFunctions->gnfe_ibge(preg_replace('/[^0-9]/', '', $clientData['postcode']));
 
         if ($ibgeCode == 'ERROR') {
             $this->legacyFunctions->update_status_nfe($invoiceId, 'Error_cep');
-        } else {
-
-            //strlen($insc_municipal) == 0 ? '' : $postfields['borrower']['municipalTaxNumber'] = $insc_municipal;
-
-            $postData = [
-                'cityServiceCode' => $serviceCode,
-                'description' => $description,
-                'servicesAmount' => $amount,
-                'externalId' => $externalId,
-                'borrower' => [
-                    'federalTaxNumber' => $customer['document'],
-                    'municipalTaxNumber' => $customer['insc_municipal'],
-                    'name' => $name,
-                    'email' => $client_email,
-                    'address' => [
-                        'country' => $this->legacyFunctions->gnfe_country_code($clientData['countrycode']),
-                        'postalCode' => preg_replace('/[^0-9]/', '', $clientData['postcode']),
-                        'street' => $street,
-                        'number' => $number,
-                        'additionalInformation' => '',
-                        'district' => $clientData['address2'],
-                        'city' => [
-                            'code' => $ibgeCode,
-                            'name' => $clientData['city'],
-                        ],
-                        'state' => $clientData['state']
-                    ]
-                ]
-            ];
-
-            // adiciona o campo issAmountWithheld caso exista valor
-            if (!empty($issAmountWithheld)) {
-                $postData['issAmountWithheld'] = $issAmountWithheld;
-            }
-
-            $nfeResponse = $this->legacyFunctions->gnfe_issue_nfe($postData);
-
-            if (!$nfeResponse->message) {
-                $gnfe_update_nfe = $this->legacyFunctions->gnfe_update_nfe($nfeResponse, $clientId, $invoiceId, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $nfDbId);
-                logModuleCall('NFEioServiceInvoices', 'transmit_nf_success', $postData, $nfeResponse);
-            } else {
-                logModuleCall('NFEioServiceInvoices', 'transmit_nf_error', $postData, $nfeResponse);
-
-            }
-
+            return;
         }
 
+        //strlen($insc_municipal) == 0 ? '' : $postfields['borrower']['municipalTaxNumber'] = $insc_municipal;
+
+        $postData = [
+            'cityServiceCode' => $serviceCode,
+            'description' => $description,
+            'servicesAmount' => $amount,
+            'externalId' => $externalId,
+            'borrower' => [
+                'federalTaxNumber' => $customer['document'],
+                'municipalTaxNumber' => $customer['insc_municipal'],
+                'name' => $name,
+                'email' => $client_email,
+                'address' => [
+                    'country' => $this->legacyFunctions->gnfe_country_code($clientData['countrycode']),
+                    'postalCode' => preg_replace('/[^0-9]/', '', $clientData['postcode']),
+                    'street' => $street,
+                    'number' => $number,
+                    'additionalInformation' => '',
+                    'district' => $clientData['address2'],
+                    'city' => [
+                        'code' => $ibgeCode,
+                        'name' => $clientData['city'],
+                    ],
+                    'state' => $clientData['state']
+                ]
+            ]
+        ];
+
+        // adiciona o campo issAmountWithheld caso exista valor
+        if (!empty($issAmountWithheld)) {
+            $postData['issAmountWithheld'] = $issAmountWithheld;
+        }
+
+        $nfeResponse = $this->legacyFunctions->gnfe_issue_nfe($postData);
+
+        if (!$nfeResponse->message) {
+            $gnfe_update_nfe = $this->legacyFunctions->gnfe_update_nfe($nfeResponse, $clientId, $invoiceId, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $nfDbId);
+            logModuleCall('NFEioServiceInvoices', 'transmit_nf_success', $postData, $nfeResponse);
+        } else {
+            logModuleCall('NFEioServiceInvoices', 'transmit_nf_error', $postData, $nfeResponse);
+        }
     }
 
     /**
