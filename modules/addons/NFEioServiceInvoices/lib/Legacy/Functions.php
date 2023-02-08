@@ -264,17 +264,19 @@ class Functions
         $_storageKey = Addon::I()->configuration()->storageKey;
         $storage = new Storage($_storageKey);
 
-        logModuleCall('NFEioServiceInvoices', 'gnfe_issue_nfe - gnfe_webhook_id', $gnfe_webhook_id, $webhook_url);
-
         if ($gnfe_webhook_id) {
             $check_webhook = $this->gnfe_check_webhook($gnfe_webhook_id);
+            
             if ($check_webhook == null)
             {
                 return (object) ['message' => 'Erro ao checar a existência de um webhook já cadastrado'];
             }
+            
+            if ($check_webhook == "ERRO 400" || $check_webhook == "ERRO 404")
+            {
+                $gnfe_webhook_id = null;
+            }
         }
-
-        logModuleCall('NFEioServiceInvoices', 'gnfe_issue_nfe - check_webhook', $check_webhook);
 
         if ($gnfe_webhook_id and (string) $check_webhook['hooks']['url'] !== (string) $webhook_url) {
             $delete_webhook = $this->gnfe_delete_webhook($gnfe_webhook_id);
@@ -290,6 +292,8 @@ class Functions
         if (!$gnfe_webhook_id) {
             $create_webhook = $this->gnfe_create_webhook($webhook_url);
             
+            logModuleCall('NFEioServiceInvoices', 'gnfe_issue_nfe - gnfe_create_webhook', $create_webhook, $webhook_url);
+
             if ($create_webhook == null)
             {
                 return (object) ['message' => 'Erro ao criar novo webhook'];
@@ -299,7 +303,6 @@ class Functions
                 
                 $storage->set('webhook_id', $create_webhook['hooks']['id']);
                 $storage->set('webhook_secret', $create_webhook['hooks']['secret']);
-                logModuleCall($_storageKey, 'webhook_id', $create_webhook);
             }
         }
 
@@ -687,6 +690,11 @@ class Functions
                 if ($info['http_code'] == 200)
                 {
                     return json_decode($response, true);
+                }
+                elseif ($info['http_code'] == 400 || $info['http_code'] == 404)
+                {
+                    logModuleCall('NFEioServiceInvoices', 'gnfe_check_webhook', $id, "ERRO " . $info['http_code']);
+                    return "ERRO " . $info['http_code'];
                 }
                 else {
                     logModuleCall('NFEioServiceInvoices', 'gnfe_check_webhook', $id, $info['http_code']);
