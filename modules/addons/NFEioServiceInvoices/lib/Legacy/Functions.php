@@ -264,8 +264,6 @@ class Functions
         $_storageKey = Addon::I()->configuration()->storageKey;
         $storage = new Storage($_storageKey);
 
-        // logModuleCall('NFEioServiceInvoices', 'gnfe_issue_nfe - gnfe_webhook_id', $gnfe_webhook_id, $webhook_url);
-
         if ($gnfe_webhook_id) {
             $check_webhook = $this->gnfe_check_webhook($gnfe_webhook_id);
             
