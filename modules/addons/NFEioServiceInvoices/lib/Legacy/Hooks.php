@@ -2,7 +2,7 @@
 
 namespace NFEioServiceInvoices\Legacy;
 
-use \WHMCS\Database\Capsule;
+use WHMCS\Database\Capsule;
 
 class Hooks
 {
@@ -67,14 +67,10 @@ class Hooks
             } else {
                 $result =  ['Módulo NFE.io' => 'Não existem opções'];
             }
-
         } catch (\Exception $exception) {
             echo $exception->getMessage();
         }
 
         return $result;
-
-
     }
-
 }

@@ -1,11 +1,11 @@
 <?php
 
-
 namespace NFEioServiceInvoices;
 
-use \WHMCSExpert as main;
+use WHMCSExpert as main;
 
-if (!defined('DS')) { define('DS', DIRECTORY_SEPARATOR);
+if (!defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
 }
 
 require_once __DIR__ . DS . 'lib' . DS . 'vendor' . DS . 'autoload.php';
@@ -41,7 +41,6 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
                 self::$myName = __NAMESPACE__;
 
                 foreach ($checkDirs as $dir) {
-
                     if ($pos = strpos(__DIR__, $dir . self::$myName)) {
                         self::$whmcsDir = substr(__DIR__, 0, $pos);
                         break;
@@ -54,13 +53,11 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
 
                         if (file_exists($tmp)) {
                             self::$availableDirs[] = $tmp . DS;
-
                         }
                     }
                 }
             } else {
                 self::$mainDir = $dir;
-
             }
 
             spl_autoload_register(array($this, 'loader'));
@@ -156,11 +153,11 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
 
             if ($handle = opendir($foundFile)) {
                 while (false !== ($entry = readdir($handle))) {
-                    if ($entry != "."
+                    if (
+                        $entry != "."
                         && $entry != ".."
                         && strpos($entry, '.php') === (strlen($entry) - 4)
                     ) {
-
                         $files[] = __NAMESPACE__ . '\\' . $originClassName . '\\' . substr($entry, 0, strlen($entry) - 4);
                     }
                 }

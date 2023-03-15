@@ -2,7 +2,6 @@
 
 namespace NFEioServiceInvoices;
 
-
 use Plasticbrain\FlashMessages\FlashMessages;
 
 final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfiguration
@@ -39,7 +38,6 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
         $this->setClientAreaName($this->clientAreaName);
         $this->setVersion($this->version);
         $this->setTablePrefix($this->tablePrefix);
-
     }
 
     /**
@@ -185,10 +183,8 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
             $msg = new FlashMessages();
             if ($redirect) {
                 $msg->warning("Você foi redirecionado para o menu <b>Configurações</b>", "{$vars['modulelink']}&action=Configuration");
-
             } else {
                 foreach ($missingFields as $key => $value) {
-
                     $msg->error("Campo obrigatório <b>{$value['label']}</b> está ausente.", null, true);
 
                     /*if ($redirect && $returnMissingFields === false) {
@@ -197,18 +193,13 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
                             $msg->warning("Você foi redirecionado para o menu <b>Configurações</b>", "{$vars['modulelink']}&action=Configuration");
                         }
                     }*/
-
                 }
             }
-
         }
 
         if ($returnMissingFields) {
             return $missingFields;
         }
-
-
-
     }
 
     /**
@@ -252,8 +243,6 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
         $moduleConfigurationRepo = new Models\ModuleConfiguration\Repository();
         // inicia os valores padrões nas configurações do módulo
         $moduleConfigurationRepo->initDefaultValues();
-
-
     }
 
     public function deactivate()
@@ -269,7 +258,6 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
         $clientConfigurationRepo = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
         // não derruba a tabela com configurações persoanlizadas de emissão por segurança
         // $clientConfigurationRepo->dropProductCodeTable();
-
     }
 
     public function upgrade($vars)
@@ -296,5 +284,4 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
              */
         }
     }
-
 }

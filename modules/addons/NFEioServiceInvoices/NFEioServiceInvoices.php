@@ -1,4 +1,5 @@
 <?php
+
 /**
  * WHMCS SDK Sample Addon Module
  *
@@ -30,11 +31,12 @@ if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
 }
 
-if(!defined('DS')) { define('DS', DIRECTORY_SEPARATOR);
+if (!defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
 }
 
 
-use \WHMCS\Database\Capsule;
+use WHMCS\Database\Capsule;
 use NFEioServiceInvoices\Admin\AdminDispatcher;
 use NFEioServiceInvoices\Client\ClientDispatcher;
 
@@ -55,7 +57,7 @@ use NFEioServiceInvoices\Client\ClientDispatcher;
  */
 function NFEioServiceInvoices_config()
 {
-    include_once __DIR__.DS.'Loader.php';
+    include_once __DIR__ . DS . 'Loader.php';
     new \NFEioServiceInvoices\Loader();
     return \NFEioServiceInvoices\Addon::config();
 }
@@ -74,7 +76,7 @@ function NFEioServiceInvoices_config()
 function NFEioServiceInvoices_activate()
 {
 
-    include_once __DIR__.DS.'Loader.php';
+    include_once __DIR__ . DS . 'Loader.php';
     new NFEioServiceInvoices\Loader();
     return \NFEioServiceInvoices\Addon::activate();
 }
@@ -92,7 +94,7 @@ function NFEioServiceInvoices_activate()
  */
 function NFEioServiceInvoices_deactivate()
 {
-    include_once __DIR__.DS.'Loader.php';
+    include_once __DIR__ . DS . 'Loader.php';
     new NFEioServiceInvoices\Loader();
     return \NFEioServiceInvoices\Addon::deactivate();
 }
@@ -109,10 +111,9 @@ function NFEioServiceInvoices_deactivate()
  */
 function NFEioServiceInvoices_upgrade($vars)
 {
-    include_once __DIR__.DS.'Loader.php';
+    include_once __DIR__ . DS . 'Loader.php';
     new NFEioServiceInvoices\Loader();
     \NFEioServiceInvoices\Addon::upgrade($vars);
-
 }
 
 /**
@@ -129,7 +130,7 @@ function NFEioServiceInvoices_upgrade($vars)
  */
 function NFEioServiceInvoices_output($vars)
 {
-    include_once __DIR__.DS.'Loader.php';
+    include_once __DIR__ . DS . 'Loader.php';
     new \NFEioServiceInvoices\Loader();
     \NFEioServiceInvoices\Addon::I()->isAdmin(true);
     \NFEioServiceInvoices\Addon::I(false, $vars);

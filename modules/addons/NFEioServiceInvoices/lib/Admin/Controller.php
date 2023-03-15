@@ -2,7 +2,8 @@
 
 namespace NFEioServiceInvoices\Admin;
 
-if (!defined('DS')) { define('DS', DIRECTORY_SEPARATOR);
+if (!defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
 }
 
 require_once dirname(dirname(__DIR__)) . DS . 'Loader.php';
@@ -13,7 +14,7 @@ use Smarty;
 use WHMCS\Database\Capsule;
 use Plasticbrain\FlashMessages\FlashMessages;
 use WHMCSExpert\Template\Template;
-use \NFEioServiceInvoices\Addon;
+use NFEioServiceInvoices\Addon;
 
 
 /**
@@ -21,8 +22,6 @@ use \NFEioServiceInvoices\Addon;
  */
 class Controller
 {
-
-
     /**
      * Index action.
      *
@@ -33,10 +32,9 @@ class Controller
     public function index($vars)
     {
         try {
-
             $template = new Template(Addon::getModuleTemplatesDir());
             $assetsURL = Addon::I()->getAssetsURL();
-            $msg = new FlashMessages;
+            $msg = new FlashMessages();
             $config = new \NFEioServiceInvoices\Configuration();
             $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
             $vars['dtData'] = $serviceInvoicesRepo->dataTable();
@@ -51,7 +49,9 @@ class Controller
             if ($oldVersion) {
                 $msg->error(
                     "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.",
+                    '',
+                    true
                 );
             }
 
@@ -60,7 +60,6 @@ class Controller
             }
 
             return $template->fetch('index', $vars);
-
         } catch (\Exception $e) {
             echo $e->getMessage();
         }
@@ -75,11 +74,10 @@ class Controller
     public function configuration($vars)
     {
         try {
-
-            $msg = new FlashMessages;
+            $msg = new FlashMessages();
             $template = new Template(Addon::getModuleTemplatesDir());
             $config = new \NFEioServiceInvoices\Configuration();
-            $nfe = new \NFEioServiceInvoices\NFEio\Nfe;
+            $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
             // metodo para verificar se existe algum campo obrigatório não preenchido.
             $config->verifyMandatoryFields($vars);
             $assetsURL = Addon::I()->getAssetsURL();
@@ -101,7 +99,9 @@ class Controller
             if ($oldVersion) {
                 $msg->error(
                     "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.",
+                    '',
+                    true
                 );
             }
 
@@ -110,7 +110,6 @@ class Controller
             }
 
             return $template->fetch('configuration', $vars);
-
         } catch (\Exception $e) {
             echo $e->getMessage();
         }
@@ -124,7 +123,7 @@ class Controller
     public function configurationSave($vars)
     {
 
-        $msg = new FlashMessages;
+        $msg = new FlashMessages();
         $assetsURL = Addon::I()->getAssetsURL();
         $vars['assetsURL'] = $assetsURL;
         $moduleLink = $vars['modulelink'];
@@ -182,26 +181,30 @@ class Controller
             // discount_items
             $storage->set('discount_items', $discount_items);
 
-            if ($api_key) { $storage->set('api_key', $api_key); 
+            if ($api_key) {
+                $storage->set('api_key', $api_key);
             }
-            if ($company_id) { $storage->set('company_id', $company_id); 
+            if ($company_id) {
+                $storage->set('company_id', $company_id);
             }
-            if ($service_code) { $storage->set('service_code', $service_code); 
+            if ($service_code) {
+                $storage->set('service_code', $service_code);
             }
-            if ($rps_number) { $storage->set('rps_number', $rps_number); 
+            if ($rps_number) {
+                $storage->set('rps_number', $rps_number);
             }
-            if ($issue_note_default_cond) { $storage->set('issue_note_default_cond', $issue_note_default_cond); 
+            if ($issue_note_default_cond) {
+                $storage->set('issue_note_default_cond', $issue_note_default_cond);
             }
-            if ($invoice_details) { $storage->set('InvoiceDetails', $invoice_details); 
+            if ($invoice_details) {
+                $storage->set('InvoiceDetails', $invoice_details);
             }
             //if ($footer) { $storage->set('footer', $footer); }
 
             $msg->success("Informações atualizadas com sucesso!", "{$moduleLink}&action={$action}");
-
         } catch (\Exception $exception) {
             $msg->error("Erro {$exception->getCode()} ao atualizar: {$exception->getMessage()}", "{$moduleLink}&action={$action}");
         }
-
     }
 
     /**
@@ -213,9 +216,7 @@ class Controller
     public function servicesCode($vars)
     {
         try {
-
-
-            $msg = new FlashMessages;
+            $msg = new FlashMessages();
             $template = new Template(Addon::getModuleTemplatesDir());
             $config = new \NFEioServiceInvoices\Configuration();
             $servicesCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
@@ -235,7 +236,9 @@ class Controller
             if ($oldVersion) {
                 $msg->error(
                     "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de nptas.", '', true
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de nptas.",
+                    '',
+                    true
                 );
             }
 
@@ -244,7 +247,6 @@ class Controller
             }
 
             return $template->fetch('servicescode', $vars);
-
         } catch (\Exception $e) {
             echo $e->getMessage();
         }
@@ -279,11 +281,7 @@ class Controller
         if ($post['btnDelete'] === 'true') {
             $productCodeRepo->delete($post);
             $msg->warning("Código {$post['service_code']} para {$post['product_name']} removido.", "{$vars['modulelink']}&action=servicesCode");
-
         }
-
-
-
     }
 
     /**
@@ -298,8 +296,8 @@ class Controller
         $functions = new \NFEioServiceInvoices\Legacy\Functions();
         $moduleLink = $vars['modulelink'];
         $moduleAction = 'index';
-        $redirectUrl = $moduleLink.'&action='.$moduleAction;
-        $nfe = new \NFEioServiceInvoices\NFEio\Nfe;
+        $redirectUrl = $moduleLink . '&action=' . $moduleAction;
+        $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
 
         // create
         if ($_REQUEST['gnfe_create']) {
@@ -322,7 +320,7 @@ class Controller
             }
         }
         // reissue
-        if ($_REQUEST['nfeio_reissue'] AND ( isset($_REQUEST['nfe_id']) AND !empty($_REQUEST['nfe_id']) )) {
+        if ($_REQUEST['nfeio_reissue'] and ( isset($_REQUEST['nfe_id']) and !empty($_REQUEST['nfe_id']) )) {
             $nfId = $_REQUEST['nfe_id'];
             $result = $nfe->reissueNfbyId($nfId);
 
@@ -330,7 +328,6 @@ class Controller
                 $msg->success('NF reemitida com sucesso', $redirectUrl);
             } else {
                 $msg->error("Erro ao reemitir NF: {$result}", $redirectUrl);
-
             }
         }
 
@@ -345,11 +342,9 @@ class Controller
 
                 $msg->warning("Nota fiscal cancelada, mas com aviso: {$delete_nfe->message}", $redirectUrl);
             } else {
-
                 logModuleCall('nfeioserviceinvoices', 'cancel_nf', $_REQUEST['gnfe_cancel'], $delete_nfe);
 
                 $msg->success("Nota fiscal cancelada com sucesso", $redirectUrl);
-
             }
         }
 
@@ -368,14 +363,12 @@ class Controller
         if ($_REQUEST['gnfe_message']) {
             echo urldecode(base64_decode($_REQUEST['gnfe_message']));
         }
-
     }
 
     public function aliquots($vars)
     {
         try {
-
-            $msg = new FlashMessages;
+            $msg = new FlashMessages();
             $template = new Template(Addon::getModuleTemplatesDir());
             $config = new \NFEioServiceInvoices\Configuration();
             $servicesCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
@@ -396,7 +389,9 @@ class Controller
             if ($oldVersion) {
                 $msg->error(
                     "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de nptas.", '', true
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de nptas.",
+                    '',
+                    true
                 );
             }
 
@@ -405,7 +400,6 @@ class Controller
             }
 
             return $template->fetch('aliquots', $vars);
-
         } catch (\Exception $e) {
             echo $e->getMessage();
         }
@@ -435,7 +429,6 @@ class Controller
         if ($post['btnDelete'] === 'true') {
             $aliquotsRepo->delete($post);
             $msg->warning("Alíquota removida com sucesso.", "{$vars['modulelink']}&action=aliquots");
-
         }
     }
 
@@ -454,7 +447,7 @@ class Controller
         $invoiceId = $get['invoice_id'];
         $moduleLink = $vars['modulelink'];
         $moduleAction = 'index';
-        $redirectUrl = $moduleLink.'&action='.$moduleAction;
+        $redirectUrl = $moduleLink . '&action=' . $moduleAction;
 
         $response = $nfe->reissueNfSeriesByInvoiceId($invoiceId);
 
@@ -463,7 +456,6 @@ class Controller
         } else {
             $msg->info("Nota fiscal enviada para processamento.", $redirectUrl);
         }
-
     }
 
     public function cancelNf($vars)
@@ -474,7 +466,7 @@ class Controller
         $invoiceId = $get['invoice_id'];
         $moduleLink = $vars['modulelink'];
         $moduleAction = 'index';
-        $redirectUrl = $moduleLink.'&action='.$moduleAction;
+        $redirectUrl = $moduleLink . '&action=' . $moduleAction;
 
         $response = $nfe->cancelNfSeriesByInvoiceId($invoiceId);
 
@@ -495,11 +487,10 @@ class Controller
     public function support($vars)
     {
         try {
-
             Addon::I()->isAdmin(true);
             $template = new Template(Addon::getModuleTemplatesDir());
             $assetsURL = Addon::I()->getAssetsURL();
-            $msg = new FlashMessages;
+            $msg = new FlashMessages();
 
             // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
             $oldVersion = Versions::getOldNfeioModuleVersion();
@@ -507,7 +498,9 @@ class Controller
             if ($oldVersion) {
                 $msg->error(
                     "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.",
+                    '',
+                    true
                 );
             }
 
@@ -519,7 +512,6 @@ class Controller
 
 
             return $template->fetch('support', $vars);
-
         } catch (\Exception $e) {
             echo $e->getMessage();
         }
@@ -531,7 +523,7 @@ class Controller
         $template = new Template(Addon::getModuleTemplatesDir());
         $assetsURL = Addon::I()->getAssetsURL();
 
-        $msg = new FlashMessages;
+        $msg = new FlashMessages();
 
         // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
         $oldVersion = Versions::getOldNfeioModuleVersion();
@@ -539,7 +531,9 @@ class Controller
         if ($oldVersion) {
             $msg->error(
                 "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo a uma nova versão.
-                Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true
+                Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.",
+                '',
+                true
             );
         }
 
@@ -550,6 +544,5 @@ class Controller
         $vars['assetsURL'] = $assetsURL;
 
         return $template->fetch('about', $vars);
-
     }
 }

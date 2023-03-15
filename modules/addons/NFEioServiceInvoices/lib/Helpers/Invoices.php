@@ -3,12 +3,10 @@
 namespace NFEioServiceInvoices\Helpers;
 
 use NFEioServiceInvoices\Helpers\Invoices as InvoicesHelper;
-use \WHMCS\Database\Capsule;
-
+use WHMCS\Database\Capsule;
 
 class Invoices
 {
-
     public static function getInvoiceStatus($id)
     {
         return Capsule::table('tblinvoices')->where('id', '=', $id)->value('status');
@@ -31,12 +29,12 @@ class Invoices
         $invoiceUrl = (bool) $storage->get('send_invoice_url');
 
         switch ($invoiceDetails) {
-        case 'Número da fatura':
-            $description = "Nota referente a fatura #{$invoiceId}";
-            break;
-        case 'Número da fatura + Nome dos serviços':
-            $description = "Nota referente a fatura #{$invoiceId}" . "\n" . $description;
-            break;
+            case 'Número da fatura':
+                $description = "Nota referente a fatura #{$invoiceId}";
+                break;
+            case 'Número da fatura + Nome dos serviços':
+                $description = "Nota referente a fatura #{$invoiceId}" . "\n" . $description;
+                break;
         }
 
         if ($invoiceUrl) {
@@ -48,8 +46,6 @@ class Invoices
         }
 
         return $description;
-
-
     }
 
     /**
@@ -83,5 +79,4 @@ class Invoices
             return false;
         }
     }
-
 }

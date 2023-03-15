@@ -1,9 +1,9 @@
 <?php
 
-
 namespace NFEioServiceInvoices\Client;
 
-if (!defined('DS')) { define('DS', DIRECTORY_SEPARATOR);
+if (!defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
 }
 
 require_once dirname(dirname(__DIR__)) . DS . 'Loader.php';
@@ -16,7 +16,6 @@ require_once dirname(dirname(__DIR__)) . DS . 'Loader.php';
  */
 class Controller
 {
-
     /**
      * Método para download da NF em PDF na area do cliente.
      *
@@ -27,7 +26,7 @@ class Controller
      */
     public function downloadNfPdf($vars)
     {
-        $currentUser = new \WHMCS\Authentication\CurrentUser;
+        $currentUser = new \WHMCS\Authentication\CurrentUser();
         $client = $currentUser->client();
         if ($client) {
             $nfId = $_GET['nfid'];
@@ -36,7 +35,6 @@ class Controller
             exit();
         } else {
             http_response_code(401);
-
         }
     }
 
@@ -50,18 +48,17 @@ class Controller
      */
     public function downloadNfXml($vars)
     {
-        $currentUser = new \WHMCS\Authentication\CurrentUser;
+        $currentUser = new \WHMCS\Authentication\CurrentUser();
         $client = $currentUser->client();
-        if($client) {
+        if ($client) {
             $nfId = $_GET['nfid'];
             $legacyFunctions = new \NFEioServiceInvoices\Legacy\Functions();
             header('Content-type: application/xml');
-            header("Content-Disposition: attachment; filename=".$nfId.".xml");
+            header("Content-Disposition: attachment; filename=" . $nfId . ".xml");
             echo $legacyFunctions->gnfe_xml_nfe($nfId);
             exit();
         } else {
             http_response_code(401);
         }
-
     }
 }

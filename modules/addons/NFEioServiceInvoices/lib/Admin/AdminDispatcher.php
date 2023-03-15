@@ -7,7 +7,6 @@ namespace NFEioServiceInvoices\Admin;
  */
 class AdminDispatcher
 {
-
     /**
      * Dispatch request.
      *

@@ -28,7 +28,7 @@ class InvoicePaid
         $generateTaxBill = false;
         $generateTaxBillWhen = 'quando a fatura é paga';
 
-        if ($invoiceTotal > 0.00 AND (!$issueNoteAfter OR $issueNoteAfter == 0) AND $invoiceStatus == 'Paid' ) {
+        if ($invoiceTotal > 0.00 and (!$issueNoteAfter or $issueNoteAfter == 0) and $invoiceStatus == 'Paid') {
             $generateTaxBill = true;
         }
 
@@ -37,21 +37,20 @@ class InvoicePaid
             'invoiceStatus' => $invoiceStatus,
             'userID' => $userId,
             'clientIssueCondition' => $clientIssueCondition,
-            'moduleIssueCondition' =>$moduleIssueCondition,
+            'moduleIssueCondition' => $moduleIssueCondition,
             'issueNoteAfter' => $issueNoteAfter,
             'generateTaxBill' => $generateTaxBill,
             'generateTaxBillWhen' => $generateTaxBillWhen,
             'invoiceData' => $invoiceData,
         ];
 
-        if ($clientIssueCondition == 'seguir configuração do módulo nfe.io' AND $moduleIssueCondition == $generateTaxBillWhen AND $generateTaxBill) {
+        if ($clientIssueCondition == 'seguir configuração do módulo nfe.io' and $moduleIssueCondition == $generateTaxBillWhen and $generateTaxBill) {
             $queue = $nfe->queue($this->invoiceId);
             logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, $data, $queue);
         }
-        if ($clientIssueCondition == $generateTaxBillWhen AND $generateTaxBill) {
+        if ($clientIssueCondition == $generateTaxBillWhen and $generateTaxBill) {
             $queue = $nfe->queue($this->invoiceId);
             logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, $data, $queue);
         }
-
     }
 }

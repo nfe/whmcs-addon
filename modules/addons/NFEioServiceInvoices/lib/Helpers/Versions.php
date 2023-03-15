@@ -2,7 +2,7 @@
 
 namespace NFEioServiceInvoices\Helpers;
 
-use \WHMCS\Database\Capsule;
+use WHMCS\Database\Capsule;
 
 /**
  * Classe de ajuda com métodos para verificações e comparações de versões utilizadas no módulo
@@ -67,5 +67,4 @@ class Versions
     {
         return Capsule::table('tbladdonmodules')->where([['module', '=', 'gofasnfeio'], ['setting', '=', 'version']])->value('value');
     }
-
 }

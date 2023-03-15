@@ -4,7 +4,7 @@ namespace NFEioServiceInvoices\Migrations;
 
 use NFEioServiceInvoices\Configuration;
 use NFEioServiceInvoices\Helpers\Versions;
-use \WHMCS\Database\Capsule;
+use WHMCS\Database\Capsule;
 use WHMCSExpert\Addon\Storage;
 
 class Migrations
@@ -19,20 +19,17 @@ class Migrations
         // verifica se existem registros da versão anterior do módulo no banco de dados
         // se houver, tenta a migração
         if (Versions::hasOldNfeioModule()) {
-
             $moduleConfigurationRepo = new \NFEioServiceInvoices\Models\ModuleConfiguration\Repository();
             $config = new Configuration();
             $storage = new Storage($config->getStorageKey());
 
             try {
-
                 // seleciona os antigos registros de configuração
                 $query = Capsule::table('tbladdonmodules')->where('module', '=', 'gofasnfeio')->select('setting', 'value')->get();
                 $recordsAsKey = [];
 
                 // transforma os resultados da query em chave => valor
-                foreach ($query as $value)
-                {
+                foreach ($query as $value) {
                     $recordsAsKey[$value->setting] = $value->value;
                 }
 
@@ -50,7 +47,6 @@ class Migrations
                             if ($value == 'Sim') {
                                 $value = 'on';
                             }
-
                         }
                         // converte Sim/Não para 'on' e ''
                         if ($key == 'send_invoice_url') {
@@ -60,19 +56,14 @@ class Migrations
                             if ($value == 'Sim') {
                                 $value = 'on';
                             }
-
                         }
 
                         // se já não houver chave, seta a da migração
                         if (!$storage->has($key)) {
                             $storage->set($key, $value);
                         }
-
                     }
                 }
-
-
-
             } catch (\Exception $exception) {
                 echo $exception->getMessage();
             }
@@ -92,17 +83,18 @@ class Migrations
 
         // verifica se existem registros de versão anterior do módulo no banco de dados
         if (Versions::hasOldNfeioModule()) {
-
             try {
-
                 // se a tabela mod_nfeio_custom_configs não existir não há o ser que migrar
-                if (!Capsule::schema()->hasTable('mod_nfeio_custom_configs')) { return false; 
+                if (!Capsule::schema()->hasTable('mod_nfeio_custom_configs')) {
+                    return false;
                 }
                 // se não houver registros na tabela mod_nfeio_custom_configs não há o que ser migrado
-                if (!Capsule::table('mod_nfeio_custom_configs')->count()) { return false; 
+                if (!Capsule::table('mod_nfeio_custom_configs')->count()) {
+                    return false;
                 }
                 // se a nova tabela já existir e possuir registros, não migra nada
-                if (Capsule::schema()->hasTable('mod_nfeio_si_custom_configs') 
+                if (
+                    Capsule::schema()->hasTable('mod_nfeio_si_custom_configs')
                     && Capsule::table('mod_nfeio_si_custom_configs')->count()
                 ) {
                     return false;
@@ -110,7 +102,6 @@ class Migrations
 
                 // não existir a nova tabela destino mod_nfeio_si_custom_configs
                 if (!Capsule::schema()->hasTable('mod_nfeio_si_custom_configs')) {
-
                     // copia a antiga tabela mod_nfeio_custom_configs e renomeia para o novo nome
                      $db = Capsule::connection();
                      $db->statement('CREATE TABLE mod_nfeio_si_custom_configs LIKE mod_nfeio_custom_configs');
@@ -120,8 +111,6 @@ class Migrations
                 }
 
                 return false;
-
-
             } catch (\Exception $exception) {
                 echo $exception->getMessage();
             }
@@ -129,7 +118,6 @@ class Migrations
 
         // se não tiver registros returna false pra migração
         return false;
-
     }
 
     /**
@@ -140,15 +128,17 @@ class Migrations
         // verifica se existem registros de versão anterior do módulo no banco de dados
         if (Versions::hasOldNfeioModule()) {
             try {
-
                 // se a tabela gofasnfeio não existir não há o ser que migrar
-                if (!Capsule::schema()->hasTable('gofasnfeio')) { return false; 
+                if (!Capsule::schema()->hasTable('gofasnfeio')) {
+                    return false;
                 }
                 // se não houver registros na tabela gofasnfeio não há o que ser migrado
-                if (!Capsule::table('gofasnfeio')->count()) { return false; 
+                if (!Capsule::table('gofasnfeio')->count()) {
+                    return false;
                 }
                 // se a nova tabela já existir e possuir registros, não migra nada
-                if (Capsule::schema()->hasTable('mod_nfeio_si_serviceinvoices') 
+                if (
+                    Capsule::schema()->hasTable('mod_nfeio_si_serviceinvoices')
                     && Capsule::table('mod_nfeio_si_serviceinvoices')->count()
                 ) {
                     return false;
@@ -165,8 +155,6 @@ class Migrations
                 }
 
                 return false;
-
-
             } catch (\Exception $exception) {
                 echo $exception->getMessage();
             }
@@ -181,13 +169,16 @@ class Migrations
         if (Versions::hasOldNfeioModule()) {
             try {
                 // se a tabela tblproductcode não existir não há o ser que migrar
-                if (!Capsule::schema()->hasTable('tblproductcode')) { return false; 
+                if (!Capsule::schema()->hasTable('tblproductcode')) {
+                    return false;
                 }
                 // se não houver registros na tabela tblproductcode não há o que ser migrado
-                if (!Capsule::table('tblproductcode')->count()) { return false; 
+                if (!Capsule::table('tblproductcode')->count()) {
+                    return false;
                 }
                 // se a nova tabela já existir e possuir registros, não migra nada
-                if (Capsule::schema()->hasTable('mod_nfeio_si_productcode') 
+                if (
+                    Capsule::schema()->hasTable('mod_nfeio_si_productcode')
                     && Capsule::table('mod_nfeio_si_productcode')->count()
                 ) {
                     return false;
@@ -202,8 +193,6 @@ class Migrations
 
                     return true;
                 }
-
-
             } catch (\Exception $exception) {
                 echo $exception->getMessage();
             }

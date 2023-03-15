@@ -2,7 +2,7 @@
 
 namespace NFEioServiceInvoices\Hooks;
 
-use \WHMCS\Database\Capsule;
+use WHMCS\Database\Capsule;
 
 /**
  * Classe com execução das rotinas para o gatilho aftercronjob
@@ -13,7 +13,6 @@ use \WHMCS\Database\Capsule;
  */
 class AfterCronJob
 {
-
     /**
      * @var \NFEioServiceInvoices\Configuration
      */
@@ -33,7 +32,7 @@ class AfterCronJob
         $this->serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
         $this->nf = new \NFEioServiceInvoices\NFEio\Nfe();
     }
-    
+
     public function run()
     {
         $storageKey = $this->config->getStorageKey();
@@ -48,7 +47,10 @@ class AfterCronJob
 
         $hasNfWaiting = Capsule::table($serviceInvoicesTable)->whereBetween('created_at', [$initialDate, $dataAtual])->where('status', '=', 'Waiting')->count();
         logModuleCall(
-            'NFEioServiceInvoices', 'Hook - AfterCronJob', "{$hasNfWaiting} notas a serem geradas", array(
+            'NFEioServiceInvoices',
+            'Hook - AfterCronJob',
+            "{$hasNfWaiting} notas a serem geradas",
+            array(
             [
                 'total de notas' => $hasNfWaiting,
                 'data atual' => $dataAtual,
@@ -58,11 +60,9 @@ class AfterCronJob
         );
 
         if ($hasNfWaiting) {
-
             $queryNf = Capsule::table($serviceInvoicesTable)->orderBy('id', 'desc')->whereBetween('created_at', [$initialDate, $dataAtual])->where('status', '=', 'Waiting')->get();
 
             foreach ($queryNf as $invoice) {
-
                 //$getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
 
                 $this->nf->emit($invoice);
@@ -72,11 +72,9 @@ class AfterCronJob
                     $this->nf->emit($invoices, $waiting);
                 }
 */
-
             }
 
             logModuleCall('NFEioServiceInvoices', 'Hook - AfterCronJob', "{$hasNfWaiting} notas a serem geradas", $queryNf);
         }
     }
-
 }

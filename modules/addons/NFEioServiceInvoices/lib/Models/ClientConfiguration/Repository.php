@@ -2,7 +2,7 @@
 
 namespace NFEioServiceInvoices\Models\ClientConfiguration;
 
-use \WHMCS\Database\Capsule;
+use WHMCS\Database\Capsule;
 
 /**
  * Classe responsável pela definição do modelo de dados
@@ -10,7 +10,6 @@ use \WHMCS\Database\Capsule;
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
-
     public $tableName = 'mod_nfeio_si_custom_configs';
     public $fieldDeclaration = array(
         'client_id',
@@ -53,7 +52,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     {
         if (!Capsule::schema()->hasTable($this->tableName)) {
             Capsule::schema()->create(
-                $this->tableName, function ($table) {
+                $this->tableName,
+                function ($table) {
                     $table->increments('id');
                     $table->integer('client_id');
                     $table->string('key');
@@ -75,15 +75,14 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 )
                 ->value('value');
 
-        if (is_null($value) OR $value === 'Seguir configuração do módulo NFE.io') {
+        if (is_null($value) or $value === 'Seguir configuração do módulo NFE.io') {
             $issueCondition = 'seguir configuração do módulo nfe.io';
         } else {
             $issueCondition = strtolower($value);
         }
 
-        logModuleCall('NFEioServiceInvoices', "getClientIssueCondition", $clientId, "{$issueCondition}" .' - '. $value);
+        logModuleCall('NFEioServiceInvoices', "getClientIssueCondition", $clientId, "{$issueCondition}" . ' - ' . $value);
 
         return $issueCondition;
     }
-
 }

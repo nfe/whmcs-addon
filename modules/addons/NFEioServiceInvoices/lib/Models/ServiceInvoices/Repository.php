@@ -4,15 +4,12 @@ namespace NFEioServiceInvoices\Models\ServiceInvoices;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
-
-
 /**
  * Classe responsável pela definição do modelo de dados e operações
  * na tabela mod_nfeio_si_serviceinvoices
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
-
     public $tableName = 'mod_nfeio_si_serviceinvoices';
     public $fieldDeclaration = array(
         'invoice_id',
@@ -99,7 +96,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     {
         if (!Capsule::schema()->hasTable($this->tableName)) {
             Capsule::schema()->create(
-                $this->tableName, function ($table) {
+                $this->tableName,
+                function ($table) {
                     // incremented id
                     $table->increments('id');
                     // whmcs info
@@ -188,7 +186,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             // adiciona nova columa nfe_external_id
             if (!Capsule::schema()->hasColumn($this->tableName, 'nfe_external_id')) {
                 Capsule::schema()->table(
-                    $this->tableName, function ($table) {
+                    $this->tableName,
+                    function ($table) {
                         $table->string('nfe_external_id')->after('nfe_id')->nullable();
                     }
                 );
@@ -196,7 +195,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             // adiciona nova coluna nfe_description
             if (!Capsule::schema()->hasColumn($this->tableName, 'nfe_description')) {
                 Capsule::schema()->table(
-                    $this->tableName, function ($table) {
+                    $this->tableName,
+                    function ($table) {
                         $table->text('nfe_description')->after('services_amount')->nullable();
                     }
                 );
@@ -204,7 +204,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             // adiciona nova coluna iss_held que conterá o valor em R$ da retenção do ISS para a NF
             if (!Capsule::schema()->hasColumn($this->tableName, 'iss_held')) {
                 Capsule::schema()->table(
-                    $this->tableName, function ($table) {
+                    $this->tableName,
+                    function ($table) {
                         $table->decimal('iss_held', 16, 2)->after('services_amount')->nullable();
                     }
                 );

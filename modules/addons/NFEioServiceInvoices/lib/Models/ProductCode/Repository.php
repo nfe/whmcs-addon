@@ -2,7 +2,7 @@
 
 namespace NFEioServiceInvoices\Models\ProductCode;
 
-use \WHMCS\Database\Capsule;
+use WHMCS\Database\Capsule;
 
 /**
  * Classe responsável pela definição do modelo de dados
@@ -10,7 +10,6 @@ use \WHMCS\Database\Capsule;
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
-
     public $tableName = 'mod_nfeio_si_productcode';
     public $fieldDeclaration = array(
         'id',
@@ -73,14 +72,13 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         try {
             if (!empty($data['iss_held'])) {
                 return Capsule::table($this->tableName)
-                    ->where('product_id', '=',  $data['product_id'])
+                    ->where('product_id', '=', $data['product_id'])
                     ->update(['code_service' => null]);
             } else {
                 return Capsule::table($this->tableName)
-                    ->where('product_id', '=',  $data['product_id'])
+                    ->where('product_id', '=', $data['product_id'])
                     ->delete();
             }
-
         } catch (\Exception $exception) {
             echo $exception->getMessage();
         }
@@ -90,7 +88,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     {
         try {
             return Capsule::table($this->tableName)
-                ->where('product_id', '=',  $data['product_id'])
+                ->where('product_id', '=', $data['product_id'])
                 ->update(['iss_held' => null]);
         } catch (\Exception $exception) {
             echo $exception->getMessage();
@@ -114,7 +112,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     {
         if (!Capsule::schema()->hasTable($this->tableName)) {
             Capsule::schema()->create(
-                $this->tableName, function ($table) {
+                $this->tableName,
+                function ($table) {
                     $table->increments('id');
                     $table->integer('product_id');
                     $table->string('code_service', 30);
@@ -148,7 +147,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     {
         $productId = Capsule::table('tblhosting')->where('id', '=', $relId)->value('packageid');
         return Capsule::table($this->tableName)->where('product_id', '=', $productId)->value('iss_held');
-
     }
 
     public function upgrade_to_2_1_0()
@@ -158,7 +156,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             // se não houver coluna adiciona
             if (!Capsule::schema()->hasColumn($this->tableName, 'iss_held')) {
                 Capsule::schema()->table(
-                    $this->tableName, function ($table) {
+                    $this->tableName,
+                    function ($table) {
                         $table->float('iss_held', 5, 2)->after('code_service')->nullable();
                     }
                 );

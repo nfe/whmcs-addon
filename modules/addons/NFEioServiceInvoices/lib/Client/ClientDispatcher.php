@@ -7,7 +7,6 @@ namespace NFEioServiceInvoices\Client;
  */
 class ClientDispatcher
 {
-
     /**
      * Dispatch request.
      *

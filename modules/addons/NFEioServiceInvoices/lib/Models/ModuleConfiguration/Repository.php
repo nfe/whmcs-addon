@@ -10,7 +10,6 @@ use Illuminate\Database\Capsule\Manager as Capsule;
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
-
     public $tableName = 'tbladdonmodules';
 
     public $fieldDeclaration = array(
@@ -367,7 +366,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         // inicia valor para a chave initial_date
         $date = date('Y-m-d H:i:s');
         $storage->set('initial_date', $date);
-
     }
 
     /**
@@ -445,7 +443,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
 
         return array_diff_key($this->getMandatoryFields(), $vars);
-
     }
 
     public function seed_service_invoices_issue_conditions()

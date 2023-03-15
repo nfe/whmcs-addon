@@ -83,7 +83,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     {
         if (!Capsule::schema()->hasTable($this->tableName)) {
             Capsule::schema()->create(
-                $this->tableName, function ($table) {
+                $this->tableName,
+                function ($table) {
                     $table->increments('id');
                     //codigo o serviço que será viculado
                     $table->string('code_service', 30);
