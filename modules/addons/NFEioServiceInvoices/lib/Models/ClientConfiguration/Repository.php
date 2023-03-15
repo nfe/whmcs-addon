@@ -40,8 +40,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     public function dropProductCodeTable()
     {
-        if (Capsule::schema()->hasTable($this->tableName))
-        {
+        if (Capsule::schema()->hasTable($this->tableName)) {
             Capsule::schema()->dropIfExists($this->tableName);
         }
     }
@@ -52,15 +51,15 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function createClientCustomConfigTable()
     {
-        if (!Capsule::schema()->hasTable($this->tableName))
-        {
-            Capsule::schema()->create($this->tableName, function($table)
-            {
-                $table->increments('id');
-                $table->integer('client_id');
-                $table->string('key');
-                $table->string('value');
-            });
+        if (!Capsule::schema()->hasTable($this->tableName)) {
+            Capsule::schema()->create(
+                $this->tableName, function ($table) {
+                    $table->increments('id');
+                    $table->integer('client_id');
+                    $table->string('key');
+                    $table->string('value');
+                }
+            );
         }
     }
 
@@ -68,17 +67,19 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     {
 
             $value = Capsule::table($this->tableName)
-                ->where([
+                ->where(
+                    [
                     ['client_id', '=' ,$clientId],
                     ['key', '=' ,'issue_nfe_cond']
-                ])
+                    ]
+                )
                 ->value('value');
 
-            if (is_null($value) OR $value === 'Seguir configuração do módulo NFE.io') {
-                $issueCondition = 'seguir configuração do módulo nfe.io';
-            } else {
-                $issueCondition = strtolower($value);
-            }
+        if (is_null($value) OR $value === 'Seguir configuração do módulo NFE.io') {
+            $issueCondition = 'seguir configuração do módulo nfe.io';
+        } else {
+            $issueCondition = strtolower($value);
+        }
 
         logModuleCall('NFEioServiceInvoices', "getClientIssueCondition", $clientId, "{$issueCondition}" .' - '. $value);
 

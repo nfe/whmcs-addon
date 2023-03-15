@@ -6,8 +6,9 @@ use \WHMCS\Database\Capsule;
 
 /**
  * Classe com execução das rotinas para o gatilho dailycronjob
- * @see https://developers.whmcs.com/hooks-reference/cron/#dailycronjob
- * @author Andre Bellafronte
+ *
+ * @see     https://developers.whmcs.com/hooks-reference/cron/#dailycronjob
+ * @author  Andre Bellafronte
  * @version 2.1.0
  */
 class DailyCronJob

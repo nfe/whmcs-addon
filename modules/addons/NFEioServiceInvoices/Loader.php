@@ -5,14 +5,14 @@ namespace NFEioServiceInvoices;
 
 use \WHMCSExpert as main;
 
-if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
+if (!defined('DS')) { define('DS', DIRECTORY_SEPARATOR);
+}
 
 require_once __DIR__ . DS . 'lib' . DS . 'vendor' . DS . 'autoload.php';
 
 
 /**
  * Module Class Loader
- *
  */
 
 if (!class_exists(__NAMESPACE__ . '\Loader')) {
@@ -71,7 +71,7 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
         /**
          * Load Class File
          *
-         * @param string $className
+         * @param  string $className
          * @return bool
          * @throws main\mgLibs\exceptions\base
          * @throws \Exception
@@ -113,7 +113,7 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
             }
 
             if ($foundFile) {
-                require_once $foundFile;
+                include_once $foundFile;
 
                 if (!class_exists(__NAMESPACE__ . $originClassName) && !interface_exists(__NAMESPACE__ . $originClassName)) {
                     $error['message'] = 'Unable to find class:' . $originClassName . ' in file:' . $foundFile;
@@ -156,8 +156,7 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
 
             if ($handle = opendir($foundFile)) {
                 while (false !== ($entry = readdir($handle))) {
-                    if (
-                        $entry != "."
+                    if ($entry != "."
                         && $entry != ".."
                         && strpos($entry, '.php') === (strlen($entry) - 4)
                     ) {

@@ -5,13 +5,14 @@ namespace NFEioServiceInvoices\Client;
 /**
  * Sample Client Area Dispatch Handler
  */
-class ClientDispatcher {
+class ClientDispatcher
+{
 
     /**
      * Dispatch request.
      *
      * @param string $action
-     * @param array $parameters
+     * @param array  $parameters
      *
      * @return array
      */

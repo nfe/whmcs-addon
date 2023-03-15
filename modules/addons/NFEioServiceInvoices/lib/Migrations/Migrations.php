@@ -11,14 +11,14 @@ class Migrations
 {
     /**
      * Migra as configurações se existentes da versão anterior a 2.
+     *
      * @return bool true para migrado, false para nada migrado ou sem campos antigos
      */
     public static function migrateConfigurations()
     {
         // verifica se existem registros da versão anterior do módulo no banco de dados
         // se houver, tenta a migração
-        if (Versions::hasOldNfeioModule())
-        {
+        if (Versions::hasOldNfeioModule()) {
 
             $moduleConfigurationRepo = new \NFEioServiceInvoices\Models\ModuleConfiguration\Repository();
             $config = new Configuration();
@@ -96,13 +96,14 @@ class Migrations
             try {
 
                 // se a tabela mod_nfeio_custom_configs não existir não há o ser que migrar
-                if (!Capsule::schema()->hasTable('mod_nfeio_custom_configs')) { return false; }
+                if (!Capsule::schema()->hasTable('mod_nfeio_custom_configs')) { return false; 
+                }
                 // se não houver registros na tabela mod_nfeio_custom_configs não há o que ser migrado
-                if (!Capsule::table('mod_nfeio_custom_configs')->count()) { return false; }
+                if (!Capsule::table('mod_nfeio_custom_configs')->count()) { return false; 
+                }
                 // se a nova tabela já existir e possuir registros, não migra nada
-                if (
-                    Capsule::schema()->hasTable('mod_nfeio_si_custom_configs') &&
-                    Capsule::table('mod_nfeio_si_custom_configs')->count()
+                if (Capsule::schema()->hasTable('mod_nfeio_si_custom_configs') 
+                    && Capsule::table('mod_nfeio_si_custom_configs')->count()
                 ) {
                     return false;
                 }
@@ -113,7 +114,7 @@ class Migrations
                     // copia a antiga tabela mod_nfeio_custom_configs e renomeia para o novo nome
                      $db = Capsule::connection();
                      $db->statement('CREATE TABLE mod_nfeio_si_custom_configs LIKE mod_nfeio_custom_configs');
-                     $db->statement(  'INSERT mod_nfeio_si_custom_configs SELECT * FROM mod_nfeio_custom_configs');
+                     $db->statement('INSERT mod_nfeio_si_custom_configs SELECT * FROM mod_nfeio_custom_configs');
 
                      return true;
                 }
@@ -141,13 +142,14 @@ class Migrations
             try {
 
                 // se a tabela gofasnfeio não existir não há o ser que migrar
-                if (!Capsule::schema()->hasTable('gofasnfeio')) { return false; }
+                if (!Capsule::schema()->hasTable('gofasnfeio')) { return false; 
+                }
                 // se não houver registros na tabela gofasnfeio não há o que ser migrado
-                if (!Capsule::table('gofasnfeio')->count()) { return false; }
+                if (!Capsule::table('gofasnfeio')->count()) { return false; 
+                }
                 // se a nova tabela já existir e possuir registros, não migra nada
-                if (
-                    Capsule::schema()->hasTable('mod_nfeio_si_serviceinvoices') &&
-                    Capsule::table('mod_nfeio_si_serviceinvoices')->count()
+                if (Capsule::schema()->hasTable('mod_nfeio_si_serviceinvoices') 
+                    && Capsule::table('mod_nfeio_si_serviceinvoices')->count()
                 ) {
                     return false;
                 }
@@ -157,7 +159,7 @@ class Migrations
                     // copia a antiga tabela gofasnfeio e renomeia para o novo nome
                     $db = Capsule::connection();
                     $db->statement('CREATE TABLE mod_nfeio_si_serviceinvoices LIKE gofasnfeio');
-                    $db->statement(  'INSERT mod_nfeio_si_serviceinvoices SELECT * FROM gofasnfeio');
+                    $db->statement('INSERT mod_nfeio_si_serviceinvoices SELECT * FROM gofasnfeio');
 
                     return true;
                 }
@@ -179,13 +181,14 @@ class Migrations
         if (Versions::hasOldNfeioModule()) {
             try {
                 // se a tabela tblproductcode não existir não há o ser que migrar
-                if (!Capsule::schema()->hasTable('tblproductcode')) { return false; }
+                if (!Capsule::schema()->hasTable('tblproductcode')) { return false; 
+                }
                 // se não houver registros na tabela tblproductcode não há o que ser migrado
-                if (!Capsule::table('tblproductcode')->count()) { return false; }
+                if (!Capsule::table('tblproductcode')->count()) { return false; 
+                }
                 // se a nova tabela já existir e possuir registros, não migra nada
-                if (
-                    Capsule::schema()->hasTable('mod_nfeio_si_productcode') &&
-                    Capsule::table('mod_nfeio_si_productcode')->count()
+                if (Capsule::schema()->hasTable('mod_nfeio_si_productcode') 
+                    && Capsule::table('mod_nfeio_si_productcode')->count()
                 ) {
                     return false;
                 }
@@ -195,7 +198,7 @@ class Migrations
                     // copia a antiga tabela tblproductcode e renomeia para o novo nome
                     $db = Capsule::connection();
                     $db->statement('CREATE TABLE mod_nfeio_si_productcode LIKE tblproductcode');
-                    $db->statement(  'INSERT mod_nfeio_si_productcode SELECT * FROM tblproductcode');
+                    $db->statement('INSERT mod_nfeio_si_productcode SELECT * FROM tblproductcode');
 
                     return true;
                 }

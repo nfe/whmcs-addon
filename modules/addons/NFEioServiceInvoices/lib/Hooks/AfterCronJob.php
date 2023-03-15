@@ -6,8 +6,9 @@ use \WHMCS\Database\Capsule;
 
 /**
  * Classe com execução das rotinas para o gatilho aftercronjob
- * @see https://developers.whmcs.com/hooks-reference/cron/#aftercronjob
- * @author Andre Bellafronte
+ *
+ * @see     https://developers.whmcs.com/hooks-reference/cron/#aftercronjob
+ * @author  Andre Bellafronte
  * @version 2.1.0
  */
 class AfterCronJob
@@ -46,13 +47,15 @@ class AfterCronJob
         $storage->set('last_cron', $dataAtual);
 
         $hasNfWaiting = Capsule::table($serviceInvoicesTable)->whereBetween('created_at', [$initialDate, $dataAtual])->where('status', '=', 'Waiting')->count();
-        logModuleCall('NFEioServiceInvoices', 'Hook - AfterCronJob', "{$hasNfWaiting} notas a serem geradas", array(
+        logModuleCall(
+            'NFEioServiceInvoices', 'Hook - AfterCronJob', "{$hasNfWaiting} notas a serem geradas", array(
             [
                 'total de notas' => $hasNfWaiting,
                 'data atual' => $dataAtual,
                 'data inicial' => $initialDate,
             ]
-        ));
+            )
+        );
 
         if ($hasNfWaiting) {
 
@@ -64,9 +67,11 @@ class AfterCronJob
 
                 $this->nf->emit($invoice);
 
-                /**foreach ($getQuery as $invoices) {
+                /**
+* foreach ($getQuery as $invoices) {
                     $this->nf->emit($invoices, $waiting);
-                }*/
+                }
+*/
 
             }
 

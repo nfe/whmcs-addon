@@ -76,28 +76,30 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * Cria a tabela mod_nfeio_si_aliquots para registro das aliquotas e retenções.
      * Esta tabela será responsável por conter todos os registros de aliquotas e retenções vinculadas aos
      * códigos de serviços personalizados.
+     *
      * @return void
      */
     public function createAliquotsTable()
     {
-        if (!Capsule::schema()->hasTable($this->tableName))
-        {
-            Capsule::schema()->create($this->tableName, function($table)
-            {
-                $table->increments('id');
-                //codigo o serviço que será viculado
-                $table->string('code_service', 30);
-                // retenção de ISS
-                $table->float('iss_held', 5, 2)->nullable();
-                $table->timestamp('created_at');
-                $table->timestamp('updated_at');
-            });
+        if (!Capsule::schema()->hasTable($this->tableName)) {
+            Capsule::schema()->create(
+                $this->tableName, function ($table) {
+                    $table->increments('id');
+                    //codigo o serviço que será viculado
+                    $table->string('code_service', 30);
+                    // retenção de ISS
+                    $table->float('iss_held', 5, 2)->nullable();
+                    $table->timestamp('created_at');
+                    $table->timestamp('updated_at');
+                }
+            );
         }
     }
 
     /**
      * Retorna a aliquota de retenção de ISS com base no código do serviço
-     * @param $serviceCode string código do serviço
+     *
+     * @param  $serviceCode string código do serviço
      * @return mixed valor de retenção de ISS
      */
     public function getIssHeldByServiceCode($serviceCode)
@@ -113,11 +115,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     /**
      * Rotina para atualização da quantidade máxima de caracteres permitidos para a coluna code_service.
      *
-     * @see https://github.com/nfe/whmcs-addon/issues/134
+     * @see     https://github.com/nfe/whmcs-addon/issues/134
      * @version 2.2
-     * @since 2.2
-     * @author Andre Bellafronte
-     *
+     * @since   2.2
+     * @author  Andre Bellafronte
      */
     public function update_servicecode_var_limit()
     {

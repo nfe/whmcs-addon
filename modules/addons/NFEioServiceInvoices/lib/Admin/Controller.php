@@ -2,9 +2,10 @@
 
 namespace NFEioServiceInvoices\Admin;
 
-if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
+if (!defined('DS')) { define('DS', DIRECTORY_SEPARATOR);
+}
 
-require_once(dirname(dirname(__DIR__)) . DS . 'Loader.php');
+require_once dirname(dirname(__DIR__)) . DS . 'Loader.php';
 
 use NFEioServiceInvoices\CustomFields;
 use NFEioServiceInvoices\Helpers\Versions;
@@ -18,7 +19,8 @@ use \NFEioServiceInvoices\Addon;
 /**
  * Sample Admin Area Controller
  */
-class Controller {
+class Controller
+{
 
 
     /**
@@ -47,8 +49,10 @@ class Controller {
             $oldVersion = Versions::getOldNfeioModuleVersion();
             // se tiver registro de versão antiga define mensagem
             if ($oldVersion) {
-                $msg->error("<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true);
+                $msg->error(
+                    "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true
+                );
             }
 
             if ($msg->hasMessages()) {
@@ -65,7 +69,7 @@ class Controller {
     /**
      * Exibe a página de configuração do módulo associando qualquer variável padrão ou personalizada ao tpl.
      *
-     * @param $vars array parametros do WHMCS
+     * @param  $vars array parametros do WHMCS
      * @return string|void template de visualização com parametros
      */
     public function configuration($vars)
@@ -95,8 +99,10 @@ class Controller {
             $oldVersion = Versions::getOldNfeioModuleVersion();
             // se tiver registro de versão antiga define mensagem
             if ($oldVersion) {
-                $msg->error("<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true);
+                $msg->error(
+                    "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true
+                );
             }
 
             if ($msg->hasMessages()) {
@@ -112,6 +118,7 @@ class Controller {
 
     /**
      * Salva as configurações do módulo
+     *
      * @param $vars array Parametros do WHMCS
      */
     public function configurationSave($vars)
@@ -175,12 +182,18 @@ class Controller {
             // discount_items
             $storage->set('discount_items', $discount_items);
 
-            if ($api_key) { $storage->set('api_key', $api_key); }
-            if ($company_id) { $storage->set('company_id', $company_id); }
-            if ($service_code) { $storage->set('service_code', $service_code); }
-            if ($rps_number) { $storage->set('rps_number', $rps_number); }
-            if ($issue_note_default_cond) { $storage->set('issue_note_default_cond', $issue_note_default_cond); }
-            if ($invoice_details) { $storage->set('InvoiceDetails', $invoice_details); }
+            if ($api_key) { $storage->set('api_key', $api_key); 
+            }
+            if ($company_id) { $storage->set('company_id', $company_id); 
+            }
+            if ($service_code) { $storage->set('service_code', $service_code); 
+            }
+            if ($rps_number) { $storage->set('rps_number', $rps_number); 
+            }
+            if ($issue_note_default_cond) { $storage->set('issue_note_default_cond', $issue_note_default_cond); 
+            }
+            if ($invoice_details) { $storage->set('InvoiceDetails', $invoice_details); 
+            }
             //if ($footer) { $storage->set('footer', $footer); }
 
             $msg->success("Informações atualizadas com sucesso!", "{$moduleLink}&action={$action}");
@@ -193,7 +206,8 @@ class Controller {
 
     /**
      * Exibe a página de configuração de código de serviços e seus parametros
-     * @param $vars parametros do WHMCS
+     *
+     * @param  $vars parametros do WHMCS
      * @return string|void template
      */
     public function servicesCode($vars)
@@ -219,8 +233,10 @@ class Controller {
             $oldVersion = Versions::getOldNfeioModuleVersion();
             // se tiver registro de versão antiga define mensagem
             if ($oldVersion) {
-                $msg->error("<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de nptas.", '', true);
+                $msg->error(
+                    "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de nptas.", '', true
+                );
             }
 
             if ($msg->hasMessages()) {
@@ -236,6 +252,7 @@ class Controller {
 
     /**
      * Salva os códigos de serviços do post
+     *
      * @param $vars
      */
     public function servicesCodeSave($vars)
@@ -271,6 +288,7 @@ class Controller {
 
     /**
      * Funções legadas da area administrativa
+     *
      * @param $vars
      */
     public function legacyFunctions($vars)
@@ -376,8 +394,10 @@ class Controller {
             $oldVersion = Versions::getOldNfeioModuleVersion();
             // se tiver registro de versão antiga define mensagem
             if ($oldVersion) {
-                $msg->error("<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de nptas.", '', true);
+                $msg->error(
+                    "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de nptas.", '', true
+                );
             }
 
             if ($msg->hasMessages()) {
@@ -421,9 +441,10 @@ class Controller {
 
     /**
      * Reemite as notas fiscais para uma determinada fatura
+     *
      * @version 2.1
-     * @author Andre Bellafronte <andre@eunarede.com>
-     * @param $vars array variáveis do WHMCS
+     * @author  Andre Bellafronte <andre@eunarede.com>
+     * @param   $vars array variáveis do WHMCS
      */
     public function reissueNf($vars)
     {
@@ -484,8 +505,10 @@ class Controller {
             $oldVersion = Versions::getOldNfeioModuleVersion();
             // se tiver registro de versão antiga define mensagem
             if ($oldVersion) {
-                $msg->error("<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true);
+                $msg->error(
+                    "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
+                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true
+                );
             }
 
             if ($msg->hasMessages()) {
@@ -514,8 +537,10 @@ class Controller {
         $oldVersion = Versions::getOldNfeioModuleVersion();
         // se tiver registro de versão antiga define mensagem
         if ($oldVersion) {
-            $msg->error("<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo a uma nova versão.
-                Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true);
+            $msg->error(
+                "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo a uma nova versão.
+                Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.", '', true
+            );
         }
 
         if ($msg->hasMessages()) {

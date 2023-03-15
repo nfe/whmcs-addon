@@ -5,13 +5,14 @@ namespace NFEioServiceInvoices\Admin;
 /**
  * Sample Admin Area Dispatch Handler
  */
-class AdminDispatcher {
+class AdminDispatcher
+{
 
     /**
      * Dispatch request.
      *
      * @param string $action
-     * @param array $parameters
+     * @param array  $parameters
      *
      * @return string
      */

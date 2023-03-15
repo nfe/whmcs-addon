@@ -3,23 +3,27 @@
 
 namespace NFEioServiceInvoices\Client;
 
-if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
+if (!defined('DS')) { define('DS', DIRECTORY_SEPARATOR);
+}
 
-require_once(dirname(dirname(__DIR__)) . DS . 'Loader.php');
+require_once dirname(dirname(__DIR__)) . DS . 'Loader.php';
 
 /**
  * Classe responsável pelos controllers da area do cliente
+ *
  * @version 2.1
- * @author Andre Bellafronte
+ * @author  Andre Bellafronte
  */
-class Controller {
+class Controller
+{
 
     /**
      * Método para download da NF em PDF na area do cliente.
+     *
      * @version 2.1
-     * @author Andre Bellafronte
-     * @param $vars array variável WHMCS
-     * @return void PDF
+     * @author  Andre Bellafronte
+     * @param   $vars array variável WHMCS
+     * @return  void PDF
      */
     public function downloadNfPdf($vars)
     {
@@ -38,10 +42,11 @@ class Controller {
 
     /**
      * Método para download da NF em XML na area do cliente.
+     *
      * @version 2.1
-     * @author Andre Bellafronte
-     * @param $vars array variável WHMCS
-     * @return void XML
+     * @author  Andre Bellafronte
+     * @param   $vars array variável WHMCS
+     * @return  void XML
      */
     public function downloadNfXml($vars)
     {

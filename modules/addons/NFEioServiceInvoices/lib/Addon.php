@@ -9,13 +9,13 @@ use NFEioServiceInvoices\Configuration;
 /**
  * Description of Addon
  *
- *
  * @SuppressWarnings(PHPMD)
  */
 class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
 {
 
-    public function loadAddonData() {
+    public function loadAddonData()
+    {
 
         $response = new \stdClass();
 
@@ -35,8 +35,6 @@ class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
 
     /**
      * Load Addon WHMCS Configuration
-     *
-     *
      */
     public function loadAddonConfiguration()
     {
@@ -62,7 +60,7 @@ class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
     /**
      * Return Tempalates Path
      *
-     * @param boolean $relative
+     * @param  boolean $relative
      * @return string
      */
     public static function getModuleTemplatesDir($relative = false)
@@ -168,6 +166,7 @@ class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
 
     /**
      * Retorna o caminho absoluto do módulo
+     *
      * @return string https://dominio.com/diretorio/modules/addons/modulo/
      */
     public static function getAddonPath()

@@ -5,7 +5,8 @@ namespace NFEioServiceInvoices\Hooks;
 /**
  * Class InvoiceCreation
  * Classe responsável por executar ações quando uma fatura é criada.
- * @author Andre Bellafronte
+ *
+ * @author  Andre Bellafronte
  * @package NFEioServiceInvoices\Hooks
  */
 class InvoiceCreation

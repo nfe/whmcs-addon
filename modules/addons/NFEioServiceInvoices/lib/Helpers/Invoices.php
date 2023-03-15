@@ -31,12 +31,12 @@ class Invoices
         $invoiceUrl = (bool) $storage->get('send_invoice_url');
 
         switch ($invoiceDetails) {
-            case 'Número da fatura':
-                $description = "Nota referente a fatura #{$invoiceId}";
-                break;
-            case 'Número da fatura + Nome dos serviços':
-                $description = "Nota referente a fatura #{$invoiceId}" . "\n" . $description;
-                break;
+        case 'Número da fatura':
+            $description = "Nota referente a fatura #{$invoiceId}";
+            break;
+        case 'Número da fatura + Nome dos serviços':
+            $description = "Nota referente a fatura #{$invoiceId}" . "\n" . $description;
+            break;
         }
 
         if ($invoiceUrl) {
@@ -54,8 +54,9 @@ class Invoices
 
     /**
      * Calcula o valor de retenção para o ISS
-     * @param $amount
-     * @param $issHeld
+     *
+     * @param  $amount
+     * @param  $issHeld
      * @return float
      */
     public static function getIssHeldAmount($amount, $issHeld)
@@ -67,8 +68,9 @@ class Invoices
 
     /**
      * Verifica se uma determinada fatura existe no banco de dados com base no seu ID.
-     * @param $invoiceId integer ID da fatura
-     * @return bool true se tiver false se não existir
+     *
+     * @param   $invoiceId integer ID da fatura
+     * @return  bool true se tiver false se não existir
      * @version 2.1
      */
     public static function hasInvoice($invoiceId)
