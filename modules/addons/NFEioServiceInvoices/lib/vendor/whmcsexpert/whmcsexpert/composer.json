@@ -10,13 +10,18 @@
     }
   ],
   "config": {
-    "optimize-autoloader": true
+    "optimize-autoloader": true,
+    "allow-plugins": {
+      "kylekatarnls/update-helper": true
+    }
   },
   "minimum-stability": "beta",
   "require-dev": {
     "phpunit/phpunit": "@stable",
     "phpdocumentor/phpdocumentor": "2.*",
-    "illuminate/database": "v5.8.36"
+    "illuminate/database": "v5.8.36",
+    "phpcompatibility/php-compatibility": "^9.3",
+    "squizlabs/php_codesniffer": "^3.7"
   },
   "autoload": {
     "psr-4": {

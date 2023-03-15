@@ -313,6 +313,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'NFEioEnvironment',
     );
 
+    public $serviceInvoicesIssueConditions = 'Quando a fatura é gerada,Quando a fatura é paga,Seguir configuração do módulo NFE.io';
+
     /**
      * Retorna coleção dos campos que podem ser migrados como chaves.
      *
@@ -357,7 +359,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         $storage = new \WHMCSExpert\Addon\Storage($storageKey);
 
         // inicia valores para chave issue_note_conditions
-        $functions->gnfe_insert_issue_nfe_cond_in_database();
+        $storage->set('issue_note_conditions', $this->serviceInvoicesIssueConditions);
+        // $functions->gnfe_insert_issue_nfe_cond_in_database();
         // define 'on' como padrão para discount_items
         $storage->set('discount_items', 'on');
         // inicia valor para a chave initial_date
@@ -437,5 +440,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
         return array_diff_key($this->getMandatoryFields(), $vars);
 
+    }
+
+    public function seed_service_invoices_issue_conditions()
+    {
+        $previousConditions = $this->get('issue_note_conditions');
     }
 }

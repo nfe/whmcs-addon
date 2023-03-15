@@ -2,6 +2,12 @@
 
 namespace NFEioServiceInvoices\Hooks;
 
+/**
+ * Class InvoiceCreation
+ * Classe responsável por executar ações quando uma fatura é criada.
+ * @author Andre Bellafronte
+ * @package NFEioServiceInvoices\Hooks
+ */
 class InvoiceCreation
 {
     private $invoiceId;
@@ -21,8 +27,8 @@ class InvoiceCreation
     {
         $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
         $storage = new \WHMCSExpert\Addon\Storage($this->config->getStorageKey());
-        $invoiceData = localAPI('GetInvoice', array('invoiceid' => $this->invoiceId));
-        $userId = $invoiceData['userid'];
+        $invoiceData = \WHMCS\Billing\Invoice::find($this->invoiceId);
+        $userId = $invoiceData->userid;
         $clientRepository = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
         $clientIssueCondition = $clientRepository->getClientIssueCondition($userId);
         $moduleIssueCondition = strtolower($storage->get('issue_note_default_cond'));
@@ -30,7 +36,7 @@ class InvoiceCreation
         $generateTaxBill = false;
         $generateTaxBillWhen = 'quando a fatura é gerada';
 
-        if ($invoiceData['total'] > 0.00 AND (!$issueNoteAfter OR $issueNoteAfter == 0) AND $this->invoiceStatus != 'Draft' ) {
+        if ($invoiceData->total > 0.00 AND (!$issueNoteAfter OR $issueNoteAfter == 0) AND $this->invoiceStatus != 'Draft' ) {
             $generateTaxBill = true;
         }
 

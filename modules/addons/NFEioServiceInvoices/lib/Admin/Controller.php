@@ -285,9 +285,10 @@ class Controller {
 
         // create
         if ($_REQUEST['gnfe_create']) {
-            $invoice = localAPI('GetInvoice', ['invoiceid' => $_REQUEST['invoice_id']], false);
-            $client = localAPI('GetClientsDetails', ['clientid' => $invoice['userid'], 'stats' => false], false);
-            $nfe_for_invoice = $functions->gnfe_get_local_nfe($_REQUEST['invoice_id'], ['invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'pdf', 'created_at', 'rpsSerialNumber']);
+            $nfe_for_invoice = $functions->gnfe_get_local_nfe(
+                $_REQUEST['invoice_id'],
+                ['invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'pdf', 'created_at', 'rpsSerialNumber']
+            );
             if (!$nfe_for_invoice['id']) {
                 $queue = $functions->gnfe_queue_nfe($_REQUEST['invoice_id'], true);
                 if ($queue !== 'success') {

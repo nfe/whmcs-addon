@@ -333,43 +333,42 @@ class Nfe
         $issAmountWithheld = $data->iss_held;
         $description = $data->nfe_description;
         $environment = $data->environment;
-
-        $clientData = localAPI('GetClientsDetails', ['clientid' => $clientId]);
+        $clientData = \WHMCS\User\Client::find($clientId);
         $customer = $this->legacyFunctions->gnfe_customer($clientId, $clientData);
 
         logModuleCall('NFEioServiceInvoices', 'get_client_details', $clientData, $customer);
 
         $emailNfeConfig = (bool) $this->storage->get('gnfe_email_nfe_config');
-        $client_email = $emailNfeConfig ? $clientData['email'] : '';
+        $client_email = $emailNfeConfig ? $clientData->email : '';
 
         if ($customer['doc_type'] == 2) {
-            if ($clientData['companyname'] != '') {
-                $name = $clientData['companyname'];
+            if ($clientData->companyname != '') {
+                $name = $clientData->companyname;
             } else {
-                $name = $clientData['fullname'];
+                $name = $clientData->fullname;
             }
         } elseif ($customer['doc_type'] == 1 || 'CPF e/ou CNPJ ausente.' == $customer || !$customer['doc_type']) {
-            $name = $clientData['fullname'];
+            $name = $clientData->fullname;
         }
         $name = htmlspecialchars_decode($name);
 
         //define address
-        if (strpos($clientData['address1'], ',')) {
-            $array_adress = explode(',', $clientData['address1']);
+        if (strpos($clientData->address1, ',')) {
+            $array_adress = explode(',', $clientData->address1);
             $street = $array_adress[0];
             $number = $array_adress[1];
         } else {
-            $street = str_replace(',', '', preg_replace('/[0-9]+/i', '', $clientData['address1']));
-            $number = preg_replace('/[^0-9]/', '', $clientData['address1']);
+            $street = str_replace(',', '', preg_replace('/[0-9]+/i', '', $clientData->address1));
+            $number = preg_replace('/[^0-9]/', '', $clientData->address1);
         }
 
-        if ($clientData['postcode'] == null || $clientData['postcode'] == '')
+        if ($clientData->postcode == null || $clientData->postcode == '')
         {
             $this->legacyFunctions->update_status_nfe($invoiceId, 'Error_cep');
             return;
         }
 
-        $ibgeCode = $this->legacyFunctions->gnfe_ibge(preg_replace('/[^0-9]/', '', $clientData['postcode']));
+        $ibgeCode = $this->legacyFunctions->gnfe_ibge(preg_replace('/[^0-9]/', '', $clientData->postcode));
 
         if ($ibgeCode == 'ERROR') {
             $this->legacyFunctions->update_status_nfe($invoiceId, 'Error_cep');
@@ -389,17 +388,17 @@ class Nfe
                 'name' => $name,
                 'email' => $client_email,
                 'address' => [
-                    'country' => $this->legacyFunctions->gnfe_country_code($clientData['countrycode']),
-                    'postalCode' => preg_replace('/[^0-9]/', '', $clientData['postcode']),
+                    'country' => $this->legacyFunctions->gnfe_country_code($clientData->country),
+                    'postalCode' => preg_replace('/[^0-9]/', '', $clientData->postcode),
                     'street' => $street,
                     'number' => $number,
                     'additionalInformation' => '',
-                    'district' => $clientData['address2'],
+                    'district' => $clientData->address2,
                     'city' => [
                         'code' => $ibgeCode,
-                        'name' => $clientData['city'],
+                        'name' => $clientData->city,
                     ],
-                    'state' => $clientData['state']
+                    'state' => $clientData->state
                 ]
             ]
         ];

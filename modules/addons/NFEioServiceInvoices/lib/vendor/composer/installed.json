@@ -329,25 +329,27 @@
         },
         {
             "name": "whmcsexpert/whmcsexpert",
-            "version": "dev-dev",
-            "version_normalized": "dev-dev",
+            "version": "v1.1.7",
+            "version_normalized": "1.1.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/whmcsexpert/whmcsexpert.git",
-                "reference": "2ab629648dcb7133d24defe305b8b5f74a0d3953"
+                "reference": "bea1112fe3974b424fdb7223139cb33dd4cc0856"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/whmcsexpert/whmcsexpert/zipball/2ab629648dcb7133d24defe305b8b5f74a0d3953",
-                "reference": "2ab629648dcb7133d24defe305b8b5f74a0d3953",
+                "url": "https://api.github.com/repos/whmcsexpert/whmcsexpert/zipball/bea1112fe3974b424fdb7223139cb33dd4cc0856",
+                "reference": "bea1112fe3974b424fdb7223139cb33dd4cc0856",
                 "shasum": ""
             },
             "require-dev": {
                 "illuminate/database": "v5.8.36",
+                "phpcompatibility/php-compatibility": "^9.3",
                 "phpdocumentor/phpdocumentor": "2.*",
-                "phpunit/phpunit": "@stable"
+                "phpunit/phpunit": "@stable",
+                "squizlabs/php_codesniffer": "^3.7"
             },
-            "time": "2021-10-16T22:00:59+00:00",
+            "time": "2023-03-15T18:58:31+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -368,7 +370,7 @@
             "description": "WHMCS Expert Library",
             "support": {
                 "issues": "https://github.com/whmcsexpert/whmcsexpert/issues",
-                "source": "https://github.com/whmcsexpert/whmcsexpert/tree/dev"
+                "source": "https://github.com/whmcsexpert/whmcsexpert/tree/v1.1.7"
             },
             "install-path": "../whmcsexpert/whmcsexpert"
         }

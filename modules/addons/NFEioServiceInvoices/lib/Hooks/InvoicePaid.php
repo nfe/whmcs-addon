@@ -17,10 +17,10 @@ class InvoicePaid
     {
         $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
         $storage = new \WHMCSExpert\Addon\Storage($this->config->getStorageKey());
-        $invoiceData = localAPI('GetInvoice', array('invoiceid' => $this->invoiceId));
-        $invoiceStatus = $invoiceData['status'];
-        $invoiceTotal = $invoiceData['total'];
-        $userId = $invoiceData['userid'];
+        $invoiceData = \WHMCS\Billing\Invoice::find($this->invoiceId);
+        $invoiceStatus = $invoiceData->status;
+        $invoiceTotal = $invoiceData->total;
+        $userId = $invoiceData->userid;
         $clientRepository = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
         $clientIssueCondition = $clientRepository->getClientIssueCondition($userId);
         $moduleIssueCondition = strtolower($storage->get('issue_note_default_cond'));
