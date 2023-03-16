@@ -1,3 +1,9 @@
+## 2.1.8 - 2023-03-15
+
+### Correções
+
+* Adicionado compatibilidade com PHP 8.x e WHMCS 8.6 #146 #149
+
 ## 2.1.7 - 2023-02-08
 
 ### Correções
