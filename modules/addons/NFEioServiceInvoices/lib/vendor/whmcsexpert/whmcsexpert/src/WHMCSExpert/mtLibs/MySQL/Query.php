@@ -1,6 +1,7 @@
 <?php
 
 namespace WHMCSExpert\mtLibs\MySQL;
+
 use WHMCSExpert as main;
 
 /**
@@ -8,7 +9,8 @@ use WHMCSExpert as main;
  *
  * @SuppressWarnings(PHPMD)
  */
-class Query{
+class Query
+{
     /**
      *
      * @var array
@@ -20,21 +22,27 @@ class Query{
      *
      * @var boolean
      */
-    static private $usePDO = false;
+    private static $usePDO = false;
 
     /**
      *
      * @var main\mtLibs\MySQL\Query
      */
-    static private $_instance;
+    private static $_instance;
 
     static $lastQuery;
 
     /**
      * Disable construct & clone method
      */
-    private function __construct() {;}
-    private function __clone() {;}
+    private function __construct()
+    {
+        ;
+    }
+    private function __clone()
+    {
+        ;
+    }
 
     /**
      * Get Singleton instance
@@ -49,8 +57,7 @@ class Query{
      */
     public static function I()
     {
-        if(empty(self::$_instance))
-        {
+        if (empty(self::$_instance)) {
             throw new main\mtLibs\exceptions\System('Object not Spawned');
         }
         return self::$_instance;
@@ -61,15 +68,14 @@ class Query{
      *
      * @author Michal Czech <michael@modulesgarden.com>
      */
-    public static function useCurrentConnection(){
+    public static function useCurrentConnection()
+    {
         //Use by default PDO in WHMCS 6 and 7
-        if(class_exists('\Illuminate\Database\Capsule\Manager') && \Illuminate\Database\Capsule\Manager::connection()->getPdo())
-        {
+        if (class_exists('\Illuminate\Database\Capsule\Manager') && \Illuminate\Database\Capsule\Manager::connection()->getPdo()) {
             self::$usePDO = true;
+            self::$_instance = new self();
             self::$_instance->connection['default'] = \Illuminate\Database\Capsule\Manager::connection()->getPdo();
-        }
-        else
-        {
+        } else {
             self::$_instance = new self();
             self::$_instance->connection['default'] = false;
         }
@@ -82,9 +88,9 @@ class Query{
      * @throws main\exception\System
      * @return boolean
      */
-    public static function connectFromFile($file){
-        if(!file_exists($file))
-        {
+    public static function connectFromFile($file)
+    {
+        if (!file_exists($file)) {
             throw new main\mtLibs\exceptions\System('DB Connection File does not exits', main\mtLibs\exceptions\Codes::MYSQL_MISING_CONFIG_FILE);
         }
 
@@ -92,21 +98,18 @@ class Query{
 
         include $file;
 
-        foreach($config as $connectionName => $config)
-        {
-            if ($config['host'])
-            {
-                if(!extension_loaded('PDO'))
-                {
-                    throw new main\mtLibs\exceptions\System('Missing PDO Extension',  main\mtLibs\exceptions\Codes::MYSQL_MISING_PDO_EXTENSION);
+        foreach ($config as $connectionName => $config) {
+            if ($config['host']) {
+                if (!extension_loaded('PDO')) {
+                    throw new main\mtLibs\exceptions\System('Missing PDO Extension', main\mtLibs\exceptions\Codes::MYSQL_MISING_PDO_EXTENSION);
                 }
 
-                try{
-                    self::$_instance->connection[$connectionName] = new \PDO("mysql:host=".$config['host'].";dbname=".$config['name'], $config['user'], $config['pass']);
+                try {
+                    self::$_instance->connection[$connectionName] = new \PDO("mysql:host=" . $config['host'] . ";dbname=" . $config['name'], $config['user'], $config['pass']);
 
                     self::$_instance->connection[$connectionName]->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
                 } catch (\Exception $ex) {
-                    throw new main\mtLibs\exceptions\System('SQL Connection Error',exceptions\Codes::MYSQL_CONNECTION_FAILED);
+                    throw new main\mtLibs\exceptions\System('SQL Connection Error', exceptions\Codes::MYSQL_CONNECTION_FAILED);
                 }
             }
         }
@@ -118,9 +121,9 @@ class Query{
      * Disconnect all mysql connection
      *
      */
-    static function dropAllConnection(){
-        foreach(self::I()->connection as $name => &$connection)
-        {
+    static function dropAllConnection()
+    {
+        foreach (self::I()->connection as $name => &$connection) {
             $connection = null;
             unset(self::I()->connection[$name]);
         }
@@ -135,44 +138,37 @@ class Query{
      * @return result
      * @throws main\mtLibs\exceptions\System
      */
-    static function query($query,array $params=array(), $connectionName = 'default')
+    static function query($query, array $params = array(), $connectionName = 'default')
     {
-        if(!isset(self::$_instance->connection[$connectionName]))
-        {
-            throw new main\mtLibs\exceptions\System("Connection ".$connectionName.' not exits', main\mtLibs\exceptions\Codes::MYSQL_MISING_CONNECTION);
+        if (!isset(self::$_instance->connection[$connectionName])) {
+            throw new main\mtLibs\exceptions\System("Connection " . $connectionName . ' not exits', main\mtLibs\exceptions\Codes::MYSQL_MISING_CONNECTION);
         }
 
         $newParams = array();
-        foreach($params as $name => $value)
-        {
-            $newParams[':'.$name] = $value;
+        foreach ($params as $name => $value) {
+            $newParams[':' . $name] = $value;
         }
 
         $params = $newParams;
-        try{
+        try {
             $sth = self::$_instance->connection[$connectionName]->prepare($query);
             $a = $sth->execute($params);
         } catch (\Exception $ex) {
             $dQuery = $query;
-            foreach($params as $n => $v)
-            {
-                $dQuery = str_replace($n, "'".$v."'", $dQuery);
+            foreach ($params as $n => $v) {
+                $dQuery = str_replace($n, "'" . $v . "'", $dQuery);
             }
 
-            throw new Exception('Error in SQL Query:'.$ex->getMessage(),$dQuery,$ex);
+            throw new Exception('Error in SQL Query:' . $ex->getMessage(), $dQuery, $ex);
         }
 
-        if(strpos($query, 'insert') !== false || strpos($query, 'INSERT')!== false )
-        {
+        if (strpos($query, 'insert') !== false || strpos($query, 'INSERT') !== false) {
             $id = self::$_instance->connection[$connectionName]->lastInsertId();
-        }
-        else
-        {
+        } else {
             $id = null;
         }
 
-        return new Result($sth,$id);
-
+        return new Result($sth, $id);
     }
 
     /**
@@ -194,17 +190,16 @@ class Query{
      * @throws \exception\System
      * @return int id of new record
      */
-    static function insert($table,array $data, $connectionName = 'default')
+    static function insert($table, array $data, $connectionName = 'default')
     {
         $cols = array();
         $valuesLabels = array();
         $values = array();
         $i = 0;
-        foreach($data as $col => $value)
-        {
+        foreach ($data as $col => $value) {
             $cols[] = $col;
-            $colName = 'col'.$i;
-            $valuesLabels[] = ':'.$colName;
+            $colName = 'col' . $i;
+            $valuesLabels[] = ':' . $colName;
 
             $values[$colName] = $value;
             $i++;
@@ -215,7 +210,7 @@ class Query{
 
         $sql = "INSERT INTO $table (`$cols`) VALUES ($valuesLabels)";
 
-        $val = self::query($sql,$values,$connectionName)->getID();
+        $val = self::query($sql, $values, $connectionName)->getID();
 
         return $val;
     }
@@ -229,17 +224,16 @@ class Query{
      * @throws \exception\System
      * @return int id of new record
      */
-    static function insertOnDuplicateUpdate($table,array $data, array $update, $connectionName = 'default')
+    static function insertOnDuplicateUpdate($table, array $data, array $update, $connectionName = 'default')
     {
         $cols = array();
         $valuesLabels = array();
         $values = array();
         $i = 0;
-        foreach($data as $col => $value)
-        {
+        foreach ($data as $col => $value) {
             $cols[] = $col;
-            $colName = 'col'.$i;
-            $valuesLabels[] = ':'.$colName;
+            $colName = 'col' . $i;
+            $valuesLabels[] = ':' . $colName;
 
             $values[$colName] = $value;
             $i++;
@@ -256,8 +250,7 @@ class Query{
         $cols = array();
         $valuesLabels = array();
 
-        foreach($update as $col => $value)
-        {
+        foreach ($update as $col => $value) {
             $colName = preg_replace("/[^A-Za-z0-9]/", '', $col);
 
             $cols[] = "`$col` = :$colName:";
@@ -267,7 +260,7 @@ class Query{
 
         $sql .= implode(",", $cols);
 
-        $val = self::query($sql,$values,$connectionName)->getID();
+        $val = self::query($sql, $values, $connectionName)->getID();
 
         return $val;
     }
@@ -282,15 +275,14 @@ class Query{
      * @throws \exception\System
      * @return result
      */
-    static function update($table,array $data,array $condition)
+    static function update($table, array $data, array $condition)
     {
-        $conditionParsed = self::parseConditions($condition,$values);
+        $conditionParsed = self::parseConditions($condition, $values);
 
         $cols = array();
         $valuesLabels = array();
 
-        foreach($data as $col => $value)
-        {
+        foreach ($data as $col => $value) {
             $colName = preg_replace("/[^A-Za-z0-9]/", '', $col);
 
             $cols[] = "`$col` = :$colName";
@@ -302,12 +294,11 @@ class Query{
 
         $sql = "UPDATE $table SET $cols ";
 
-        if($conditionParsed)
-        {
-            $sql .= " WHERE ".$conditionParsed;
+        if ($conditionParsed) {
+            $sql .= " WHERE " . $conditionParsed;
         }
 
-        return self::query($sql,$values);
+        return self::query($sql, $values);
     }
 
     /**
@@ -319,18 +310,17 @@ class Query{
      * @throws \exception\System
      * @return result
      */
-    static function delete($table,array $condition)
+    static function delete($table, array $condition)
     {
         $sql = "DELETE FROM $table";
 
-        $conditionParsed = self::parseConditions($condition,$values);
+        $conditionParsed = self::parseConditions($condition, $values);
 
-        if($conditionParsed)
-        {
-            $sql .= " WHERE ".$conditionParsed;
+        if ($conditionParsed) {
+            $sql .= " WHERE " . $conditionParsed;
         }
 
-        return self::query($sql,$values);
+        return self::query($sql, $values);
     }
 
     /**
@@ -340,90 +330,64 @@ class Query{
      * @param type $values
      * @return type
      */
-    static function parseConditions($condition,&$values, $prefix = null, &$i = 0){
+    static function parseConditions($condition, &$values, $prefix = null, &$i = 0)
+    {
         $conditionParsed = array();
 
         $values = array();
 
-        foreach($condition as $col => $value)
-        {
-            if(is_string($col))
-            {
-                if(is_array($value))
-                {
+        foreach ($condition as $col => $value) {
+            if (is_string($col)) {
+                if (is_array($value)) {
                     $conditionTmp = array();
-                    foreach($value as $v)
-                    {
-                        $colName = ':cond'.$i;
+                    foreach ($value as $v) {
+                        $colName = ':cond' . $i;
                         $conditionTmp[] = $colName;
-                        $values['cond'.$i] = $v;
+                        $values['cond' . $i] = $v;
                         $i++;
                     }
-                    if($prefix)
-                    {
-                        $conditionParsed[] = "`$prefix`.`$col` in (".implode(',',$conditionTmp).')';
+                    if ($prefix) {
+                        $conditionParsed[] = "`$prefix`.`$col` in (" . implode(',', $conditionTmp) . ')';
+                    } else {
+                        $conditionParsed[] = "`$col` in (" . implode(',', $conditionTmp) . ')';
                     }
-                    else
-                    {
-                        $conditionParsed[] = "`$col` in (".implode(',',$conditionTmp).')';
-                    }
-                }
-                else
-                {
-                    $colName = ':cond'.$i;
-                    if($prefix)
-                    {
+                } else {
+                    $colName = ':cond' . $i;
+                    if ($prefix) {
                         $conditionParsed[] = "`$prefix`.`$col` = $colName";
-                    }
-                    else
-                    {
+                    } else {
                         $conditionParsed[] = "`$col` = $colName";
                     }
 
-                    $values['cond'.$i] = $value;
+                    $values['cond' . $i] = $value;
                     $i++;
                 }
-            }
-            elseif(is_array($value) && isset($value['customQuery']))
-            {
+            } elseif (is_array($value) && isset($value['customQuery'])) {
                 $conditionParsed[] = $value['customQuery'];
-                foreach ($value['params'] as $n => $v)
-                {
+                foreach ($value['params'] as $n => $v) {
                     $values[$n] = $v;
                 }
-            }
-            else
-            {
+            } else {
                 $conditionParsed[] = $value;
             }
-
         }
 
         return implode(' AND ', $conditionParsed);
     }
 
-    static function formatSelectFields($cols,$prefix = null){
-        foreach($cols as $name => &$value)
-        {
-            if(!is_int($name))
-            {
-                if($prefix)
-                {
+    static function formatSelectFields($cols, $prefix = null)
+    {
+        foreach ($cols as $name => &$value) {
+            if (!is_int($name)) {
+                if ($prefix) {
                     $value = "`$prefix`.`$name` as '$value'";
-                }
-                else
-                {
+                } else {
                     $value = "`$name` as '$value'";
                 }
-            }
-            else
-            {
-                if($prefix)
-                {
+            } else {
+                if ($prefix) {
                     $value = "`$prefix`.`$value`";
-                }
-                else
-                {
+                } else {
                     $value = "`$value`";
                 }
             }
@@ -433,38 +397,30 @@ class Query{
         return implode(",", $cols);
     }
 
-    static function formatOrderBy($orderBy,$prefix = null){
-        if(empty($orderBy))
-        {
+    static function formatOrderBy($orderBy, $prefix = null)
+    {
+        if (empty($orderBy)) {
             return;
         }
 
         $tmp = array();
-        foreach($orderBy as $col => $vect)
-        {
-            if($prefix)
-            {
-                $tmp[] = "`$prefix`.`$col` ".(($vect=='ASC'||$vect=='asc')?'ASC':'DESC');
-            }
-            else
-            {
-                $tmp[] = "`$col` ".(($vect=='ASC'||$vect=='asc')?'ASC':'DESC');
+        foreach ($orderBy as $col => $vect) {
+            if ($prefix) {
+                $tmp[] = "`$prefix`.`$col` " . (($vect == 'ASC' || $vect == 'asc') ? 'ASC' : 'DESC');
+            } else {
+                $tmp[] = "`$col` " . (($vect == 'ASC' || $vect == 'asc') ? 'ASC' : 'DESC');
             }
         }
 
-        return " ORDER BY ".implode(',', $tmp);
+        return " ORDER BY " . implode(',', $tmp);
     }
 
-    static function formarLimit($limit,$offset)
+    static function formarLimit($limit, $offset)
     {
-        if($limit)
-        {
-            if($offset)
-            {
+        if ($limit) {
+            if ($offset) {
                 return " LIMIT $offset , $limit ";
-            }
-            else
-            {
+            } else {
                 return " LIMIT 0 , $limit ";
             }
         }
@@ -482,18 +438,17 @@ class Query{
      * @throws \exception\System
      * @return result
      */
-    static function select(array $cols,$table,array $condition = array(),array $orderBy = array(),$limit = null,$offset = 0, $connectionName = 'default')
+    static function select(array $cols, $table, array $condition = array(), array $orderBy = array(), $limit = null, $offset = 0, $connectionName = 'default')
     {
 
         $cols = self::formatSelectFields($cols);
 
         $sql = "SELECT $cols FROM $table";
 
-        $conditionParsed = self::parseConditions($condition,$values);
+        $conditionParsed = self::parseConditions($condition, $values);
 
-        if($conditionParsed)
-        {
-            $sql .= " WHERE ".$conditionParsed;
+        if ($conditionParsed) {
+            $sql .= " WHERE " . $conditionParsed;
         }
 
         $sql .= self::formatOrderBy($orderBy);
@@ -501,7 +456,7 @@ class Query{
         $sql .= self::formarLimit($limit, $offset);
 
 
-        return self::query($sql,$values);
+        return self::query($sql, $values);
     }
 
     /**
@@ -516,40 +471,33 @@ class Query{
      * @throws \exception\System
      * @return result
      */
-    static function count($colsName,$table,array $condition = array(),array $orderBy = array(),$limit = null,$offset = 0, $connectionName = 'default')
+    static function count($colsName, $table, array $condition = array(), array $orderBy = array(), $limit = null, $offset = 0, $connectionName = 'default')
     {
         $sql = "SELECT count($colsName) as count FROM $table";
 
-        $conditionParsed = self::parseConditions($condition,$values);
+        $conditionParsed = self::parseConditions($condition, $values);
 
-        if($conditionParsed)
-        {
-            $sql .= " WHERE ".$conditionParsed;
+        if ($conditionParsed) {
+            $sql .= " WHERE " . $conditionParsed;
         }
 
-        if($orderBy)
-        {
+        if ($orderBy) {
             $sql .= " ORDER BY ";
             $tmp = array();
-            foreach($orderBy as $col => $vect)
-            {
+            foreach ($orderBy as $col => $vect) {
                 $tmp[] = "`$col` $vect";
             }
             $sql .= implode(',', $tmp);
         }
 
-        if($limit)
-        {
-            if($offset)
-            {
+        if ($limit) {
+            if ($offset) {
                 $sql .= " LIMIT $offset , $limit ";
-            }
-            else
-            {
+            } else {
                 $sql .= " LIMIT 0 , $limit ";
             }
         }
 
-        return self::query($sql,$values)->fetchColumn('count');
+        return self::query($sql, $values)->fetchColumn('count');
     }
 }

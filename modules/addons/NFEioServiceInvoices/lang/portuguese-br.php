@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Addon module language file.
  * Language: Portuguese Brazil
  * @author EunaRede
  * @version 0.0.1
  */
+
 // Titles
 $_ADDONLANG['module_name'] = "Nome do Modulo";
 $_ADDONLANG['module_title'] = "Titulo do Nome do Modulo";

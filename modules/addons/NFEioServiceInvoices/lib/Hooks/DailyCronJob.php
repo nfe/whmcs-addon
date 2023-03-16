@@ -2,17 +2,17 @@
 
 namespace NFEioServiceInvoices\Hooks;
 
-use \WHMCS\Database\Capsule;
+use WHMCS\Database\Capsule;
 
 /**
  * Classe com execução das rotinas para o gatilho dailycronjob
- * @see https://developers.whmcs.com/hooks-reference/cron/#dailycronjob
- * @author Andre Bellafronte
+ *
+ * @see     https://developers.whmcs.com/hooks-reference/cron/#dailycronjob
+ * @author  Andre Bellafronte
  * @version 2.1.0
  */
 class DailyCronJob
 {
-
     /**
      * @var \NFEioServiceInvoices\Models\ServiceInvoices\Repository
      */
@@ -41,7 +41,6 @@ class DailyCronJob
 
         // condição que se certifica da existência de configuração para emissão de NF X dias após pgto da fatura
         if (isset($issueNfAfter) && (int)$issueNfAfter > 0) {
-
             $todayDate = date("Y-m-d");
             // qtd de dias configurado para gerar nf apos pgto
             $issueNoteAfterDays = $issueNfAfter;
@@ -83,12 +82,8 @@ class DailyCronJob
                 foreach ($invoicesIdToGenerateNF as $invoice) {
                     $queue = $this->nf->queue($invoice);
                     logModuleCall('NFEioServiceInvoices', 'Hook - DailyCronJob', $invoice, $queue);
-
                 }
             }
-
         }
-
     }
-
 }

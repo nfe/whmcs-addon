@@ -3,6 +3,7 @@
 namespace WHMCSExpert\Template;
 
 use Smarty;
+
 // use WHMCSExpert\Helper\Helper;
 
 
@@ -24,12 +25,12 @@ class Template
     {
       // $this->_helper = new Helper;
 
-      $this->_smarty = new Smarty;
-      $this->_smarty->caching        = false;
-      $this->_smarty->compile_check  = true;
-      $this->_smarty->debugging      = false;
-      $this->_smarty->template_dir   = $templateDir;
-      $this->_smarty->compile_dir    = $GLOBALS['templates_compiledir'];
+        $this->_smarty = new Smarty();
+        $this->_smarty->caching        = false;
+        $this->_smarty->compile_check  = true;
+        $this->_smarty->debugging      = false;
+        $this->_smarty->template_dir   = $templateDir;
+        $this->_smarty->compile_dir    = $GLOBALS['templates_compiledir'];
       // $this->_smarty->cache_dir      = dirname(dirname(__DIR__)) . '/templates/cache';
 
       // return $this->smarty = $smarty;

@@ -7,7 +7,6 @@ use Illuminate\Support\Arr;
 
 class Storage
 {
-
     /**
      * @var AbstractModule
      */
@@ -56,15 +55,10 @@ class Storage
     public function get($key = null, $default = null)
     {
         if (is_null($key)) {
-
             return $this->data;
-
         } else {
-
             return Arr::get($this->data, $key);
-
         }
-
     }
 
     /**
@@ -155,9 +149,7 @@ class Storage
         $storageKey = $this->getStorageKey();
 
         foreach ($this->dataUpdate as $mainKey) {
-
             if (isset($this->data[$mainKey])) {
-
                 $data = $this->data[$mainKey];
                 $row = Capsule::table('tbladdonmodules')->select('id')->where(['module' => $storageKey, 'setting' => $mainKey])->first();
                 // Determine method
@@ -175,9 +167,7 @@ class Storage
         $this->dataUpdate = [];
 
         foreach ($this->dataRemove as $mainKey) {
-
             if (isset($this->data[$mainKey])) {
-
                 Capsule::table('tbladdonmodules')->where([['module', $storageKey], ['setting', $mainKey]])->delete();
 
                 unset($this->data[$mainKey]);
@@ -198,12 +188,12 @@ class Storage
      */
     protected function getStorageKey()
     {
-      return $this->storageKey;
+        return $this->storageKey;
     }
 
     public function setStorageKey($key)
     {
-      $this->storageKey = $key;
+        $this->storageKey = $key;
     }
 
     /**

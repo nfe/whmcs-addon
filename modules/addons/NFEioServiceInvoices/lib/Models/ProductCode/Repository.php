@@ -2,7 +2,7 @@
 
 namespace NFEioServiceInvoices\Models\ProductCode;
 
-use \WHMCS\Database\Capsule;
+use WHMCS\Database\Capsule;
 
 /**
  * Classe responsável pela definição do modelo de dados
@@ -10,7 +10,6 @@ use \WHMCS\Database\Capsule;
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
-
     public $tableName = 'mod_nfeio_si_productcode';
     public $fieldDeclaration = array(
         'id',
@@ -40,6 +39,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     /**
      * Realiza um join entre produtos e códigos personalizados de serviços
      * e estrutura os dados para a dataTable
+     *
      * @return array
      */
     public function servicesCodeDataTable()
@@ -72,14 +72,13 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         try {
             if (!empty($data['iss_held'])) {
                 return Capsule::table($this->tableName)
-                    ->where('product_id', '=',  $data['product_id'])
+                    ->where('product_id', '=', $data['product_id'])
                     ->update(['code_service' => null]);
             } else {
                 return Capsule::table($this->tableName)
-                    ->where('product_id', '=',  $data['product_id'])
+                    ->where('product_id', '=', $data['product_id'])
                     ->delete();
             }
-
         } catch (\Exception $exception) {
             echo $exception->getMessage();
         }
@@ -89,7 +88,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     {
         try {
             return Capsule::table($this->tableName)
-                ->where('product_id', '=',  $data['product_id'])
+                ->where('product_id', '=', $data['product_id'])
                 ->update(['iss_held' => null]);
         } catch (\Exception $exception) {
             echo $exception->getMessage();
@@ -101,8 +100,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function dropProductCodeTable()
     {
-        if (Capsule::schema()->hasTable($this->tableName))
-        {
+        if (Capsule::schema()->hasTable($this->tableName)) {
             Capsule::schema()->dropIfExists($this->tableName);
         }
     }
@@ -112,23 +110,25 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function createProductCodeTable()
     {
-        if (!Capsule::schema()->hasTable($this->tableName))
-        {
-            Capsule::schema()->create($this->tableName, function($table)
-            {
-                $table->increments('id');
-                $table->integer('product_id');
-                $table->string('code_service', 30);
-                $table->timestamp('create_at');
-                $table->timestamp('update_at');
-                $table->integer('ID_user');
-            });
+        if (!Capsule::schema()->hasTable($this->tableName)) {
+            Capsule::schema()->create(
+                $this->tableName,
+                function ($table) {
+                    $table->increments('id');
+                    $table->integer('product_id');
+                    $table->string('code_service', 30);
+                    $table->timestamp('create_at');
+                    $table->timestamp('update_at');
+                    $table->integer('ID_user');
+                }
+            );
         }
     }
 
     /**
      * Retorna o código de serviço personalizado para um produto de acordo com o relid de um serviço.
-     * @param $relId int o relid de um serviço (packageid)
+     *
+     * @param  $relId int o relid de um serviço (packageid)
      * @return mixed código de serviço se existir ou null
      */
     public function getServiceCodeByRelId($relId)
@@ -139,14 +139,14 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     /**
      * Retorna o valor da alíquota de retenção de ISS para um produto de acordo com o relid de um serviço.
-     * @param $relId int o relid de um produto/serviço (packageid)
+     *
+     * @param  $relId int o relid de um produto/serviço (packageid)
      * @return float|null alíquota de retenção se existente (%)
      */
     public function getIssHeldByRelId($relId)
     {
         $productId = Capsule::table('tblhosting')->where('id', '=', $relId)->value('packageid');
         return Capsule::table($this->tableName)->where('product_id', '=', $productId)->value('iss_held');
-
     }
 
     public function upgrade_to_2_1_0()
@@ -155,9 +155,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         if (Capsule::schema()->hasTable($this->tableName)) {
             // se não houver coluna adiciona
             if (!Capsule::schema()->hasColumn($this->tableName, 'iss_held')) {
-                Capsule::schema()->table($this->tableName, function ($table) {
-                    $table->float('iss_held', 5, 2)->after('code_service')->nullable();
-                });
+                Capsule::schema()->table(
+                    $this->tableName,
+                    function ($table) {
+                        $table->float('iss_held', 5, 2)->after('code_service')->nullable();
+                    }
+                );
             }
         }
     }
@@ -165,11 +168,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     /**
      * Rotina para atualização da quantidade máxima de caracteres permitidos para a coluna code_service.
      *
-     * @see https://github.com/nfe/whmcs-addon/issues/134
+     * @see     https://github.com/nfe/whmcs-addon/issues/134
      * @version 2.2
-     * @since 2.2
-     * @author Andre Bellafronte
-     *
+     * @since   2.2
+     * @author  Andre Bellafronte
      */
     public function update_servicecode_var_limit()
     {

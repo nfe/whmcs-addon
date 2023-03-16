@@ -4,15 +4,12 @@ namespace NFEioServiceInvoices\Models\ServiceInvoices;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
 
-
-
 /**
  * Classe responsável pela definição do modelo de dados e operações
  * na tabela mod_nfeio_si_serviceinvoices
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
-
     public $tableName = 'mod_nfeio_si_serviceinvoices';
     public $fieldDeclaration = array(
         'invoice_id',
@@ -38,6 +35,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     /**
      * Define o máximo limite de registros de uma consulta
+     *
      * @param null $limit
      */
     public function setLimit($limit)
@@ -47,6 +45,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     /**
      * Retorna o máximo limite definido de registros para uma consulta
+     *
      * @return null
      */
     public function getLimit()
@@ -80,7 +79,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     /**
      * Realiza um join entre produtos e códigos personalizados de serviços
      * e estrutura os dados para a dataTable
-     *
      */
     public function dataTable()
     {
@@ -96,32 +94,33 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function createServiceInvoicesTable()
     {
-        if (!Capsule::schema()->hasTable($this->tableName))
-        {
-            Capsule::schema()->create($this->tableName, function ($table)
-            {
-                // incremented id
-                $table->increments('id');
-                // whmcs info
-                $table->string('invoice_id');
-                $table->string('user_id');
-                $table->string('nfe_id');
-                $table->string('nfe_external_id');
-                $table->string('status');
-                $table->decimal('services_amount',$precision = 16,$scale = 2);
-                $table->decimal('iss_held', 16, 2);
-                $table->text('nfe_description');
-                $table->string('environment');
-                $table->string('issue_note_conditions');
-                $table->string('flow_status');
-                $table->string('pdf');
-                $table->string('rpsSerialNumber');
-                $table->string('rpsNumber');
-                $table->timestamp('created_at');
-                $table->timestamp('updated_at');
-                $table->string('service_code', 30)->nullable(true);
-                $table->string('tics')->nullable(true);
-            });
+        if (!Capsule::schema()->hasTable($this->tableName)) {
+            Capsule::schema()->create(
+                $this->tableName,
+                function ($table) {
+                    // incremented id
+                    $table->increments('id');
+                    // whmcs info
+                    $table->string('invoice_id');
+                    $table->string('user_id');
+                    $table->string('nfe_id');
+                    $table->string('nfe_external_id');
+                    $table->string('status');
+                    $table->decimal('services_amount', $precision = 16, $scale = 2);
+                    $table->decimal('iss_held', 16, 2);
+                    $table->text('nfe_description');
+                    $table->string('environment');
+                    $table->string('issue_note_conditions');
+                    $table->string('flow_status');
+                    $table->string('pdf');
+                    $table->string('rpsSerialNumber');
+                    $table->string('rpsNumber');
+                    $table->timestamp('created_at');
+                    $table->timestamp('updated_at');
+                    $table->string('service_code', 30)->nullable(true);
+                    $table->string('tics')->nullable(true);
+                }
+            );
         }
     }
 
@@ -130,15 +129,15 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function dropServiceInvoicesTable()
     {
-        if (Capsule::schema()->hasTable($this->tableName))
-        {
+        if (Capsule::schema()->hasTable($this->tableName)) {
             Capsule::schema()->dropIfExists($this->tableName);
         }
     }
 
     /**
      * Retorna as notas locais existentes para uma determinada fatura
-     * @param $id string ID da Fatura
+     *
+     * @param  $id string ID da Fatura
      * @return \Illuminate\Support\Collection dados da nota local
      */
     public function getServiceInvoicesById($id)
@@ -152,7 +151,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     /**
      * Retorna o total de notas locais registradas para uma determinada fatura.
-     * @param $id string ID da fatura
+     *
+     * @param  $id string ID da fatura
      * @return int total de registros encontrados
      */
     public function getTotalById($id)
@@ -174,9 +174,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     }
     /**
      * Atualiza as colunas necessarias para a versão 2.1.0
-     * @author Andre Bellafronte
+     *
+     * @author  Andre Bellafronte
      * @version 2.1.0
-     * @return void
+     * @return  void
      */
     public function upgrade_to_2_1_0()
     {
@@ -184,21 +185,30 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         if (Capsule::schema()->hasTable($this->tableName)) {
             // adiciona nova columa nfe_external_id
             if (!Capsule::schema()->hasColumn($this->tableName, 'nfe_external_id')) {
-                Capsule::schema()->table($this->tableName, function ($table) {
-                    $table->string('nfe_external_id')->after('nfe_id')->nullable();
-                });
+                Capsule::schema()->table(
+                    $this->tableName,
+                    function ($table) {
+                        $table->string('nfe_external_id')->after('nfe_id')->nullable();
+                    }
+                );
             }
             // adiciona nova coluna nfe_description
             if (!Capsule::schema()->hasColumn($this->tableName, 'nfe_description')) {
-                Capsule::schema()->table($this->tableName, function ($table) {
-                   $table->text('nfe_description')->after('services_amount')->nullable();
-                });
+                Capsule::schema()->table(
+                    $this->tableName,
+                    function ($table) {
+                        $table->text('nfe_description')->after('services_amount')->nullable();
+                    }
+                );
             }
             // adiciona nova coluna iss_held que conterá o valor em R$ da retenção do ISS para a NF
             if (!Capsule::schema()->hasColumn($this->tableName, 'iss_held')) {
-                Capsule::schema()->table($this->tableName, function ($table) {
-                    $table->decimal('iss_held', 16, 2)->after('services_amount')->nullable();
-                });
+                Capsule::schema()->table(
+                    $this->tableName,
+                    function ($table) {
+                        $table->decimal('iss_held', 16, 2)->after('services_amount')->nullable();
+                    }
+                );
             }
         }
     }
@@ -206,11 +216,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     /**
      * Rotina para atualização da quantidade máxima de caracteres permitidos para a coluna code_service.
      *
-     * @see https://github.com/nfe/whmcs-addon/issues/134
+     * @see     https://github.com/nfe/whmcs-addon/issues/134
      * @version 2.2
-     * @since 2.2
-     * @author Andre Bellafronte
-     *
+     * @since   2.2
+     * @author  Andre Bellafronte
      */
     public function update_servicecode_var_limit()
     {

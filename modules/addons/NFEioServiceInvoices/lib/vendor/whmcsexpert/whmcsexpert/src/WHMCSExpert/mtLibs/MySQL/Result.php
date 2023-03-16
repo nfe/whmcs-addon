@@ -1,14 +1,15 @@
 <?php
 
 namespace WHMCSExpert\mtLibs\MySQL;
-use WHMCSExpert as main;
 
+use WHMCSExpert as main;
 
 /**
  * MySQL Results Class
  *
  */
-class Result{
+class Result
+{
     /**
      *
      * @var PDOStatement
@@ -20,7 +21,7 @@ class Result{
      *
      * @var boolean
      */
-    static private $usePDO = false;
+    private static $usePDO = false;
 
     /**
      * Constructor
@@ -28,10 +29,10 @@ class Result{
      * @param PDOStatement $result
      * @param int $id
      */
-    function __construct($result,$id = null) {
+    function __construct($result, $id = null)
+    {
 
-        if(is_a($result,'PDOStatement'))
-        {
+        if (is_a($result, 'PDOStatement')) {
             self::$usePDO = true;
         }
 
@@ -69,12 +70,9 @@ class Result{
     {
         $data = $this->result->fetch(\PDO::FETCH_BOTH);
 
-        if($name)
-        {
+        if ($name) {
             return $data[$name];
-        }
-        else
-        {
+        } else {
             return $data[0];
         }
     }
@@ -88,5 +86,4 @@ class Result{
     {
         return $this->id;
     }
-
 }

@@ -2,10 +2,8 @@
 
 namespace NFEioServiceInvoices\Hooks;
 
-
 class AdminInvoicesControlsOutput
 {
-
     private $invoiceId;
 
     public function __construct(array $vars)
@@ -24,7 +22,7 @@ class AdminInvoicesControlsOutput
         $post = $_POST;
         $request = $post['nfeiosi'];
         //$request = $whmcs->get_req_var("nfeiosi");
-        $msg = new \Plasticbrain\FlashMessages\FlashMessages;
+        $msg = new \Plasticbrain\FlashMessages\FlashMessages();
         $config = new \NFEioServiceInvoices\Configuration();
         $storage = new \WHMCSExpert\Addon\Storage($config->getStorageKey());
         $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
@@ -48,7 +46,7 @@ class AdminInvoicesControlsOutput
 
         if ($request === 'create' && $totalServiceInvoices == 0) {
             $queue = $nfe->queue($this->invoiceId);
-            if($queue['success']) {
+            if ($queue['success']) {
                 $msg->success('Nota adicionada a fila de emissão.');
             } else {
                 $msg->error("Problemas ao tentar criar a nota: {$queue['message']}");
@@ -57,7 +55,7 @@ class AdminInvoicesControlsOutput
 
         if ($request === 'reissue') {
             $result = $nfe->queue($this->invoiceId, true);
-            if($result['success']) {
+            if ($result['success']) {
                 $msg->success('Nota adicionada a fila para reemissão.');
             } else {
                 $msg->error("Problemas ao tentar reemitir a nota: {$result['message']}");
@@ -78,7 +76,6 @@ class AdminInvoicesControlsOutput
             $result = $legacyFunctions->gnfe_email_nfe($nfeId);
             if (!$result->message) {
                 $msg->info("Nota enviada por e-mail com sucesso.");
-
             } else {
                 $msg->error("Problemas ao enviar e-mail: {$result->message}.");
             }
@@ -90,9 +87,5 @@ class AdminInvoicesControlsOutput
         }
 
         return $template->display('admininvoicescontrolsoutput', $vars);
-
-
     }
-
-
 }

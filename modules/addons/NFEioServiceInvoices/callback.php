@@ -1,9 +1,11 @@
 <?php
 
-if(!defined('DS'))define('DS',DIRECTORY_SEPARATOR);
+if (!defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
+}
 
 require_once __DIR__ . '/../../../init.php';
-require_once __DIR__.DS.'Loader.php';
+require_once __DIR__ . DS . 'Loader.php';
 
 use WHMCS\Database\Capsule;
 use NFEioServiceInvoices\Legacy\Functions;
@@ -48,7 +50,7 @@ if ($post) {
     //fim verificar o ambiente
 
     //verificar se a nfe existe na tabela
-    if ($totalNfLocal == 0 ) {
+    if ($totalNfLocal == 0) {
         logModuleCall('NFEioServiceInvoices', 'callback_error', 'Nota Fiscal não existe no banco local', $post);
         // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/404
         http_response_code(404);
@@ -96,7 +98,6 @@ if ($post) {
         try {
             $save_nfe = Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', '=', $post['id'])->update($new_nfe);
             logModuleCall('NFEioServiceInvoices', 'callback_success', $post, $save_nfe);
-
         } catch (\Exception $e) {
             logModuleCall('NFEioServiceInvoices', 'callback_error', "Erro ao atualizar a nota no banco de dados \n\n Nota: \n {$new_nfe} Callback: \n {$post}", $e->getMessage());
         }

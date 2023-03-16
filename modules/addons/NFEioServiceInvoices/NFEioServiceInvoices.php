@@ -1,4 +1,5 @@
 <?php
+
 /**
  * WHMCS SDK Sample Addon Module
  *
@@ -23,17 +24,19 @@
  * @see https://developers.whmcs.com/addon-modules/
  *
  * @copyright Copyright (c) WHMCS Limited 2017
- * @license http://www.whmcs.com/license/ WHMCS Eula
+ * @license   http://www.whmcs.com/license/ WHMCS Eula
  */
 
 if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
 }
 
-if(!defined('DS'))define('DS',DIRECTORY_SEPARATOR);
+if (!defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
+}
 
 
-use \WHMCS\Database\Capsule;
+use WHMCS\Database\Capsule;
 use NFEioServiceInvoices\Admin\AdminDispatcher;
 use NFEioServiceInvoices\Client\ClientDispatcher;
 
@@ -54,7 +57,7 @@ use NFEioServiceInvoices\Client\ClientDispatcher;
  */
 function NFEioServiceInvoices_config()
 {
-    require_once __DIR__.DS.'Loader.php';
+    include_once __DIR__ . DS . 'Loader.php';
     new \NFEioServiceInvoices\Loader();
     return \NFEioServiceInvoices\Addon::config();
 }
@@ -73,7 +76,7 @@ function NFEioServiceInvoices_config()
 function NFEioServiceInvoices_activate()
 {
 
-    require_once __DIR__.DS.'Loader.php';
+    include_once __DIR__ . DS . 'Loader.php';
     new NFEioServiceInvoices\Loader();
     return \NFEioServiceInvoices\Addon::activate();
 }
@@ -91,7 +94,7 @@ function NFEioServiceInvoices_activate()
  */
 function NFEioServiceInvoices_deactivate()
 {
-    require_once __DIR__.DS.'Loader.php';
+    include_once __DIR__ . DS . 'Loader.php';
     new NFEioServiceInvoices\Loader();
     return \NFEioServiceInvoices\Addon::deactivate();
 }
@@ -108,10 +111,9 @@ function NFEioServiceInvoices_deactivate()
  */
 function NFEioServiceInvoices_upgrade($vars)
 {
-    require_once __DIR__.DS.'Loader.php';
+    include_once __DIR__ . DS . 'Loader.php';
     new NFEioServiceInvoices\Loader();
     \NFEioServiceInvoices\Addon::upgrade($vars);
-
 }
 
 /**
@@ -128,7 +130,7 @@ function NFEioServiceInvoices_upgrade($vars)
  */
 function NFEioServiceInvoices_output($vars)
 {
-    require_once __DIR__.DS.'Loader.php';
+    include_once __DIR__ . DS . 'Loader.php';
     new \NFEioServiceInvoices\Loader();
     \NFEioServiceInvoices\Addon::I()->isAdmin(true);
     \NFEioServiceInvoices\Addon::I(false, $vars);

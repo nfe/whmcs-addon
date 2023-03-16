@@ -1,3 +1,16 @@
+## 2.1.7 - 2023-02-08
+
+### Correções
+
+* [BUG] Checagem e criação de webhook
+
+## 2.1.6 - 2022-10-24
+
+### Correções
+
+* [BUG] Nota Fiscal com status "processando" quando emissão falha #143
+* Melhora a exibição das mensagens de status na interface web para os administradores.
+
 ## 2.1.5 - 2022-09-24
 
 ### Correções

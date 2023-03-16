@@ -3,7 +3,7 @@ composer.phar
 rsync-dev1.sh
 rsync-dev2.sh
 *.zip
-composer.lock
+composer.lock.bkp
 phpreport
 phpmetrics
 docs

@@ -7,7 +7,6 @@ use Illuminate\Support\Arr;
 
 class GatewayStorage extends Fo
 {
-
     /**
      * @var AbstractModule
      */
@@ -57,7 +56,7 @@ class GatewayStorage extends Fo
      */
     public function setGateway($gateway)
     {
-      $this->storageKey = $gateway;
+        $this->storageKey = $gateway;
     }
 
     /**
@@ -75,9 +74,9 @@ class GatewayStorage extends Fo
 
     public function getAll()
     {
-      $this->loadData();
+        $this->loadData();
 
-      return $this->data;
+        return $this->data;
     }
 
     /**
@@ -168,9 +167,7 @@ class GatewayStorage extends Fo
         $storageKey = $this->getStorageKey();
 
         foreach ($this->dataUpdate as $mainKey) {
-
             if (isset($this->data[$mainKey])) {
-
                 $data = $this->data[$mainKey];
                 $row = Capsule::table('tblpaymentgateways')->select('id')->where(['gateway' => $storageKey, 'setting' => $mainKey])->first();
                 // Determine method
@@ -188,9 +185,7 @@ class GatewayStorage extends Fo
         $this->dataUpdate = [];
 
         foreach ($this->dataRemove as $mainKey) {
-
             if (isset($this->data[$mainKey])) {
-
                 Capsule::table('tblpaymentgateways')->where([['gateway', $storageKey], ['setting', $mainKey]])->delete();
 
                 unset($this->data[$mainKey]);
@@ -211,7 +206,7 @@ class GatewayStorage extends Fo
      */
     protected function getStorageKey()
     {
-      return $this->storageKey;
+        return $this->storageKey;
     }
 
     /**

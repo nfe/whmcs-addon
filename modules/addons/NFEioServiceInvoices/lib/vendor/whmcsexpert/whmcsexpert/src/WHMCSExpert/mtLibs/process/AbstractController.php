@@ -1,6 +1,7 @@
 <?php
 
 namespace WHMCSExpert\mtLibs\process;
+
 use WHMCSExpert as main;
 
 /**
@@ -8,13 +9,14 @@ use WHMCSExpert as main;
  *
  * @SuppressWarnings(PHPMD)
  */
-abstract class AbstractController {
+abstract class AbstractController
+{
     public $mgToken = null;
     private $registredValidationErros = array();
 
-    function __construct($input = null) {
-        if(isset($input['mg-token']))
-        {
+    function __construct($input = null)
+    {
+        if (isset($input['mg-token'])) {
             $this->mgToken = $input['mg-token'];
         }
     }
@@ -25,7 +27,8 @@ abstract class AbstractController {
      * @author Michal Czech <michael@modulesgarden.com>
      * @return string
      */
-    function genToken(){
+    function genToken()
+    {
         return md5(time());
     }
 
@@ -36,14 +39,13 @@ abstract class AbstractController {
      * @param string $token
      * @return boolean
      */
-    function checkToken($token = null){
-        if($token === null)
-        {
+    function checkToken($token = null)
+    {
+        if ($token === null) {
             $token = $this->mgToken;
         }
 
-        if($_SESSION['mg-token'] === $token)
-        {
+        if ($_SESSION['mg-token'] === $token) {
             return false;
         }
 
@@ -52,15 +54,14 @@ abstract class AbstractController {
         return true;
     }
 
-    function dataTablesParseRow($template,$data){
-        $row = main\mtLibs\Smarty::I()->view($template,$data);
+    function dataTablesParseRow($template, $data)
+    {
+        $row = main\mtLibs\Smarty::I()->view($template, $data);
 
         $output = array();
 
-        if(preg_match_all('/\<td\>(?P<col>.*?)\<\/td\>/s', $row, $result))
-        {
-            foreach($result['col'] as $col)
-            {
+        if (preg_match_all('/\<td\>(?P<col>.*?)\<\/td\>/s', $row, $result)) {
+            foreach ($result['col'] as $col) {
                 $output[] = $col;
             }
         }
@@ -68,26 +69,27 @@ abstract class AbstractController {
         return $output;
     }
 
-    function registerErrors($errors){
+    function registerErrors($errors)
+    {
         $this->registredValidationErros = $errors;
     }
 
-    function getFieldError($field,$langspace='validationErrors'){
-        if(!isset($this->registredValidationErros[$field]))
-        {
+    function getFieldError($field, $langspace = 'validationErrors')
+    {
+        if (!isset($this->registredValidationErros[$field])) {
             return false;
         }
 
         $message = array();
-        foreach($this->registredValidationErros[$field] as $type)
-        {
-            $message[] = main\mtLibs\Lang::absoluteT($langspace,$type);
+        foreach ($this->registredValidationErros[$field] as $type) {
+            $message[] = main\mtLibs\Lang::absoluteT($langspace, $type);
         }
 
-        return implode(',',$message);
+        return implode(',', $message);
     }
 
-    public function isActive(){
+    public function isActive()
+    {
         return true;
     }
 }

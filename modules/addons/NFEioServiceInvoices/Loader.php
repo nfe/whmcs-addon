@@ -1,18 +1,18 @@
 <?php
 
-
 namespace NFEioServiceInvoices;
 
-use \WHMCSExpert as main;
+use WHMCSExpert as main;
 
-if (!defined('DS')) define('DS', DIRECTORY_SEPARATOR);
+if (!defined('DS')) {
+    define('DS', DIRECTORY_SEPARATOR);
+}
 
 require_once __DIR__ . DS . 'lib' . DS . 'vendor' . DS . 'autoload.php';
 
 
 /**
  * Module Class Loader
- *
  */
 
 if (!class_exists(__NAMESPACE__ . '\Loader')) {
@@ -41,7 +41,6 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
                 self::$myName = __NAMESPACE__;
 
                 foreach ($checkDirs as $dir) {
-
                     if ($pos = strpos(__DIR__, $dir . self::$myName)) {
                         self::$whmcsDir = substr(__DIR__, 0, $pos);
                         break;
@@ -54,13 +53,11 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
 
                         if (file_exists($tmp)) {
                             self::$availableDirs[] = $tmp . DS;
-
                         }
                     }
                 }
             } else {
                 self::$mainDir = $dir;
-
             }
 
             spl_autoload_register(array($this, 'loader'));
@@ -71,7 +68,7 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
         /**
          * Load Class File
          *
-         * @param string $className
+         * @param  string $className
          * @return bool
          * @throws main\mgLibs\exceptions\base
          * @throws \Exception
@@ -113,7 +110,7 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
             }
 
             if ($foundFile) {
-                require_once $foundFile;
+                include_once $foundFile;
 
                 if (!class_exists(__NAMESPACE__ . $originClassName) && !interface_exists(__NAMESPACE__ . $originClassName)) {
                     $error['message'] = 'Unable to find class:' . $originClassName . ' in file:' . $foundFile;
@@ -161,7 +158,6 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
                         && $entry != ".."
                         && strpos($entry, '.php') === (strlen($entry) - 4)
                     ) {
-
                         $files[] = __NAMESPACE__ . '\\' . $originClassName . '\\' . substr($entry, 0, strlen($entry) - 4);
                     }
                 }

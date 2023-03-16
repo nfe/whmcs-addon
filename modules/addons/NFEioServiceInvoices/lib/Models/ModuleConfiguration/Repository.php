@@ -10,7 +10,6 @@ use Illuminate\Database\Capsule\Manager as Capsule;
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
-
     public $tableName = 'tbladdonmodules';
 
     public $fieldDeclaration = array(
@@ -288,6 +287,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     /**
      * Campos que podem ser migrados de versões anteriores a 2.0
+     *
      * @var array campos que podem ser migrados
      */
     public $migrationFields = array(
@@ -313,10 +313,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'NFEioEnvironment',
     );
 
+    public $serviceInvoicesIssueConditions = 'Quando a fatura é gerada,Quando a fatura é paga,Seguir configuração do módulo NFE.io';
+
     /**
      * Retorna coleção dos campos que podem ser migrados como chaves.
      *
-     * @return array campos possíveis de migração
+     * @return  array campos possíveis de migração
      * @example 'nome_campo' => true
      */
     public function getMigrationFields()
@@ -357,13 +359,13 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         $storage = new \WHMCSExpert\Addon\Storage($storageKey);
 
         // inicia valores para chave issue_note_conditions
-        $functions->gnfe_insert_issue_nfe_cond_in_database();
+        $storage->set('issue_note_conditions', $this->serviceInvoicesIssueConditions);
+        // $functions->gnfe_insert_issue_nfe_cond_in_database();
         // define 'on' como padrão para discount_items
         $storage->set('discount_items', 'on');
         // inicia valor para a chave initial_date
         $date = date('Y-m-d H:i:s');
         $storage->set('initial_date', $date);
-
     }
 
     /**
@@ -378,6 +380,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     /**
      * Retorna todos os campos existentes para configuração
+     *
      * @return array|array[] campos existentes para configuração
      */
     public function getFields()
@@ -387,6 +390,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     /**
      * Retorna a coleção de campos mandatários de configuração/preenchimento do módulo
+     *
      * @return array array com os nomes dos campos obrigatórios
      */
     public function getMandatoryFields()
@@ -396,7 +400,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     /**
      * Retorna os campos mandatários como chaves da coleção
-     * @return array campos mandatários
+     *
+     * @return  array campos mandatários
      * @example [api_key => true, company_id => true]
      */
     public function getMandatoryFieldsKeys()
@@ -411,7 +416,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     /**
      * Verifica se a coleção informada possui campos mandatários e os retorna com seus respectivos valores
-     * @param array $vars coleção a ser verificada
+     *
+     * @param  array $vars coleção a ser verificada
      * @return array|null campos mandatários existentes ou null caso $vars não seja um array
      */
     public function hasMandatoryFields($vars)
@@ -426,8 +432,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     /**
      * Computa e retorna os campos mandatários que não possuem um valor configurado com base no array fornecido
-     * @param $vars array coleção de dados a ser verificada da ausência dos dados mandatários
-     * @return  array|false retorna os campos mandatários ausentes
+     *
+     * @param  $vars array coleção de dados a ser verificada da ausência dos dados mandatários
+     * @return array|false retorna os campos mandatários ausentes
      */
     public function missingMandatoryFields($vars)
     {
@@ -436,6 +443,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
 
         return array_diff_key($this->getMandatoryFields(), $vars);
+    }
 
+    public function seed_service_invoices_issue_conditions()
+    {
+        $previousConditions = $this->get('issue_note_conditions');
     }
 }

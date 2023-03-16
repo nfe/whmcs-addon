@@ -1,6 +1,7 @@
 <?php
 
 namespace WHMCSExpert\mtLibs\models;
+
 use WHMCSExpert as main;
 
 class Orm extends Base
@@ -29,9 +30,13 @@ class Orm extends Base
             foreach (explode(',', $result[1]) as $setting) {
                 $tmp = explode('=', $setting);
                 if (isset($tmp[1])) {
-                    if ($tmp[1] == 'false') $value = false;
-                    elseif ($tmp[1] == 'true') $value = true;
-                    else $value = $tmp[1];
+                    if ($tmp[1] == 'false') {
+                        $value = false;
+                    } elseif ($tmp[1] == 'true') {
+                        $value = true;
+                    } else {
+                        $value = $tmp[1];
+                    }
 
                     static::$tableStructure[$class][$tmp[0]] = $value;
                 } else {
@@ -46,9 +51,13 @@ class Orm extends Base
                 foreach (explode(',', $result[1]) as $setting) {
                     $tmp = explode('=', $setting);
                     if (isset($tmp[1])) {
-                        if ($tmp[1] == 'false') $configs[$tmp[0]] = false;
-                        elseif ($tmp[1] == 'true') $configs[$tmp[0]] = true;
-                        else $configs[$tmp[0]] = $tmp[1];
+                        if ($tmp[1] == 'false') {
+                            $configs[$tmp[0]] = false;
+                        } elseif ($tmp[1] == 'true') {
+                            $configs[$tmp[0]] = true;
+                        } else {
+                            $configs[$tmp[0]] = $tmp[1];
+                        }
                     } else {
                         $configs[$tmp[0]] = true;
                     }
@@ -61,11 +70,12 @@ class Orm extends Base
                 }
                 if (!isset($configs['name'])) {
                     $configs['name'] = preg_replace_callback(
-                        '/([A-Z])/D'
-                        , function ($params) {
-                        return '_' . strtolower($params[0]);
-                    }
-                        , $property->name);
+                        '/([A-Z])/D',
+                        function ($params) {
+                            return '_' . strtolower($params[0]);
+                        },
+                        $property->name
+                    );
                 }
 
                 static::$tableStructure[$class]['columns'][$property->name] = $configs;
@@ -76,9 +86,13 @@ class Orm extends Base
                 foreach (explode(',', $result[1]) as $setting) {
                     $tmp = explode('=', $setting);
                     if (isset($tmp[1])) {
-                        if ($tmp[1] == 'false') $configs[$tmp[0]] = false;
-                        elseif ($tmp[1] == 'true') $configs[$tmp[0]] = true;
-                        else $configs[$tmp[0]] = $tmp[1];
+                        if ($tmp[1] == 'false') {
+                            $configs[$tmp[0]] = false;
+                        } elseif ($tmp[1] == 'true') {
+                            $configs[$tmp[0]] = true;
+                        } else {
+                            $configs[$tmp[0]] = $tmp[1];
+                        }
                     } else {
                         $configs[$tmp[0]] = true;
                     }
@@ -128,9 +142,9 @@ class Orm extends Base
     protected function getRawData($id, $haveToExits = true)
     {
         $data = main\mtLibs\MySQL\Query::select(
-            self::fieldDeclaration()
-            , self::tableName()
-            , array(
+            self::fieldDeclaration(),
+            self::tableName(),
+            array(
                 'id' => $id
             )
         )->fetch();
@@ -145,8 +159,9 @@ class Orm extends Base
     function __construct($id = false, $data = array())
     {
 
-        if ($id !== false)
+        if ($id !== false) {
             $this->id = (int)$id;
+        }
 
         if ($id !== false && empty($data)) {
             $data = $this->getRawData($id);
@@ -161,9 +176,13 @@ class Orm extends Base
     {
 
         foreach (self::fieldDeclaration() as $mysqlName => $field) {
-            if (isset($data[$field])) continue;
+            if (isset($data[$field])) {
+                continue;
+            }
 
-            if (!property_exists($this, $field)) continue;
+            if (!property_exists($this, $field)) {
+                continue;
+            }
 
             if (is_numeric($mysqlName)) {
                 $data[$field] = $this->{$field};
@@ -174,16 +193,16 @@ class Orm extends Base
 
         if ($this->id) {
             main\mtLibs\MySQL\Query::update(
-                self::tableName()
-                , $data
-                , array(
+                self::tableName(),
+                $data,
+                array(
                     'id' => $this->id
                 )
             );
         } else {
             $this->id = main\mtLibs\MySQL\Query::insert(
-                self::tableName()
-                , $data
+                self::tableName(),
+                $data
             );
         }
     }
@@ -192,8 +211,8 @@ class Orm extends Base
     {
         if ($this->id) {
             main\mtLibs\MySQL\Query::delete(
-                self::tableName()
-                , array(
+                self::tableName(),
+                array(
                     'id' => $this->id
                 )
             );
@@ -269,5 +288,4 @@ class Orm extends Base
             throw new main\mtLibs\exceptions\System(sprintf('Object property "%s" does not exist ', $k), main\mtLibs\exceptions\Codes::MISING_OBJECT_PROPERTY);
         }
     }
-
 }

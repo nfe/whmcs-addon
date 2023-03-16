@@ -3,12 +3,10 @@
 namespace NFEioServiceInvoices\Helpers;
 
 use NFEioServiceInvoices\Helpers\Invoices as InvoicesHelper;
-use \WHMCS\Database\Capsule;
-
+use WHMCS\Database\Capsule;
 
 class Invoices
 {
-
     public static function getInvoiceStatus($id)
     {
         return Capsule::table('tblinvoices')->where('id', '=', $id)->value('status');
@@ -48,14 +46,13 @@ class Invoices
         }
 
         return $description;
-
-
     }
 
     /**
      * Calcula o valor de retenção para o ISS
-     * @param $amount
-     * @param $issHeld
+     *
+     * @param  $amount
+     * @param  $issHeld
      * @return float
      */
     public static function getIssHeldAmount($amount, $issHeld)
@@ -67,8 +64,9 @@ class Invoices
 
     /**
      * Verifica se uma determinada fatura existe no banco de dados com base no seu ID.
-     * @param $invoiceId integer ID da fatura
-     * @return bool true se tiver false se não existir
+     *
+     * @param   $invoiceId integer ID da fatura
+     * @return  bool true se tiver false se não existir
      * @version 2.1
      */
     public static function hasInvoice($invoiceId)
@@ -81,5 +79,4 @@ class Invoices
             return false;
         }
     }
-
 }

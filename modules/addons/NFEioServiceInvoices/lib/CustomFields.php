@@ -2,15 +2,13 @@
 
 namespace NFEioServiceInvoices;
 
-use \WHMCS\Database\Capsule;
+use WHMCS\Database\Capsule;
 
 class CustomFields
 {
-
     private static function queryCF(array $select, array $where)
     {
         return Capsule::table('tblcustomfields')->select($select)->where($where)->get();
-
     }
 
     public static function getClientFields()
@@ -40,6 +38,4 @@ class CustomFields
 
         return $fields;
     }
-
-
 }

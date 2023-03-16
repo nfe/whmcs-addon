@@ -2,6 +2,13 @@
 
 namespace NFEioServiceInvoices\Hooks;
 
+/**
+ * Class InvoiceCreation
+ * Classe responsável por executar ações quando uma fatura é criada.
+ *
+ * @author  Andre Bellafronte
+ * @package NFEioServiceInvoices\Hooks
+ */
 class InvoiceCreation
 {
     private $invoiceId;
@@ -21,8 +28,8 @@ class InvoiceCreation
     {
         $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
         $storage = new \WHMCSExpert\Addon\Storage($this->config->getStorageKey());
-        $invoiceData = localAPI('GetInvoice', array('invoiceid' => $this->invoiceId));
-        $userId = $invoiceData['userid'];
+        $invoiceData = \WHMCS\Billing\Invoice::find($this->invoiceId);
+        $userId = $invoiceData->userid;
         $clientRepository = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
         $clientIssueCondition = $clientRepository->getClientIssueCondition($userId);
         $moduleIssueCondition = strtolower($storage->get('issue_note_default_cond'));
@@ -30,7 +37,7 @@ class InvoiceCreation
         $generateTaxBill = false;
         $generateTaxBillWhen = 'quando a fatura é gerada';
 
-        if ($invoiceData['total'] > 0.00 AND (!$issueNoteAfter OR $issueNoteAfter == 0) AND $this->invoiceStatus != 'Draft' ) {
+        if ($invoiceData->total > 0.00 and (!$issueNoteAfter or $issueNoteAfter == 0) and $this->invoiceStatus != 'Draft') {
             $generateTaxBill = true;
         }
 
@@ -39,20 +46,19 @@ class InvoiceCreation
             'invoiceData' => $invoiceData,
             'userID' => $userId,
             'clientIssueCondition' => $clientIssueCondition,
-            'moduleIssueCondition' =>$moduleIssueCondition,
+            'moduleIssueCondition' => $moduleIssueCondition,
             'issueNoteAfter' => $issueNoteAfter,
             'generateTaxBill' => $generateTaxBill,
             'generateTaxBillWhen' => $generateTaxBillWhen
         ];
 
-        if ($clientIssueCondition == 'seguir configuração do módulo nfe.io' AND $moduleIssueCondition == $generateTaxBillWhen AND $generateTaxBill) {
+        if ($clientIssueCondition == 'seguir configuração do módulo nfe.io' and $moduleIssueCondition == $generateTaxBillWhen and $generateTaxBill) {
             $queue = $nfe->queue($this->invoiceId);
             logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, $data, $queue);
         }
-        if ($clientIssueCondition == $generateTaxBillWhen AND $generateTaxBill) {
+        if ($clientIssueCondition == $generateTaxBillWhen and $generateTaxBill) {
             $queue = $nfe->queue($this->invoiceId);
             logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, $data, $queue);
         }
-
     }
 }

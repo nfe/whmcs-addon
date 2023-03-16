@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => '__root__',
-        'pretty_version' => 'dev-next',
-        'version' => 'dev-next',
-        'reference' => 'e485903ef59c368cf0c1db7b28aed1ea99fece24',
+        'pretty_version' => '1.0.0+no-version-set',
+        'version' => '1.0.0.0',
+        'reference' => NULL,
         'type' => 'library',
         'install_path' => __DIR__ . '/../../../../../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         '__root__' => array(
-            'pretty_version' => 'dev-next',
-            'version' => 'dev-next',
-            'reference' => 'e485903ef59c368cf0c1db7b28aed1ea99fece24',
+            'pretty_version' => '1.0.0+no-version-set',
+            'version' => '1.0.0.0',
+            'reference' => NULL,
             'type' => 'library',
             'install_path' => __DIR__ . '/../../../../../../',
             'aliases' => array(),
@@ -71,9 +71,9 @@
             'dev_requirement' => false,
         ),
         'whmcsexpert/whmcsexpert' => array(
-            'pretty_version' => 'dev-dev',
-            'version' => 'dev-dev',
-            'reference' => '2ab629648dcb7133d24defe305b8b5f74a0d3953',
+            'pretty_version' => 'v1.1.7',
+            'version' => '1.1.7.0',
+            'reference' => 'bea1112fe3974b424fdb7223139cb33dd4cc0856',
             'type' => 'library',
             'install_path' => __DIR__ . '/../whmcsexpert/whmcsexpert',
             'aliases' => array(),

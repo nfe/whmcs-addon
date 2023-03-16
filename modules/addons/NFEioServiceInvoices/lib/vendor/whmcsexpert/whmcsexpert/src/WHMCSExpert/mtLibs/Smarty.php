@@ -1,6 +1,7 @@
 <?php
 
 namespace WHMCSExpert\mtLibs;
+
 use WHMCSExpert as main;
 
 /**
@@ -15,10 +16,10 @@ class Smarty
     private $_smarty;
     private $_templateDIR;
 
-    final private function __construct()
+    final function __construct()
     {
     }
-    final private function __clone()
+    final function __clone()
     {
     }
 
@@ -33,8 +34,8 @@ class Smarty
             self::$_instance = new self();
 
             if (!class_exists('Smarty')) {
-                if (file_exists(ROOTDIR.DS.'includes'.DS.'smarty'.DS.'Smarty.class.php')) {
-                    require_once(ROOTDIR.DS.'includes'.DS.'smarty'.DS.'Smarty.class.php');
+                if (file_exists(ROOTDIR . DS . 'includes' . DS . 'smarty' . DS . 'Smarty.class.php')) {
+                    require_once(ROOTDIR . DS . 'includes' . DS . 'smarty' . DS . 'Smarty.class.php');
                 } else {
                     die('Smarty does not exists!');
                 }
@@ -100,15 +101,15 @@ class Smarty
 
         if (is_array(self::I()->_smarty->template_dir)) {
             if (strlen(self::I()->_smarty->template_dir[0]) > 3) {
-                $file = self::I()->_smarty->template_dir[0].DS.$template.'.tpl';
+                $file = self::I()->_smarty->template_dir[0] . DS . $template . '.tpl';
             } else {
-                $file = $template.'.tpl';
+                $file = $template . '.tpl';
             }
         } else {
             if (strlen(self::I()->_smarty->template_dir) > 3) {
-                $file = self::I()->_smarty->template_dir.DS.$template.'.tpl';
+                $file = self::I()->_smarty->template_dir . DS . $template . '.tpl';
             } else {
-                $file = $template.'.tpl';
+                $file = $template . '.tpl';
             }
         }
 
@@ -120,10 +121,10 @@ class Smarty
         }
 
         if (!file_exists($file)) {
-            throw new exceptions\System('Unable to find Template:'.$file);
+            throw new exceptions\System('Unable to find Template:' . $file);
         }
 
-        return self::I()->_smarty->fetch($template.'.tpl', uniqid());
+        return self::I()->_smarty->fetch($template . '.tpl', uniqid());
     }
 
     protected function clear()

@@ -2,9 +2,8 @@
 
 namespace WHMCSExpert\mtLibs\process;
 
-
-abstract class AbstractConfiguration{
-
+abstract class AbstractConfiguration
+{
     public $debug = false;
 
     public $systemName = false;
@@ -39,18 +38,20 @@ abstract class AbstractConfiguration{
 
     private $_customConfigs = array();
 
-    public function __isset($name) {
+    public function __isset($name)
+    {
         return isset($this->_customConfigs[$name]);
     }
 
-    public function __get($name) {
-        if(isset($this->_customConfigs[$name]))
-        {
+    public function __get($name)
+    {
+        if (isset($this->_customConfigs[$name])) {
             return $this->_customConfigs[$name];
         }
     }
 
-    public function __set($name, $value) {
+    public function __set($name, $value)
+    {
         $this->_customConfigs[$name] = $value;
     }
 
@@ -281,7 +282,7 @@ abstract class AbstractConfiguration{
     /**
      * @param int $allowCheckFailDays
      */
-    public function setAllowCheckFailDays( int $allowCheckFailDays)
+    public function setAllowCheckFailDays(int $allowCheckFailDays)
     {
         $this->allowCheckFailDays = $allowCheckFailDays;
     }
@@ -310,31 +311,38 @@ abstract class AbstractConfiguration{
         return $this->modelRegister;
     }
 
-    public function getAddonMenu(){
+    public function getAddonMenu()
+    {
         return array();
     }
 
-    public function getAddonWHMCSConfig(){
+    public function getAddonWHMCSConfig()
+    {
         return array();
     }
 
-    public function getServerConfigController(){
+    public function getServerConfigController()
+    {
         return 'configuration';
     }
 
-    public function getServerActionsController(){
+    public function getServerActionsController()
+    {
         return 'actions';
     }
 
-    public function getServerCAController(){
+    public function getServerCAController()
+    {
         return 'home';
     }
 
-    public function getAddonAdminController(){
+    public function getAddonAdminController()
+    {
         return 'actions';
     }
 
-    public function getAddonCAController(){
+    public function getAddonCAController()
+    {
         return 'home';
     }
 }

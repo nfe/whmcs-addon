@@ -2,11 +2,10 @@
 
 namespace NFEioServiceInvoices\Hooks;
 
-use \WHMCS\Database\Capsule;
+use WHMCS\Database\Capsule;
 
 class ClientAreaPageViewInvoice
 {
-
     /**
      * @var \NFEioServiceInvoices\Configuration
      */
@@ -52,5 +51,4 @@ class ClientAreaPageViewInvoice
 
         return $vars;
     }
-
 }
