@@ -81,7 +81,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             $issueCondition = strtolower($value);
         }
 
-        logModuleCall('NFEioServiceInvoices', "getClientIssueCondition", $clientId, "{$issueCondition}" . ' - ' . $value);
+        logModuleCall('nfeio_serviceinvoices', "client_issue_condition", "Customer ID: {$clientId}", "{$issueCondition}" . ' - ' . $value);
 
         return $issueCondition;
     }

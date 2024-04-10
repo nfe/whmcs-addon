@@ -338,11 +338,11 @@ class Controller
             if ($delete_nfe->message) {
                 $response = $nfe->updateLocalNfeStatus($_REQUEST['gnfe_cancel'], 'Cancelled');
 
-                logModuleCall('nfeioserviceinvoices', 'cancel_nf', $_REQUEST['gnfe_cancel'], "NF API Response: \n {$delete_nfe->message} \n NF LOCAL Response: \n {$response}");
+                logModuleCall('nfeio_serviceinvoices', 'cancel_nf', $_REQUEST['gnfe_cancel'], "NF API Response: \n {$delete_nfe->message} \n NF LOCAL Response: \n {$response}");
 
                 $msg->warning("Nota fiscal cancelada, mas com aviso: {$delete_nfe->message}", $redirectUrl);
             } else {
-                logModuleCall('nfeioserviceinvoices', 'cancel_nf', $_REQUEST['gnfe_cancel'], $delete_nfe);
+                logModuleCall('nfeio_serviceinvoices', 'cancel_nf', $_REQUEST['gnfe_cancel'], $delete_nfe);
 
                 $msg->success("Nota fiscal cancelada com sucesso", $redirectUrl);
             }

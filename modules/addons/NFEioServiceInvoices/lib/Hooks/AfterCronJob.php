@@ -47,8 +47,8 @@ class AfterCronJob
 
         $hasNfWaiting = Capsule::table($serviceInvoicesTable)->whereBetween('created_at', [$initialDate, $dataAtual])->where('status', '=', 'Waiting')->count();
         logModuleCall(
-            'NFEioServiceInvoices',
-            'Hook - AfterCronJob',
+            'nfeio_serviceinvoices',
+            'hook_aftercronjob',
             "{$hasNfWaiting} notas a serem geradas",
             array(
             [
@@ -74,7 +74,7 @@ class AfterCronJob
 */
             }
 
-            logModuleCall('NFEioServiceInvoices', 'Hook - AfterCronJob', "{$hasNfWaiting} notas a serem geradas", $queryNf);
+            logModuleCall('nfeio_serviceinvoices', 'hook_aftercronjob', "{$hasNfWaiting} notas a serem geradas", $queryNf);
         }
     }
 }

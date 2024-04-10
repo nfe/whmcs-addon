@@ -14,10 +14,16 @@ new NFEioServiceInvoices\Loader();
 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
     // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/405
     http_response_code(405);
+    echo "Method Not Allowed";
     exit();
 }
 
+// armazena o cabecalho da requisição
+$headers = getallheaders();
+
 $post = json_decode(file_get_contents('php://input'), true);
+
+logModuleCall('nfeio_serviceinvoices', 'callback', 'Webhook Raw Payload', ['headers' => $headers, 'body' => $post]);
 
 if ($post) {
     $functions = new Functions();
@@ -37,12 +43,12 @@ if ($post) {
 
     //verificar o ambiente
     if ($environment == 'on' && $nf_environment == 'Production') {
-        logModuleCall('NFEioServiceInvoices', 'callback_error_development', 'Ambiente Development ativo mas recebendo notas de Production', $post, $params);
+        logModuleCall('nfeio_serviceinvoices', 'callback_error_development', 'Ambiente Development ativo mas recebendo notas de Production', $post, $params);
         // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/403
         http_response_code(200);
         exit();
     } elseif ($environment == '' && $nf_environment == 'Development') {
-        logModuleCall('NFEioServiceInvoices', 'callback_error_production', 'Ambiente Production ativo mas recebendo notas de Development', $post, $params);
+        logModuleCall('nfeio_serviceinvoices', 'callback_error_production', 'Ambiente Production ativo mas recebendo notas de Development', $post, $params);
         // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/403
         http_response_code(200);
         exit();
@@ -51,7 +57,7 @@ if ($post) {
 
     //verificar se a nfe existe na tabela
     if ($totalNfLocal == 0) {
-        logModuleCall('NFEioServiceInvoices', 'callback_error', 'Nota Fiscal não existe no banco local', $post);
+        logModuleCall('nfeio_serviceinvoices', 'callback_error', 'Nota Fiscal não existe no banco local', $post);
         // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/404
         http_response_code(404);
         exit();
@@ -97,9 +103,9 @@ if ($post) {
 
         try {
             $save_nfe = Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', '=', $post['id'])->update($new_nfe);
-            logModuleCall('NFEioServiceInvoices', 'callback_success', $post, $save_nfe);
+            logModuleCall('nfeio_serviceinvoices', 'callback_success', $post, $save_nfe);
         } catch (\Exception $e) {
-            logModuleCall('NFEioServiceInvoices', 'callback_error', "Erro ao atualizar a nota no banco de dados \n\n Nota: \n {$new_nfe} Callback: \n {$post}", $e->getMessage());
+            logModuleCall('nfeio_serviceinvoices', 'callback_error', "Erro ao atualizar a nota no banco de dados \n\n Nota: \n {$new_nfe} Callback: \n {$post}", $e->getMessage());
         }
 
         // garante retorno de cabeçalho na resposta

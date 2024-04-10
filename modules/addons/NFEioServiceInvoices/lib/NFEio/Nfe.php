@@ -302,12 +302,12 @@ class Nfe
 
                 // se já houver uma nota no banco local com o mesmo external_id pula a emissão de nota
                 if (is_array($hasExternalId)) {
-                    logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, "Um external_id idêntico foi encontrado para {$nf['nfe_external_id']}, NF não adicionada para transmissão", $hasExternalId);
+                    logModuleCall('nfeio_serviceinvoices', 'nf_queue', "Um external_id idêntico foi encontrado para {$nf['nfe_external_id']}, NF não adicionada para transmissão", $hasExternalId);
                     continue;
                 }
 
                 $result = Capsule::table($this->serviceInvoicesTable)->insert($nf);
-                logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, $nf, $result);
+                logModuleCall('nfeio_serviceinvoices', 'nf_queue', $nf, $result);
             }
         }
 
@@ -329,7 +329,7 @@ class Nfe
         $clientData = \WHMCS\User\Client::find($clientId);
         $customer = $this->legacyFunctions->gnfe_customer($clientId, $clientData);
 
-        logModuleCall('NFEioServiceInvoices', 'get_client_details', $clientData, $customer);
+        logModuleCall('nfeio_serviceinvoices', 'nf_emit_for_customer', $data, $customer);
 
         $emailNfeConfig = (bool) $this->storage->get('gnfe_email_nfe_config');
         $client_email = $emailNfeConfig ? $clientData->email : '';
@@ -404,9 +404,9 @@ class Nfe
 
         if (!$nfeResponse->message) {
             $gnfe_update_nfe = $this->legacyFunctions->gnfe_update_nfe($nfeResponse, $clientId, $invoiceId, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $nfDbId);
-            logModuleCall('NFEioServiceInvoices', 'transmit_nf_success', $postData, $nfeResponse);
+            logModuleCall('nfeio_serviceinvoices', 'nf_emit', $postData, $nfeResponse);
         } else {
-            logModuleCall('NFEioServiceInvoices', 'transmit_nf_error', $postData, $nfeResponse);
+            logModuleCall('nfeio_serviceinvoices', 'nf_emit_error', $postData, $nfeResponse);
         }
     }
 
@@ -478,10 +478,10 @@ class Nfe
 
         try {
             $result = Capsule::table($_tableName)->insert($reissueNfData);
-            logModuleCall('NFEioServiceInvoices', __CLASS__ . '/' . __FUNCTION__, $reissueNfData, $result);
+            logModuleCall('nfeio_serviceinvoices', 'nf_reissue_series_by_nf', $reissueNfData, $result);
             return 'success';
         } catch (\Exception $e) {
-            logModuleCall('NFEioServiceInvoices', __CLASS__ . '/' . __FUNCTION__, $reissueNfData, $e->getMessage());
+            logModuleCall('nfeio_serviceinvoices', 'nf_reissue_series_by_nf_error', $reissueNfData, $e->getMessage());
             return $e->getMessage();
         }
     }
@@ -511,7 +511,7 @@ class Nfe
 
         $result = $this->queue($invoiceId, true);
 
-        logModuleCall('NFEioServiceInvoices', __CLASS__ . '/' . __FUNCTION__, $invoiceId, $result);
+        logModuleCall('nfeio_serviceinvoices', 'nf_reissue_series_by_invoice', $invoiceId, $result);
 
         return ['status' => 'success'];
     }
@@ -556,7 +556,7 @@ class Nfe
         if (count($existingNf) > 0) {
             foreach ($existingNf as $nf) {
                 $result = $this->legacyFunctions->gnfe_delete_nfe($nf->nfe_id);
-                logModuleCall('NFEioServiceInvoices', __CLASS__ . '/' . __FUNCTION__, $nf, $result);
+                logModuleCall('nfeio_serviceinvoices', 'nf_cancel_series_by_invoice', $nf, $result);
                 // $message sempre retornará erro para notas com status diferente de 'Issued' na API.
                 //  Esta condição garante que status local é alterada para 'Canceled' de qualquer maneira.
                 if ($result->message or empty($result)) {
@@ -566,8 +566,8 @@ class Nfe
             return ['status' => 'success'];
         } else {
             logModuleCall(
-                'NFEioServiceInvoices',
-                __CLASS__ . '/' . __FUNCTION__,
+                'nfeio_serviceinvoices',
+                'nf_cancel_series_by_invoice',
                 ['invoice ID' => $invoiceId],
                 "Não existem notas para a fatura #{$invoiceId}."
             );
