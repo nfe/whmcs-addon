@@ -4,7 +4,6 @@ namespace NFEioServiceInvoices\Helpers;
 
 class Validations
 {
-
     /**
      * Verifica se dado valor é um CPF válido usando calculo de verificação de CPF.
      * @param $cpf CPF a ser validado. Pode ser enviado com ou sem máscara.
@@ -51,5 +50,4 @@ class Validations
         }
         return true;
     }
-
 }
