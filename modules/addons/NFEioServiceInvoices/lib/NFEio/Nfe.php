@@ -328,22 +328,29 @@ class Nfe
         $environment = $data->environment;
         $clientData = \WHMCS\User\Client::find($clientId);
         $customer = $this->legacyFunctions->gnfe_customer($clientId, $clientData);
-
-        logModuleCall('nfeio_serviceinvoices', 'nf_emit_for_customer', $data, $customer);
-
         $emailNfeConfig = (bool) $this->storage->get('gnfe_email_nfe_config');
         $client_email = $emailNfeConfig ? $clientData->email : '';
 
-        if ($customer['doc_type'] == 2) {
-            if ($clientData->companyname != '') {
-                $name = $clientData->companyname;
-            } else {
-                $name = $clientData->fullname;
-            }
-        } elseif ($customer['doc_type'] == 1 || 'CPF e/ou CNPJ ausente.' == $customer || !$customer['doc_type']) {
-            $name = $clientData->fullname;
+        logModuleCall('nfeio_serviceinvoices', 'nf_emit_for_customer', $data, $customer);
+
+        // se dados do cliente retornarem erro, atualiza status da NF e para emissao
+        if ($customer['error']) {
+            $this->legacyFunctions->update_status_nfe($invoiceId, 'Doc_Error');
+            logModuleCall('nfeio_serviceinvoices', 'nf_emit_error', $data, $customer);
+            return;
         }
-        $name = htmlspecialchars_decode($name);
+
+
+//        if ($customer['doc_type'] == 2) {
+//            if ($clientData->companyname != '') {
+//                $name = $clientData->companyname;
+//            } else {
+//                $name = $clientData->fullname;
+//            }
+//        } elseif ($customer['doc_type'] == 1 || 'CPF e/ou CNPJ ausente.' == $customer || !$customer['doc_type']) {
+//            $name = $clientData->fullname;
+//        }
+        $name = $customer['name'];
 
         //define address
         if (strpos($clientData->address1, ',')) {
@@ -355,14 +362,14 @@ class Nfe
             $number = preg_replace('/[^0-9]/', '', $clientData->address1);
         }
 
-        if ($clientData->postcode == null || $clientData->postcode == '') {
+        if (empty($clientData->postcode)) {
             $this->legacyFunctions->update_status_nfe($invoiceId, 'Error_cep');
             return;
         }
 
         $ibgeCode = $this->legacyFunctions->gnfe_ibge(preg_replace('/[^0-9]/', '', $clientData->postcode));
 
-        if ($ibgeCode == 'ERROR') {
+        if ($ibgeCode['error']) {
             $this->legacyFunctions->update_status_nfe($invoiceId, 'Error_cep');
             return;
         }
@@ -387,7 +394,7 @@ class Nfe
                     'additionalInformation' => '',
                     'district' => $clientData->address2,
                     'city' => [
-                        'code' => $ibgeCode,
+                        'code' => $ibgeCode['code'],
                         'name' => $clientData->city,
                     ],
                     'state' => $clientData->state
