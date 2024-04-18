@@ -49,7 +49,7 @@
   {elseif $data == 'waiting'}
     Aguardando na fila para processamento
   {else}
-    Não disponível
+    {$data}
   {/if}
 {/function}
 

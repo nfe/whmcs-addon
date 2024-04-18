@@ -61,21 +61,18 @@ class Functions
         // insc_municipal
         if ($inscMunicipalCustomFieldId != 0) {
             foreach (Capsule::table('tblcustomfieldsvalues')->where('fieldid', '=', $inscMunicipalCustomFieldId)->where('relid', '=', $user_id)->get(['value']) as $customfieldvalue) {
-//                $insc_customfield_value = $customfieldvalue->value;
                 $inscMunicipalCustomFieldValue = $customfieldvalue->value;
             }
         }
         // cpf
         if ($cpfCustomFieldId != 0) {
             foreach (Capsule::table('tblcustomfieldsvalues')->where('fieldid', '=', $cpfCustomFieldId)->where('relid', '=', $user_id)->get(['value']) as $customfieldvalue) {
-//                $cpf_customfield_value = preg_replace('/[^0-9]/', '', $customfieldvalue->value);
                 $cpfCustomFieldValue = $customfieldvalue->value;
             }
         }
         //cnpj
         if ($cnpjCustomFieldId != 0) {
             foreach (Capsule::table('tblcustomfieldsvalues')->where('fieldid', '=', $cnpjCustomFieldId)->where('relid', '=', $user_id)->get(['value']) as $customfieldvalue) {
-//                $cnpj_customfield_value = preg_replace('/[^0-9]/', '', $customfieldvalue->value);
                 $cnpjCustomFieldValue = $customfieldvalue->value;
             }
         }
@@ -93,7 +90,7 @@ class Functions
 
         $cpf = preg_replace('/[^0-9]/', '', $cpfCustomFieldValue);
         $cnpj = preg_replace('/[^0-9]/', '', $cnpjCustomFieldValue);
-        $inscMunicipal = $inscMunicipalCustomFieldValue ? trim($inscMunicipalCustomFieldValue) : false;
+        $inscMunicipal = $inscMunicipalCustomFieldValue && trim($inscMunicipalCustomFieldValue);
 
         // adiciona a inscricao municipal ao retorno apenas se existir um valor registrado e documento for CNPJ
         if ($inscMunicipal && $cnpjIsValid) {
@@ -114,73 +111,6 @@ class Functions
             $result['error'] = true;
             $result['message'] = 'Documento cadastrado não é um CPF ou CNPJ válido.';
         }
-
-
-        /**
-         * // Cliente possui CPF e CNPJ
-         * // CPF com 1 nº a menos, adiciona 0 antes do documento
-         * if (strlen($cpf_customfield_value) === 10) {
-         * $cpf = '0' . $cpf_customfield_value;
-         * }
-         * // CPF com 11 dígitos
-         * elseif (strlen($cpf_customfield_value) === 11) {
-         * $cpf = $cpf_customfield_value;
-         * }
-         * // CNPJ no campo de CPF com um dígito a menos
-         * elseif (strlen($cpf_customfield_value) === 13) {
-         * $cpf = false;
-         * $cnpj = '0' . $cpf_customfield_value;
-         * }
-         * // CNPJ no campo de CPF
-         * elseif (strlen($cpf_customfield_value) === 14) {
-         * $cpf = false;
-         * $cnpj = $cpf_customfield_value;
-         * }
-         * // cadastro não possui CPF
-         * elseif (!$cpf_customfield_value || strlen($cpf_customfield_value) !== 10 || strlen($cpf_customfield_value) !== 11 || strlen($cpf_customfield_value) != 13 || strlen($cpf_customfield_value) !== 14) {
-         * $cpf = false;
-         * }
-         * // CNPJ com 1 nº a menos, adiciona 0 antes do documento
-         * if (strlen($cnpj_customfield_value) === 13) {
-         * $cnpj = '0' . $cnpj_customfield_value;
-         * }
-         * // CNPJ com nº de dígitos correto
-         * elseif (strlen($cnpj_customfield_value) === 14) {
-         * $cnpj = $cnpj_customfield_value;
-         * }
-         * // Cliente não possui CNPJ
-         * elseif (!$cnpj_customfield_value and strlen($cnpj_customfield_value) !== 14 and strlen($cnpj_customfield_value) !== 13 and strlen($cpf_customfield_value) !== 13 and strlen($cpf_customfield_value) !== 14) {
-         * $cnpj = false;
-         * }
-         * if (($cpf and $cnpj) or (!$cpf and $cnpj)) {
-         * $custumer['doc_type'] = 2;
-         * $custumer['document'] = $cnpj;
-         * if ($client->companyname) {
-         * $custumer['name'] = $client->companyname;
-         * } elseif (!$client->companyname) {
-         * $custumer['name'] = $client->firstname . ' ' . $client->lastname;
-         * }
-         * } elseif ($cpf and !$cnpj) {
-         * $custumer['doc_type'] = 1;
-         * $custumer['document'] = $cpf;
-         * $custumer['name'] = $client->firstname . ' ' . $client->lastname;
-         * }
-         * if ($insc_customfield_value != 'NF') {
-         * $custumer['insc_municipal'] = $insc_customfield_value;
-         * }
-         * if (!$cpf and !$cnpj) {
-         * $error = 'CPF e/ou CNPJ ausente.';
-         * logModuleCall('nfeio_serviceinvoices', 'customer_error', $custumer, $error);
-         * }
-         * if (!$error) {
-         * return $custumer;
-         * }
-         * if ($error) {
-         * logModuleCall('nfeio_serviceinvoices', 'customer_error', $custumer, $error);
-         *
-         * return $custumer['error'] = $error;
-         * } */
-
 
         return $result;
     }
@@ -241,7 +171,7 @@ class Functions
         $result = [];
 
         // se curl apresentar erro retorna imediatamente
-        if($error){
+        if ($error) {
             $result['error'] = true;
             $result['message'] = $error;
             return $result;

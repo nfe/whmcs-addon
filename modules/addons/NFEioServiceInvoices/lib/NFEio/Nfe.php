@@ -422,16 +422,17 @@ class Nfe
      *
      * @param   $nfRemoteId string ID remoto da NF (nfe_id)
      * @param   $status     string Status da NF
+     * @param   $flowStatus null|string Status de fluxo da NF
      * @return  string 'success' para sucesso
      * @version 2.1.2
      */
-    public function updateLocalNfeStatus($nfRemoteId, $status)
+    public function updateLocalNfeStatus($nfRemoteId, $status, $flowStatus = null)
     {
 
         $_tableName = $this->serviceInvoicesRepo->tableName();
 
         try {
-            Capsule::table($_tableName)->where('nfe_id', '=', $nfRemoteId)->update(['status' => $status]);
+            Capsule::table($_tableName)->where('nfe_id', '=', $nfRemoteId)->update(['status' => $status, 'flow_status' => $flowStatus]);
         } catch (\Exception $e) {
             return $e->getMessage();
         }
@@ -564,10 +565,20 @@ class Nfe
             foreach ($existingNf as $nf) {
                 $result = $this->legacyFunctions->gnfe_delete_nfe($nf->nfe_id);
                 logModuleCall('nfeio_serviceinvoices', 'nf_cancel_series_by_invoice', $nf, $result);
-                // $message sempre retornará erro para notas com status diferente de 'Issued' na API.
-                //  Esta condição garante que status local é alterada para 'Canceled' de qualquer maneira.
-                if ($result->message or empty($result)) {
-                    $this->updateLocalNfeStatus($nf->nfe_id, 'Cancelled');
+
+                /*
+                 API retorna 202 e nf no corpo quando nota em fila de cancelamento (WaitingSendCancel)
+                 $message nao faz mais parte do objeto de resposta em qualquer outro status,
+                 agora quando uma nota diferente de 'Issued' é cancelada, o corpo da resposta é
+                 uma string informando o motivo. Ex.: 'service invoice status is 'Cancelled' but must be 'Issued''.
+                */
+
+                // caso retorne objeto, respeita os status que a API retorna
+                if ($result->flowStatus && $result->status) {
+                    $this->updateLocalNfeStatus($nf->nfe_id, $result->status, $result->flowStatus);
+                } else {
+                  // caso nao tenha objeto, forca cancelamento local com status flow personalizado
+                    $this->updateLocalNfeStatus($nf->nfe_id, 'Cancelled', 'ApiNoResponse');
                 }
             }
             return ['status' => 'success'];
