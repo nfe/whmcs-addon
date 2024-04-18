@@ -50,4 +50,45 @@ class Validations
         }
         return true;
     }
+
+    /**
+     * Verifica se o hash da assinatura de webhook é válido.
+     *
+     * @see https://nfe.io/docs/documentacao/webhooks/duvidas-frequentes/#2_Como_saber_se_o_webhook_que_recebi_e_da_NFEio
+     *
+     * @param string $secret O segredo usado na computação do hash.
+     * @param mixed $payload O payload usado na computação do hash.
+     * @param string $signature A assinatura a ser verificada.
+     * @param string $algo O algoritmo de hash usado para a computação.
+     *
+     * @return bool True se a assinatura é válida, false caso contrário.
+     */
+    public static function webhookHashValid(string $secret, $payload, string $signature, string $algo = "sha1"): bool
+    {
+        $instance = new self();
+        $hash = $instance->webhookComputeHash($algo, $secret, $payload);
+        $signature = base64_decode($signature);
+        return hash_equals($hash, $signature);
+    }
+
+    /**
+     * Computa o hash usando o algoritmo e segredo especificados.
+     *
+     * @param string $algo O algoritmo de hash a ser usado.
+     * @param string $secret O segredo a ser usado na computação do hash.
+     * @param mixed $payload O payload a ser usado na computação do hash.
+     * @param bool $bencode Define se o hash deve ser codificado em base64.
+     *
+     * @return string The computed hash.
+     */
+    private  function webhookComputeHash(string $algo, string $secret, $payload, bool $bencode = false): string
+    {
+        $hex_hash = hash_hmac($algo, $payload, utf8_encode($secret));
+        $result = $bencode ? base64_encode(hex2bin($hex_hash)) : hex2bin($hex_hash);
+        logModuleCall('nfeio_serviceinvoices', 'webhook_hmac', [
+            'algo' => $algo, 'secret' => $secret, 'payload' => $payload
+        ], $result);
+
+        return $result;
+    }
 }
