@@ -5,7 +5,8 @@
     "guzzlehttp/psr7": "^1.8",
     "ext-curl": "*",
     "php": ">=7.4",
-    "nfe/nfe": "^2.5"
+    "nfe/nfe": "^2.5",
+    "ext-json": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "@stable",
