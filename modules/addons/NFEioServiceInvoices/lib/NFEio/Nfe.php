@@ -174,14 +174,9 @@ class Nfe
                 'service_code' => $serviceCode,
             ];
 
+            $invoiceData = \WHMCS\Billing\Invoice::find($invoiceId);
+            $itemsTotal = $invoiceData->total;
 
-            // percorre cada item para realizar as agregações e somatórias
-            foreach ($item as $value) {
-                // concatena todas as descrições dos itens
-                $itemsDescription = $itemsDescription . $value['itemDescription'] . "\n";
-                // soma os valores de cada item para o total da nota
-                $itemsTotal = $itemsTotal + $value['itemAmount'];
-            }
             // adiciona a descrição da nota no formato parametrizado
             $nfData['nfe_description'] = \NFEioServiceInvoices\Helpers\Invoices::generateNfServiceDescription($invoiceId, $itemsDescription);
             // adiciona o valor total calculado para os itens
