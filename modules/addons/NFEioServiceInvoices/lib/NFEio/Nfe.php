@@ -422,22 +422,39 @@ class Nfe
      *
      * @param   $nfRemoteId string ID remoto da NF (nfe_id)
      * @param   $status     string Status da NF
-     * @param   $flowStatus null|string Status de fluxo da NF
-     * @return  string 'success' para sucesso
+     * @param   $flowStatus string|null Status de fluxo da NF
+     * @return  bool status da operação
      * @version 2.1.2
      */
-    public function updateLocalNfeStatus($nfRemoteId, $status, $flowStatus = null)
+    public function updateLocalNfeStatus(string $nfRemoteId, string $status, string $flowStatus = null): bool
     {
+        $result = $this->serviceInvoicesRepo->updateNfStatusByNfeId($nfRemoteId, $status, $flowStatus);
+        // caso sucesso registra log
+        if ($result) {
+            logModuleCall('nfeio_serviceinvoices', 'updateLocalNfeStatus', ['nfe_id' => $nfRemoteId, 'status' => $status, 'flow_status' => $flowStatus], $result);
 
-        $_tableName = $this->serviceInvoicesRepo->tableName();
-
-        try {
-            Capsule::table($_tableName)->where('nfe_id', '=', $nfRemoteId)->update(['status' => $status, 'flow_status' => $flowStatus]);
-        } catch (\Exception $e) {
-            return $e->getMessage();
         }
 
-        return 'success';
+        return $result;
+    }
+
+    /**
+     * Atualiza o status de uma NF no banco local pelo externalId
+     *
+     * @param $externalId string ID externo da NF (API externalId)
+     * @param $status string O novo status da NF
+     * @param $flowStatus string|null O novo status de fluxo da NF
+     * @return bool status da operação
+     */
+    public function updateLocalNfeStatusByExternalId(string $externalId, string $status, string $flowStatus = null): bool
+    {
+        $result = $this->serviceInvoicesRepo->updateNfStatusByExternalId($externalId, $status, $flowStatus);
+        // caso sucesso registra log
+        if($result) {
+            logModuleCall('nfeio_serviceinvoices', 'updateLocalNfeStatusByExternalId', ['nfe_external_id' => $externalId, 'status' => $status, 'flow_status' => $flowStatus], $result);
+        }
+
+        return $result;
     }
 
     /**
@@ -591,5 +608,20 @@ class Nfe
             );
             return ['status' => 'info', 'message' => "Não existem notas para a fatura #{$invoiceId}."];
         }
+    }
+
+    public function fetchNf($nfId)
+    {
+        $apiKey = $this->storage->get('api_key');
+        $companyId = $this->storage->get('company_id');
+
+        try {
+            \NFe_io::setApiKey($apiKey);
+            $invoice = \NFe_ServiceInvoice::fetch($companyId, $nfId);
+            return $invoice;
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+
     }
 }
