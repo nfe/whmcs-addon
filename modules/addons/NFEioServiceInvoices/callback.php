@@ -21,6 +21,13 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
     exit();
 }
 
+// workaround para retornar status code 200 quando a requisição conter uma query iniciando em 'echo' (verificacao do webhook)
+if (isset($_GET['echo'])) {
+    http_response_code(200);
+    echo "ok";
+    exit();
+}
+
 // armazena o cabecalho da requisição
 $headers = getallheaders();
 
