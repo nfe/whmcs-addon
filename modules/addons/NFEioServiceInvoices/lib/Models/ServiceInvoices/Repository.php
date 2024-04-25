@@ -233,4 +233,87 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             }
         }
     }
+
+    /**
+     * Atualiza o status e flow status de uma NF (Nota Fiscal) pelo seu external id
+     *
+     * @param string $externalId ID externo da Nf
+     * @param string $status O novo status da Nf
+     * @param string|null $flowStatus O novo flow status da Nf (opcional)
+     *
+     * @return bool Retorna o número de linhas afetadas ou false em caso de erro
+     */
+    public function updateNfStatusByExternalId($externalId, $status, $flowStatus = null)
+    {
+        if (is_null($externalId) || is_null($status)) {
+            throw new \InvalidArgumentException('Invalid argument values.');
+        }
+
+        $data = [
+            'status' => $status,
+        ];
+
+        if ($flowStatus) {
+            $data['flow_status'] = $flowStatus;
+        }
+
+        try {
+           Capsule::table($this->tableName)
+                ->where('nfe_external_id', $externalId)
+                ->update($data);
+           return true;
+        } catch (\Exception $e) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'updateNfStatusByExternalId_error',
+                $data,
+                $e->getMessage(),
+                $e->getTraceAsString()
+            );
+            return false;
+        }
+
+    }
+
+    /**
+     * Atualiza o status e flow status de uma NF (Nota Fiscal) pelo seu id
+     *
+     * @param $nfeId string ID da Nf
+     * @param $status string O novo status da Nf
+     * @param $flowStatus string|null O novo flow status da Nf (opcional)
+     * @return bool|int Retorna o número de linhas afetadas ou false em caso de erro
+     */
+    public function updateNfStatusByNfeId($nfeId, $status, $flowStatus = null)
+    {
+        if (is_null($nfeId) || is_null($status)) {
+            throw new \InvalidArgumentException('Invalid argument values.');
+        }
+
+        $data = [
+            'status' => $status,
+        ];
+
+        if ($flowStatus) {
+            $data['flow_status'] = $flowStatus;
+        }
+
+        try {
+           Capsule::table($this->tableName)
+                ->where('nfe_id', $nfeId)
+                ->update($data);
+
+            return true;
+        } catch (\Exception $e) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'updateNfStatusByNfeId_error',
+                $data,
+                $e->getMessage(),
+                $e->getTraceAsString()
+            );
+            return false;
+        }
+
+    }
+
 }
