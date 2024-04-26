@@ -234,7 +234,7 @@ class Migrations
             $pdo = Capsule::connection()->getPdo();
             $pdo->beginTransaction();
             try {
-                $self = new static();
+                $self = new self();
                 $self->createAlterColumnTimestampStatement($pdo, 'created_at', 'CURRENT_TIMESTAMP', $tableName);
                 $self->createAlterColumnTimestampStatement($pdo, 'updated_at', 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', $tableName);
                 if ($pdo->inTransaction()) {
