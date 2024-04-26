@@ -410,7 +410,7 @@ class Nfe
         $nfeResponse = $this->legacyFunctions->gnfe_issue_nfe($postData);
 
         if (!$nfeResponse->message) {
-            $gnfe_update_nfe = $this->legacyFunctions->gnfe_update_nfe($nfeResponse, $clientId, $invoiceId, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $nfDbId);
+            $this->legacyFunctions->gnfe_update_nfe($nfeResponse, $clientId, $invoiceId, 'n/a', $nfDbId);
             logModuleCall('nfeio_serviceinvoices', 'nf_emit', $postData, $nfeResponse);
         } else {
             logModuleCall('nfeio_serviceinvoices', 'nf_emit_error', $postData, $nfeResponse);

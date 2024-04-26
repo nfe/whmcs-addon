@@ -94,8 +94,11 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function createServiceInvoicesTable()
     {
-        if (!Capsule::schema()->hasTable($this->tableName)) {
-            Capsule::schema()->create(
+        $db = Capsule::connection();
+        $schema = Capsule::schema();
+
+        if (!$schema->hasTable($this->tableName)) {
+            $schema->create(
                 $this->tableName,
                 function ($table) {
                     // incremented id
@@ -115,13 +118,17 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->string('pdf');
                     $table->string('rpsSerialNumber');
                     $table->string('rpsNumber');
-                    $table->timestamp('created_at');
-                    $table->timestamp('updated_at');
+                    $table->timestamp('created_at')->useCurrent();
+                    $table->timestamp('updated_at')->useCurrent();
                     $table->string('service_code', 30)->nullable(true);
                     $table->string('tics')->nullable(true);
                 }
             );
         }
+
+        // Adiciona a coluna updated_at com a configuração de auto update #156
+        $db->statement(sprintf('ALTER TABLE %s CHANGE updated_at updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', $this->tableName));
+
     }
 
     /**

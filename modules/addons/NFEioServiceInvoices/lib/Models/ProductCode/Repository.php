@@ -110,18 +110,25 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function createProductCodeTable()
     {
-        if (!Capsule::schema()->hasTable($this->tableName)) {
-            Capsule::schema()->create(
+        $db = Capsule::connection();
+        $schema = Capsule::schema();
+
+        if (!$schema->hasTable($this->tableName)) {
+            $schema->create(
                 $this->tableName,
                 function ($table) {
                     $table->increments('id');
                     $table->integer('product_id');
                     $table->string('code_service', 30);
-                    $table->timestamp('create_at');
-                    $table->timestamp('update_at');
+                    $table->timestamp('created_at')->useCurrent();
+                    $table->timestamp('updated_at')->useCurrent();
                     $table->integer('ID_user');
                 }
             );
+
+            // Adiciona a coluna updated_at com a configuração de auto update #156
+            $db->statement(sprintf('ALTER TABLE %s CHANGE updated_at updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', $this->tableName));
+
         }
     }
 
