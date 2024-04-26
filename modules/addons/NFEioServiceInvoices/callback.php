@@ -150,8 +150,6 @@ if ((string)$nfe['nfe_id'] === (string)$nf_id and $nfe['status'] !== (string)$nf
         'environment' => $nfe['environment'],
         'flow_status' => $nf_flow_status,
         'pdf' => $nfe['pdf'],
-        'created_at' => $nfe['created_at'],
-        'updated_at' => date('Y-m-d H:i:s'),
     ];
 
     try {

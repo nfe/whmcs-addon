@@ -208,8 +208,6 @@ class Functions
                 'environment' => 'waiting',
                 'flow_status' => 'waiting',
                 'pdf' => 'waiting',
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => 'waiting',
                 'rpsSerialNumber' => 'waiting',
                 'service_code' => $item['code_service'],
             ];
@@ -225,9 +223,9 @@ class Functions
                         $mount_item = floatval($item['amount']);
                         $mount = $mountDB + $mount_item;
 
-                        $update_nfe = Capsule::table($_tableName)->where('id', '=', $service_code_row[0]->id)->update(['services_amount' => $mount]);
+                        Capsule::table($_tableName)->where('id', '=', $service_code_row[0]->id)->update(['services_amount' => $mount]);
                     } else {
-                        $save_nfe = Capsule::table($_tableName)->insert($data);
+                        Capsule::table($_tableName)->insert($data);
                     }
                 } catch (\Exception $e) {
                     return $e->getMessage();
@@ -437,7 +435,7 @@ class Functions
         return $result;
     }
 
-    function gnfe_update_nfe($nfe, $user_id, $invoice_id, $pdf, $created_at, $updated_at, $id_gofasnfeio = false)
+    function gnfe_update_nfe($nfe, $user_id, $invoice_id, $pdf, $id_gofasnfeio = false)
     {
         $data = [
             'invoice_id' => $invoice_id,
@@ -448,8 +446,6 @@ class Functions
             'environment' => $nfe->environment,
             'flow_status' => $nfe->flowStatus,
             'pdf' => $pdf,
-            'created_at' => $created_at,
-            'updated_at' => $updated_at,
             'rpsSerialNumber' => $nfe->rpsSerialNumber,
             'rpsNumber' => $nfe->rpsNumber,
         ];

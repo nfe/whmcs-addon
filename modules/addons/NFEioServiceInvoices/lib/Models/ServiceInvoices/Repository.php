@@ -115,8 +115,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->string('pdf');
                     $table->string('rpsSerialNumber');
                     $table->string('rpsNumber');
-                    $table->timestamp('created_at');
-                    $table->timestamp('updated_at');
+                    $table->timestamp('created_at')->useCurrent();
+                    $table->timestamp('updated_at')->useCurrentOnUpdate();
                     $table->string('service_code', 30)->nullable(true);
                     $table->string('tics')->nullable(true);
                 }

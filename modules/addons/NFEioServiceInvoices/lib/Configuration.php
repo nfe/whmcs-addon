@@ -283,5 +283,23 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
              * @see https://github.com/nfe/whmcs-addon/issues/134
              */
         }
+
+        /**
+         * Atualiza as colunas de timestamp para a versão inferior a 2.1.8
+         * nas tabelas informadas.
+         *
+         * @see https://github.com/nfe/whmcs-addon/issues/156
+         */
+        if(version_compare($currentlyInstalledVersion, '2.1.8', 'le')) {
+
+            // atualiza o nome da coluna de timestamp para a tabela productcode
+            \NFEioServiceInvoices\Migrations\Migrations::changeProductCodeTimestampColumnsName();
+
+            // altera as colunas de timestamp para as tabelas
+            \NFEioServiceInvoices\Migrations\Migrations::migrateTimestampColumns('mod_nfeio_si_productcode');
+            \NFEioServiceInvoices\Migrations\Migrations::migrateTimestampColumns('mod_nfeio_si_serviceinvoices');
+            \NFEioServiceInvoices\Migrations\Migrations::migrateTimestampColumns('mod_nfeio_si_aliquots');
+
+        }
     }
 }

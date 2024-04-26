@@ -90,8 +90,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->string('code_service', 30);
                     // retenção de ISS
                     $table->float('iss_held', 5, 2)->nullable();
-                    $table->timestamp('created_at');
-                    $table->timestamp('updated_at');
+                    $table->timestamp('created_at')->useCurrent();
+                    $table->timestamp('updated_at')->useCurrentOnUpdate();
                 }
             );
         }

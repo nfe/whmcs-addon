@@ -117,8 +117,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->increments('id');
                     $table->integer('product_id');
                     $table->string('code_service', 30);
-                    $table->timestamp('create_at');
-                    $table->timestamp('update_at');
+                    $table->timestamp('created_at')->useCurrent();
+                    $table->timestamp('updated_at')->useCurrentOnUpdate();
                     $table->integer('ID_user');
                 }
             );
