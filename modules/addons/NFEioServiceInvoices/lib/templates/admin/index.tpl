@@ -33,7 +33,7 @@
     {elseif $data == 'CancelFailed'}
         Nota não foi cancelada com sucesso
     {elseif $data == 'IssueFailed'}
-        Emissão da nota sem sucesso
+        Erro ao emitir a nota
     {elseif $data == 'PullFromCityHall'}
         PullFromCityHall
     {elseif $data == 'WaitingDefineRpsNumber'}
@@ -97,24 +97,37 @@
                                     <td class="text-center"><a href="invoices.php?action=edit&id={$nota->invoice_id}"
                                                                target="_blank">{$nota->invoice_id}</a></td>
                                     <td class="text-center">{$nota->nfe_id}</td>
-                                    <td class="text-center">{$nota->created_at|date_format:"%d/%m/%Y %H:%M"}</td>
+                                    <td class="text-center"><abbr title="{$nota->created_at}">{$nota->created_at|date_format:"%d/%m/%Y %H:%M"}</abbr></td>
                                     <td>
                                         <a href="clientssummary.php?userid={$nota->user_id}" target="_blank">
-                                            {$nota->firstname} {$nota->lastname}
                                             {if $nota->companyname}
                                                 ({$nota->companyname})
+                                            {else}
+                                                {$nota->firstname} {$nota->lastname}
                                             {/if}
                                         </a>
                                     </td>
                                     <td>R${$nota->services_amount}</td>
-                                    <td class="text-center"><abbr
-                                                title="Status Flow: {flowStatus data=$nota->flow_status}">{statusLabel data=$nota->status}</abbr>
+                                    <td class="text-center">
+                                        <div>
+                                            <abbr title="Status Flow: {flowStatus data=$nota->flow_status}">
+                                                {statusLabel data=$nota->status}
+                                            </abbr>
+                                        </div>
+                                        {if $nota->issue_note_conditions}
+{*                                            <div class="alert alert-warning" role="alert">*}
+{*                                                {$nota->issue_note_conditions}*}
+{*                                            </div>*}
+                                            <p class="bg-warning">{$nota->issue_note_conditions}</p>
+                                        {/if}
+
+
                                     </td>
                                     <td class="text-right">
                                         <div class="btn-group" role="group" aria-label="Acoes">
 
                                             <button
-                                                    class="btn btn-default btn-sm"
+                                                    class="btn btn-default btn-xs"
                                                     id="btnUpdate"
                                                     data-toggle="modal"
                                                     data-target="#actionConfirmationModal"
@@ -128,12 +141,12 @@
                                             </button>
 
                                             <button onclick="goTo('https://app.nfe.io/companies/{$company_id}/service-invoices/{$nota->nfe_id}', '_blank');"
-                                                    formtarget="_blank" class="btn btn-success btn-sm" id="gnfe_view">
+                                                    formtarget="_blank" class="btn btn-success btn-xs" id="gnfe_view">
                                                 Visualizar
                                             </button>
 
                                             <button {disableGenerateButtonAction data=$nota->status}
-                                                    class="btn btn-primary btn-sm"
+                                                    class="btn btn-primary btn-xs"
                                                     id="btnReissue"
                                                     data-toggle="modal"
                                                     data-target="#actionConfirmationModal"
@@ -147,7 +160,7 @@
                                             </button>
 
                                             <button {disableButtonAction data=$nota->status}
-                                                    class="btn btn-info btn-sm"
+                                                    class="btn btn-info btn-xs"
                                                     id="gnfe_email"
                                                     data-toggle="modal"
                                                     data-target="#actionConfirmationModal"
@@ -162,7 +175,7 @@
 
 
                                             <button {disableCancelButtonAction data=$nota->status}
-                                                    class="btn btn-danger btn-sm"
+                                                    class="btn btn-danger btn-xs"
                                                     id="btnCancel"
                                                     data-toggle="modal"
                                                     data-target="#actionConfirmationModal"

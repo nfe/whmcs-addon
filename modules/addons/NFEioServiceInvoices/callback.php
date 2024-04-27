@@ -86,6 +86,7 @@ $environment = $module['NFEioEnvironment'];
 $nf_id = $payload['id'];
 $nf_status = $payload['status'];
 $nf_flow_status = $payload['flowStatus'];
+$nf_flow_message = $payload['flowMessage'] ?? '';
 $nf_environment = $payload['environment'];
 
 //verificar o ambiente
@@ -150,6 +151,7 @@ if ((string)$nfe['nfe_id'] === (string)$nf_id and $nfe['status'] !== (string)$nf
         'environment' => $nfe['environment'],
         'flow_status' => $nf_flow_status,
         'pdf' => $nfe['pdf'],
+        'issue_note_conditions' => $nf_flow_message, // utilizando coluna existente, mas sem uso, para armazenar a mensagem do flow
     ];
 
     try {
