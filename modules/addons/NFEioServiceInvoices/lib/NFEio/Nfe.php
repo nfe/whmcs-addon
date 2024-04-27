@@ -168,8 +168,6 @@ class Nfe
                 'environment' => 'waiting',
                 'flow_status' => 'waiting',
                 'pdf' => 'waiting',
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => 'waiting',
                 'rpsSerialNumber' => 'waiting',
                 'service_code' => $serviceCode,
             ];
