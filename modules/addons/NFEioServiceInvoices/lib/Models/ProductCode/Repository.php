@@ -16,8 +16,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'product_id',
         'code_service',
         'iss_held',
-        'create_at',
-        'update_at',
+        'created_at',
+        'updated_at',
         'ID_user',
     );
 
