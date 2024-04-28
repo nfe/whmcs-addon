@@ -115,9 +115,6 @@
                                             </abbr>
                                         </div>
                                         {if $nota->issue_note_conditions}
-{*                                            <div class="alert alert-warning" role="alert">*}
-{*                                                {$nota->issue_note_conditions}*}
-{*                                            </div>*}
                                             <p class="bg-warning">{$nota->issue_note_conditions}</p>
                                         {/if}
 
