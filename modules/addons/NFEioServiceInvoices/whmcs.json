@@ -3,7 +3,7 @@
   "type": "whmcs-addons",
   "name": "NFEioServiceInvoices",
   "license": "MIT",
-  "category": "utilities",
+  "category": "finance",
   "description": {
     "name": "NFE.io NFSe",
     "tagline": "Automatize a emissão de notas fiscais no WHMCS com a NFE.io",

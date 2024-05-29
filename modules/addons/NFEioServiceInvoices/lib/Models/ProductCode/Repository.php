@@ -120,14 +120,14 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->increments('id');
                     $table->integer('product_id');
                     $table->string('code_service', 30);
-                    $table->timestamp('created_at')->useCurrent();
-                    $table->timestamp('updated_at')->useCurrent();
+                    $table->timestamp('created_at')->nullable();
+                    $table->timestamp('updated_at')->nullable();
                     $table->integer('ID_user');
                 }
             );
 
             // Adiciona a coluna updated_at com a configuração de auto update #156
-            $db->statement(sprintf('ALTER TABLE %s CHANGE updated_at updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', $this->tableName));
+//            $db->statement(sprintf('ALTER TABLE %s CHANGE updated_at updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', $this->tableName));
 
         }
     }

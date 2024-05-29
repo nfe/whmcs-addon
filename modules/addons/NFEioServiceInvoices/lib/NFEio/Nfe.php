@@ -2,6 +2,7 @@
 
 namespace NFEioServiceInvoices\NFEio;
 
+use NFEioServiceInvoices\Helpers\Timestamp;
 use WHMCS\Database\Capsule;
 
 /**
@@ -304,6 +305,10 @@ class Nfe
                     continue;
                 }
 
+                // timestamps
+                $nf['created_at'] = Timestamp::currentTimestamp();
+                $nf['updated_at'] = Timestamp::currentTimestamp();
+
                 $result = Capsule::table($this->serviceInvoicesTable)->insert($nf);
                 logModuleCall('nfeio_serviceinvoices', 'nf_queue', $nf, $result);
             }
@@ -333,7 +338,7 @@ class Nfe
 
         // se dados do cliente retornarem erro, atualiza status da NF e para emissao
         if ($customer['error']) {
-            $this->legacyFunctions->update_status_nfe($invoiceId, 'Doc_Error');
+            $this->updateLocalNfeStatusByExternalId($externalId, 'Doc_Error');
             logModuleCall('nfeio_serviceinvoices', 'nf_emit_error', $data, $customer);
             return;
         }

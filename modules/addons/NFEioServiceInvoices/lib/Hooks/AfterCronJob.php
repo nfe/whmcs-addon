@@ -2,6 +2,7 @@
 
 namespace NFEioServiceInvoices\Hooks;
 
+use NFEioServiceInvoices\Helpers\Timestamp;
 use WHMCS\Database\Capsule;
 
 /**
@@ -38,7 +39,7 @@ class AfterCronJob
         $storageKey = $this->config->getStorageKey();
         $serviceInvoicesTable = $this->serviceInvoicesRepo->tableName();
         $storage = new \WHMCSExpert\Addon\Storage($storageKey);
-        $dataAtual = date('Y-m-d H:i:s');
+        $dataAtual = Timestamp::currentTimestamp();
         // caso não exista valor para initial_date inicia define data que garanta a execução da rotina
         $initialDate =  (! empty($storage->get('initial_date'))) ? $storage->get('initial_date') : '1970-01-01 00:00:00';
 

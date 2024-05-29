@@ -2,6 +2,7 @@
 
 namespace NFEioServiceInvoices\Legacy;
 
+use NFEioServiceInvoices\Helpers\Timestamp;
 use WHMCS\Database\Capsule;
 use NFEioServiceInvoices\Addon;
 use NFEioServiceInvoices\Helpers\Validations;
@@ -681,7 +682,10 @@ class Functions
         $_tableName = $serviceInvoicesRepo->tableName();
 
         try {
-            $return = Capsule::table($_tableName)->where('invoice_id', '=', $invoice_id)->update(['status' => $status]);
+            $return = Capsule::table($_tableName)->where('invoice_id', '=', $invoice_id)->update([
+                'status' => $status,
+                'updated_at' => Timestamp::currentTimestamp(),
+            ]);
             return $return;
         } catch (Exception $e) {
             return $e->getMessage();

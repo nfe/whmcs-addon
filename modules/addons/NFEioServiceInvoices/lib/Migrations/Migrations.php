@@ -206,17 +206,14 @@ class Migrations
      *
      * @param PDO $pdo The PDO object for database connection
      * @param string $columnName The name of the column to be altered
-     * @param string $alterStatement The ALTER statement for the column
      * @return void
      */
-    private function createAlterColumnTimestampStatement($pdo, $columnName, $alterStatement, $tableName)
+    private function createAlterColumnTimestampStatement($pdo, $columnName, $tableName)
     {
         $statement = $pdo->prepare(
-            sprintf('ALTER TABLE %s CHANGE %s %s TIMESTAMP NOT NULL DEFAULT %s',
+            sprintf('ALTER TABLE %s MODIFY COLUMN %s TIMESTAMP NULL',
                 $tableName,
-                $columnName,
-                $columnName,
-                $alterStatement
+                $columnName
             )
         );
         $statement->execute();
@@ -235,15 +232,21 @@ class Migrations
             $pdo->beginTransaction();
             try {
                 $self = new self();
-                $self->createAlterColumnTimestampStatement($pdo, 'created_at', 'CURRENT_TIMESTAMP', $tableName);
-                $self->createAlterColumnTimestampStatement($pdo, 'updated_at', 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', $tableName);
+                $self->createAlterColumnTimestampStatement($pdo, 'created_at', $tableName);
+                $self->createAlterColumnTimestampStatement($pdo, 'updated_at', $tableName);
                 if ($pdo->inTransaction()) {
                     $pdo->commit();
+                    logModuleCall(
+                        'nfeio_serviceinvoices',
+                        'migrateTimestampColumns',
+                        $tableName,
+                        'success'
+                    );
                 }
             } catch (\Exception $e) {
                 logModuleCall(
                     'nfeio_serviceinvoices',
-                    'upgradeServiceInvoicesTimestampColumns_error',
+                    'migrateTimestampColumns',
                     $e->getMessage(),
                     $e->getTraceAsString()
                 );
@@ -265,6 +268,18 @@ class Migrations
     {
 
         if (Capsule::schema()->hasTable('mod_nfeio_si_productcode')) {
+
+            // verifica se a coluna create_at e update_at já foram migradas (existem)
+            $columns = Capsule::schema()->getColumnListing('mod_nfeio_si_productcode');
+            if (!in_array('create_at', $columns) || !in_array('update_at', $columns)) {
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'changeProductCodeTimestampColumnsName',
+                    'nothing to do, columns already exist',
+                    ''
+                );
+                return;
+            }
 
             $pdo = Capsule::connection()->getPdo();
             $pdo->beginTransaction();
