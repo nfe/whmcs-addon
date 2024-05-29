@@ -31,9 +31,17 @@ if (isset($_GET['echo'])) {
 // armazena o cabecalho da requisição
 $headers = getallheaders();
 
-// calcula o hmac da requisição
+function findSignatureHeader($headers)
+{
+    // normaliza todos os cabecalhos para lowercase
+    $headers = array_change_key_case($headers, CASE_LOWER);
+    // retorna os possiveis cabecalhos de assinatura da requisicao (X-Hub-Signature e X-Nfeio-Signature)
+    return $headers['x-hub-signature'] ?? $headers['x-nfeio-signature'] ?? null;
+
+}
+
 // cabecalho com a assinatura
-$signature = $headers['X-Hub-Signature'];
+$signature = findSignatureHeader($headers);
 
 // corpo da requisição
 $body = file_get_contents('php://input');
