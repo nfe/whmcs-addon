@@ -59,6 +59,17 @@
 <div class="row">
     <div class="col-sm-12">
         <hr>
+        {if $smarty.get.nfeioreissue ==  true}
+            <div class="alert alert-success" role="alert">
+                <strong>Nota Fiscal reemitida com sucesso!</strong>
+            </div>
+
+        {/if}
+        {if $smarty.get.nfeiocancel ==  true}
+            <div class="alert alert-success" role="alert">
+                <strong>Nota Fiscal cancelada com sucesso!</strong>
+            </div>
+        {/if}
     </div>
         {if $totalServiceInvoices > 0}
             <div class="col-sm-12">
@@ -80,10 +91,30 @@
                                     <input type="hidden" name="nfeiosi" value="cancel">
                                 </form>
                                 {if $hasAllNfCancelled}
-                                    <button type="submit" class="btn btn-xs btn-primary" form="nfeio_frm_reissue" >Reemitir Notas</button>
+                                    <button
+                                            type="submit"
+                                            class="btn btn-xs btn-primary"
+                                            form="nfeio_frm_reissue"
+                                            title="Caso fatura possuir servicos com diferentes códigos, será reemitida toda a série de notas. "
+                                            {if $smarty.get.nfeioreissue ==  true}
+                                                disabled
+                                            {/if}
+                                    >
+                                        Reemitir série NFS-e
+                                    </button>
                                 {/if}
                                 {if !$hasAllNfCancelled}
-                                    <button type="submit" class="btn btn-xs btn-danger" form="nfeio_frm_cancel" >Cancelar NFS-e</button>
+                                    <button
+                                            type="submit"
+                                            class="btn btn-xs btn-danger"
+                                            form="nfeio_frm_cancel"
+                                            title="Caso fatura possuir servicos com diferentes códigos, será cancelada toda a série de notas. "
+                                            {if $smarty.get.nfeiocancel ==  true}
+                                                disabled
+                                            {/if}
+                                    >
+                                        Cancelar série NFS-e
+                                    </button>
                                 {/if}
                             </td>
                         </tr>
