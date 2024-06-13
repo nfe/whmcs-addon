@@ -200,4 +200,108 @@ class Migrations
 
         return false;
     }
+
+    /**
+     * Creates and executes an SQL statement to alter a column in the specified table.
+     *
+     * @param PDO $pdo The PDO object for database connection
+     * @param string $columnName The name of the column to be altered
+     * @return void
+     */
+    private function createAlterColumnTimestampStatement($pdo, $columnName, $tableName)
+    {
+        $statement = $pdo->prepare(
+            sprintf('ALTER TABLE %s MODIFY COLUMN %s TIMESTAMP NULL',
+                $tableName,
+                $columnName
+            )
+        );
+        $statement->execute();
+    }
+
+    /**
+     *
+     * Atualiza as colunas de timestamp na tabela de notas fiscais de serviço.
+     * Define a coluna `created_at` com o valor do timestamp atual, e
+     * a coluna `updated_at` com o valor do timestamp atual em caso de atualização.
+     */
+    public static function migrateTimestampColumns(string $tableName)
+    {
+        if (Capsule::schema()->hasTable($tableName)) {
+            $pdo = Capsule::connection()->getPdo();
+            $pdo->beginTransaction();
+            try {
+                $self = new self();
+                $self->createAlterColumnTimestampStatement($pdo, 'created_at', $tableName);
+                $self->createAlterColumnTimestampStatement($pdo, 'updated_at', $tableName);
+                if ($pdo->inTransaction()) {
+                    $pdo->commit();
+                    logModuleCall(
+                        'nfeio_serviceinvoices',
+                        'migrateTimestampColumns',
+                        $tableName,
+                        'success'
+                    );
+                }
+            } catch (\Exception $e) {
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'migrateTimestampColumns',
+                    $e->getMessage(),
+                    $e->getTraceAsString()
+                );
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+
+            }
+        }
+    }
+
+    /**
+     * Altera as colunas da tabela mod_nfeio_si_productcode referente ao timestamp
+     * para created_at e updated_at.
+     *
+     * @return void
+     */
+    public static function changeProductCodeTimestampColumnsName()
+    {
+
+        if (Capsule::schema()->hasTable('mod_nfeio_si_productcode')) {
+
+            // verifica se a coluna create_at e update_at já foram migradas (existem)
+            $columns = Capsule::schema()->getColumnListing('mod_nfeio_si_productcode');
+            if (!in_array('create_at', $columns) || !in_array('update_at', $columns)) {
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'changeProductCodeTimestampColumnsName',
+                    'nothing to do, columns already exist',
+                    ''
+                );
+                return;
+            }
+
+            $pdo = Capsule::connection()->getPdo();
+            $pdo->beginTransaction();
+            try {
+                $st1 = $pdo->prepare('ALTER TABLE mod_nfeio_si_productcode CHANGE create_at created_at TIMESTAMP');
+                $st2 = $pdo->prepare('ALTER TABLE mod_nfeio_si_productcode CHANGE update_at updated_at TIMESTAMP');
+                $st1->execute();
+                $st2->execute();
+                if ($pdo->inTransaction()) {
+                    $pdo->commit();
+                }
+            } catch (\Exception $e) {
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'changeProductCodeTimestampColumnsName_error',
+                    $e->getMessage(),
+                    $e->getTraceAsString()
+                );
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+            }
+        }
+    }
 }

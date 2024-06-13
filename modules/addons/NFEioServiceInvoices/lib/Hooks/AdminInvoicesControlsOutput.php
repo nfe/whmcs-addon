@@ -56,18 +56,18 @@ class AdminInvoicesControlsOutput
         if ($request === 'reissue') {
             $result = $nfe->queue($this->invoiceId, true);
             if ($result['success']) {
-                $msg->success('Nota adicionada a fila para reemissão.');
+                $msg->success('Nota adicionada a fila para reemissão.', $urn . '&nfeioreissue=true');
             } else {
-                $msg->error("Problemas ao tentar reemitir a nota: {$result['message']}");
+                $msg->error("Problemas ao tentar reemitir a nota: {$result['message']}", $urn . '&nfeioreissue=true');
             }
         }
 
         if ($request === 'cancel') {
             $result = $nfe->cancelNfSeriesByInvoiceId($this->invoiceId);
             if ($result['status'] === 'success') {
-                $msg->info("Nota enviada para cancelamento, por favor aguarde.");
+                $msg->info("Nota enviada para cancelamento, por favor aguarde.", $urn . '&nfeiocancel=true');
             } else {
-                $msg->warning("Nota fiscal cancelada, mas com aviso: {$result['message']}.");
+                $msg->warning("Nota fiscal cancelada, mas com aviso: {$result['message']}.", $urn . '&nfeiocancel=true');
             }
         }
 

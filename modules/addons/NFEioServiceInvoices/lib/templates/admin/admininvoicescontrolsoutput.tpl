@@ -30,7 +30,7 @@
     {elseif $data == 'CancelFailed'}
         Nota não foi cancelada com sucesso
     {elseif $data == 'IssueFailed'}
-        Emissão da nota sem sucesso
+        Erro ao emitir nota
     {elseif $data == 'PullFromCityHall'}
         PullFromCityHall
     {elseif $data == 'WaitingDefineRpsNumber'}
@@ -59,6 +59,17 @@
 <div class="row">
     <div class="col-sm-12">
         <hr>
+        {if $smarty.get.nfeioreissue ==  true}
+            <div class="alert alert-success" role="alert">
+                <strong>Nota Fiscal reemitida com sucesso!</strong>
+            </div>
+
+        {/if}
+        {if $smarty.get.nfeiocancel ==  true}
+            <div class="alert alert-success" role="alert">
+                <strong>Nota Fiscal cancelada com sucesso!</strong>
+            </div>
+        {/if}
     </div>
         {if $totalServiceInvoices > 0}
             <div class="col-sm-12">
@@ -80,10 +91,30 @@
                                     <input type="hidden" name="nfeiosi" value="cancel">
                                 </form>
                                 {if $hasAllNfCancelled}
-                                    <button type="submit" class="btn btn-xs btn-primary" form="nfeio_frm_reissue" >Reemitir Notas</button>
+                                    <button
+                                            type="submit"
+                                            class="btn btn-xs btn-primary"
+                                            form="nfeio_frm_reissue"
+                                            title="Caso fatura possuir servicos com diferentes códigos, será reemitida toda a série de notas. "
+                                            {if $smarty.get.nfeioreissue ==  true}
+                                                disabled
+                                            {/if}
+                                    >
+                                        Reemitir série NFS-e
+                                    </button>
                                 {/if}
                                 {if !$hasAllNfCancelled}
-                                    <button type="submit" class="btn btn-xs btn-danger" form="nfeio_frm_cancel" >Cancelar NFS-e</button>
+                                    <button
+                                            type="submit"
+                                            class="btn btn-xs btn-danger"
+                                            form="nfeio_frm_cancel"
+                                            title="Caso fatura possuir servicos com diferentes códigos, será cancelada toda a série de notas. "
+                                            {if $smarty.get.nfeiocancel ==  true}
+                                                disabled
+                                            {/if}
+                                    >
+                                        Cancelar série NFS-e
+                                    </button>
                                 {/if}
                             </td>
                         </tr>
@@ -108,6 +139,7 @@
                     <th class="text-center">Gerada Em</th>
                     <th class="text-center">Valor</th>
                     <th class="text-center">Status</th>
+                    <th class="text-center">Mensagem</th>
                     <th class="text-center">Ações</th>
                     </thead>
                     <tbody>
@@ -118,11 +150,16 @@
                             <td class="text-center">{$nota->services_amount}</td>
                             <td class="text-center"><abbr title="Status Flow: {flowStatus data=$nota->flow_status}">{statusLabel data=$nota->status}</abbr></td>
                             <td>
+                                <p class="bg-warning">
+                                    {$nota->issue_note_conditions}
+                                </p>
+                            </td>
+                            <td>
                                 <form action="" method="post" id="nfeio_frm_email_{$smarty.foreach.nf.iteration}">
                                     <input type="hidden" name="nfeiosi" value="email">
                                     <input type="hidden" name="nfe_id" value="{$nota->nfe_id}">
                                 </form>
-                                <div class="btn-group btn-group-sm" role="group" aria-label="Ações">
+                                <div class="btn-group btn-group-xs" role="group" aria-label="Ações">
                                     <button {disableButtonAction data=$nota->status} type="button" class="btn btn-success" onclick="goTo('https://app.nfe.io/companies/{$companyId}/service-invoices/{$nota->nfe_id}', '_blank')">Visualizar</button>
                                     <button {disableButtonAction data=$nota->status} type="submit" class="btn btn-info" form="nfeio_frm_email_{$smarty.foreach.nf.iteration}">Enviar e-mail</button>
                                 </div>

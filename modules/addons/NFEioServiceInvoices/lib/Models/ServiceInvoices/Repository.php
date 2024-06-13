@@ -3,6 +3,7 @@
 namespace NFEioServiceInvoices\Models\ServiceInvoices;
 
 use Illuminate\Database\Capsule\Manager as Capsule;
+use NFEioServiceInvoices\Helpers\Timestamp;
 
 /**
  * Classe responsável pela definição do modelo de dados e operações
@@ -94,8 +95,11 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function createServiceInvoicesTable()
     {
-        if (!Capsule::schema()->hasTable($this->tableName)) {
-            Capsule::schema()->create(
+        $db = Capsule::connection();
+        $schema = Capsule::schema();
+
+        if (!$schema->hasTable($this->tableName)) {
+            $schema->create(
                 $this->tableName,
                 function ($table) {
                     // incremented id
@@ -115,13 +119,17 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->string('pdf');
                     $table->string('rpsSerialNumber');
                     $table->string('rpsNumber');
-                    $table->timestamp('created_at');
-                    $table->timestamp('updated_at');
+                    $table->timestamp('created_at')->nullable();
+                    $table->timestamp('updated_at')->nullable();
                     $table->string('service_code', 30)->nullable(true);
                     $table->string('tics')->nullable(true);
                 }
             );
         }
+
+        // Adiciona a coluna updated_at com a configuração de auto update #156
+//        $db->statement(sprintf('ALTER TABLE %s CHANGE updated_at updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', $this->tableName));
+
     }
 
     /**
@@ -233,4 +241,93 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             }
         }
     }
+
+    /**
+     * Atualiza o status e flow status de uma NF (Nota Fiscal) pelo seu external id
+     *
+     * @param string $externalId ID externo da Nf
+     * @param string $status O novo status da Nf
+     * @param string|null $flowStatus O novo flow status da Nf (opcional)
+     *
+     * @return bool Retorna o número de linhas afetadas ou false em caso de erro
+     */
+    public function updateNfStatusByExternalId($externalId, $status, $flowStatus = null)
+    {
+        if (is_null($externalId) || is_null($status)) {
+            throw new \InvalidArgumentException('Invalid argument values.');
+        }
+
+        $data = [
+            'status' => $status,
+        ];
+
+        if ($flowStatus) {
+            $data['flow_status'] = $flowStatus;
+        }
+
+        // adiciona a data de atualização #156
+        $data['updated_at'] = Timestamp::currentTimestamp();
+
+        try {
+           Capsule::table($this->tableName)
+                ->where('nfe_external_id', $externalId)
+                ->update($data);
+           return true;
+        } catch (\Exception $e) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'updateNfStatusByExternalId_error',
+                $data,
+                $e->getMessage(),
+                $e->getTraceAsString()
+            );
+            return false;
+        }
+
+    }
+
+    /**
+     * Atualiza o status e flow status de uma NF (Nota Fiscal) pelo seu id
+     *
+     * @param $nfeId string ID da Nf
+     * @param $status string O novo status da Nf
+     * @param $flowStatus string|null O novo flow status da Nf (opcional)
+     * @return bool|int Retorna o número de linhas afetadas ou false em caso de erro
+     */
+    public function updateNfStatusByNfeId($nfeId, $status, $flowStatus = null)
+    {
+        if (is_null($nfeId) || is_null($status)) {
+            throw new \InvalidArgumentException('Invalid argument values.');
+        }
+
+        $data = [
+            'status' => $status,
+        ];
+
+        if ($flowStatus) {
+            $data['flow_status'] = $flowStatus;
+        }
+
+        // adiciona a data de atualização #156
+        $data['updated_at'] = Timestamp::currentTimestamp();
+
+        try {
+           Capsule::table($this->tableName)
+                ->where('nfe_id', $nfeId)
+                ->update($data);
+
+            return true;
+        } catch (\Exception $e) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'updateNfStatusByNfeId_error',
+                $data,
+                $e->getMessage(),
+                $e->getTraceAsString()
+            );
+            return false;
+        }
+
+    }
+
 }

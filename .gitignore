@@ -1,5 +1,7 @@
 composer.phar
 .idea
+.scripts
+whmcs
 rsync-dev1.sh
 rsync-dev2.sh
 *.zip

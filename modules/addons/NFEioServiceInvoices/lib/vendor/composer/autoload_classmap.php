@@ -44,6 +44,8 @@ return array(
     'NFEioServiceInvoices\\Configuration' => $baseDir . '/modules/addons/NFEioServiceInvoices/lib/Configuration.php',
     'NFEioServiceInvoices\\CustomFields' => $baseDir . '/modules/addons/NFEioServiceInvoices/lib/CustomFields.php',
     'NFEioServiceInvoices\\Helpers\\Invoices' => $baseDir . '/modules/addons/NFEioServiceInvoices/lib/Helpers/Invoices.php',
+    'NFEioServiceInvoices\\Helpers\\Timestamp' => $baseDir . '/modules/addons/NFEioServiceInvoices/lib/Helpers/Timestamp.php',
+    'NFEioServiceInvoices\\Helpers\\Validations' => $baseDir . '/modules/addons/NFEioServiceInvoices/lib/Helpers/Validations.php',
     'NFEioServiceInvoices\\Helpers\\Versions' => $baseDir . '/modules/addons/NFEioServiceInvoices/lib/Helpers/Versions.php',
     'NFEioServiceInvoices\\Hooks\\AdminInvoicesControlsOutput' => $baseDir . '/modules/addons/NFEioServiceInvoices/lib/Hooks/AdminInvoicesControlsOutput.php',
     'NFEioServiceInvoices\\Hooks\\AfterCronJob' => $baseDir . '/modules/addons/NFEioServiceInvoices/lib/Hooks/AfterCronJob.php',

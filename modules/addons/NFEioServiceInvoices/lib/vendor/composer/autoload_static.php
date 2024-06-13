@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitad00b92d12ac29d48d540e2bb75b0034
+class ComposerStaticInit9d3328eb7139b63c91b644b63fb21216
 {
     public static $files = array (
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
@@ -93,6 +93,8 @@ class ComposerStaticInitad00b92d12ac29d48d540e2bb75b0034
         'NFEioServiceInvoices\\Configuration' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Configuration.php',
         'NFEioServiceInvoices\\CustomFields' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/CustomFields.php',
         'NFEioServiceInvoices\\Helpers\\Invoices' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Helpers/Invoices.php',
+        'NFEioServiceInvoices\\Helpers\\Timestamp' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Helpers/Timestamp.php',
+        'NFEioServiceInvoices\\Helpers\\Validations' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Helpers/Validations.php',
         'NFEioServiceInvoices\\Helpers\\Versions' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Helpers/Versions.php',
         'NFEioServiceInvoices\\Hooks\\AdminInvoicesControlsOutput' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Hooks/AdminInvoicesControlsOutput.php',
         'NFEioServiceInvoices\\Hooks\\AfterCronJob' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Hooks/AfterCronJob.php',
@@ -161,9 +163,9 @@ class ComposerStaticInitad00b92d12ac29d48d540e2bb75b0034
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitad00b92d12ac29d48d540e2bb75b0034::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitad00b92d12ac29d48d540e2bb75b0034::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitad00b92d12ac29d48d540e2bb75b0034::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit9d3328eb7139b63c91b644b63fb21216::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit9d3328eb7139b63c91b644b63fb21216::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit9d3328eb7139b63c91b644b63fb21216::$classMap;
 
         }, null, ClassLoader::class);
     }

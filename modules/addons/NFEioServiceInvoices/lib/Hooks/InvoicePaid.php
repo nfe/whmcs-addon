@@ -46,11 +46,11 @@ class InvoicePaid
 
         if ($clientIssueCondition == 'seguir configuração do módulo nfe.io' and $moduleIssueCondition == $generateTaxBillWhen and $generateTaxBill) {
             $queue = $nfe->queue($this->invoiceId);
-            logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, $data, $queue);
+            logModuleCall('nfeio_serviceinvoices', 'nf_invoice_paid', $data, $queue);
         }
         if ($clientIssueCondition == $generateTaxBillWhen and $generateTaxBill) {
             $queue = $nfe->queue($this->invoiceId);
-            logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, $data, $queue);
+            logModuleCall('nfeio_serviceinvoices', 'nf_invoice_paid', $data, $queue);
         }
     }
 }

@@ -338,11 +338,11 @@ class Controller
             if ($delete_nfe->message) {
                 $response = $nfe->updateLocalNfeStatus($_REQUEST['gnfe_cancel'], 'Cancelled');
 
-                logModuleCall('nfeioserviceinvoices', 'cancel_nf', $_REQUEST['gnfe_cancel'], "NF API Response: \n {$delete_nfe->message} \n NF LOCAL Response: \n {$response}");
+                logModuleCall('nfeio_serviceinvoices', 'cancel_nf', $_REQUEST['gnfe_cancel'], "NF API Response: \n {$delete_nfe->message} \n NF LOCAL Response: \n {$response}");
 
                 $msg->warning("Nota fiscal cancelada, mas com aviso: {$delete_nfe->message}", $redirectUrl);
             } else {
-                logModuleCall('nfeioserviceinvoices', 'cancel_nf', $_REQUEST['gnfe_cancel'], $delete_nfe);
+                logModuleCall('nfeio_serviceinvoices', 'cancel_nf', $_REQUEST['gnfe_cancel'], $delete_nfe);
 
                 $msg->success("Nota fiscal cancelada com sucesso", $redirectUrl);
             }
@@ -474,6 +474,66 @@ class Controller
             $msg->success("Nota(s) fiscal(is) para fatura #{$invoiceId} canceladas. Sincronização do status pode demorar alguns minutos, por favor aguarde.", $redirectUrl);
         } else {
             $msg->info($response['message'], $redirectUrl);
+        }
+    }
+
+    /**
+     * Envia a nota fiscal por email ao cliente através da API da NFE.io
+     *
+     * @param   $params array variáveis do WHMCS
+     */
+    public function emailNf($params)
+    {
+        $msg = new FlashMessages();
+        $functions = new \NFEioServiceInvoices\Legacy\Functions();
+        $get = $_GET;
+        $nfId = $get['nfe_id'];
+        $moduleLink = $params['modulelink'];
+        $moduleAction = 'index';
+        $redirectUrl = $moduleLink . '&action=' . $moduleAction;
+
+        if (empty($nfId)) {
+            $msg->warning("Nenhuma nota fiscal informada.", $redirectUrl);
+        }
+
+        $response = $functions->gnfe_email_nfe($nfId);
+
+        if (empty($response->message)) {
+            $msg->success("Nota fiscal enviada por email com sucesso.", $redirectUrl);
+        } else {
+            $msg->error($response->message, $redirectUrl);
+        }
+    }
+
+    public function updateNfStatus($params)
+    {
+        $msg = new FlashMessages();
+        $moduleLink = $params['modulelink'];
+        $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
+        $nfeId = $_GET['nfe_id'];
+
+        if (empty($nfeId)) {
+            $msg->warning("Nenhuma nota fiscal informada.", $moduleLink);
+        }
+
+        $invoice = $nfe->fetchNf($nfeId);
+
+        if ($invoice['error']) {
+            $msg->error("Erro ao buscar NF na API: {$invoice['error']}.", $moduleLink);
+        }
+
+        // recebe os dados da nota fiscal
+        $invoiceId = $invoice->id;
+        $invoiceStatus = $invoice->status;
+        $invoiceFlowStatus = $invoice->flowStatus;
+
+        // atualiza o status da nota fiscal no banco de dados
+        $result = $nfe->updateLocalNfeStatus($invoiceId, $invoiceStatus, $invoiceFlowStatus);
+
+        if ($result) {
+            $msg->success("Nota fiscal atualizada com sucesso.", $moduleLink);
+        } else {
+            $msg->error("Erro ao atualizar nota fiscal.", $moduleLink);
         }
     }
 

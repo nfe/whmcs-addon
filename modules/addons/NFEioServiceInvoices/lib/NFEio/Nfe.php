@@ -2,6 +2,7 @@
 
 namespace NFEioServiceInvoices\NFEio;
 
+use NFEioServiceInvoices\Helpers\Timestamp;
 use WHMCS\Database\Capsule;
 
 /**
@@ -168,8 +169,6 @@ class Nfe
                 'environment' => 'waiting',
                 'flow_status' => 'waiting',
                 'pdf' => 'waiting',
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => 'waiting',
                 'rpsSerialNumber' => 'waiting',
                 'service_code' => $serviceCode,
             ];
@@ -302,12 +301,16 @@ class Nfe
 
                 // se já houver uma nota no banco local com o mesmo external_id pula a emissão de nota
                 if (is_array($hasExternalId)) {
-                    logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, "Um external_id idêntico foi encontrado para {$nf['nfe_external_id']}, NF não adicionada para transmissão", $hasExternalId);
+                    logModuleCall('nfeio_serviceinvoices', 'nf_queue', "Um external_id idêntico foi encontrado para {$nf['nfe_external_id']}, NF não adicionada para transmissão", $hasExternalId);
                     continue;
                 }
 
+                // timestamps
+                $nf['created_at'] = Timestamp::currentTimestamp();
+                $nf['updated_at'] = Timestamp::currentTimestamp();
+
                 $result = Capsule::table($this->serviceInvoicesTable)->insert($nf);
-                logModuleCall('NFEioServiceInvoices', __CLASS__ . __FUNCTION__, $nf, $result);
+                logModuleCall('nfeio_serviceinvoices', 'nf_queue', $nf, $result);
             }
         }
 
@@ -328,22 +331,29 @@ class Nfe
         $environment = $data->environment;
         $clientData = \WHMCS\User\Client::find($clientId);
         $customer = $this->legacyFunctions->gnfe_customer($clientId, $clientData);
-
-        logModuleCall('NFEioServiceInvoices', 'get_client_details', $clientData, $customer);
-
         $emailNfeConfig = (bool) $this->storage->get('gnfe_email_nfe_config');
         $client_email = $emailNfeConfig ? $clientData->email : '';
 
-        if ($customer['doc_type'] == 2) {
-            if ($clientData->companyname != '') {
-                $name = $clientData->companyname;
-            } else {
-                $name = $clientData->fullname;
-            }
-        } elseif ($customer['doc_type'] == 1 || 'CPF e/ou CNPJ ausente.' == $customer || !$customer['doc_type']) {
-            $name = $clientData->fullname;
+        logModuleCall('nfeio_serviceinvoices', 'nf_emit_for_customer', $data, $customer);
+
+        // se dados do cliente retornarem erro, atualiza status da NF e para emissao
+        if ($customer['error']) {
+            $this->updateLocalNfeStatusByExternalId($externalId, 'Doc_Error');
+            logModuleCall('nfeio_serviceinvoices', 'nf_emit_error', $data, $customer);
+            return;
         }
-        $name = htmlspecialchars_decode($name);
+
+
+//        if ($customer['doc_type'] == 2) {
+//            if ($clientData->companyname != '') {
+//                $name = $clientData->companyname;
+//            } else {
+//                $name = $clientData->fullname;
+//            }
+//        } elseif ($customer['doc_type'] == 1 || 'CPF e/ou CNPJ ausente.' == $customer || !$customer['doc_type']) {
+//            $name = $clientData->fullname;
+//        }
+        $name = $customer['name'];
 
         //define address
         if (strpos($clientData->address1, ',')) {
@@ -355,14 +365,14 @@ class Nfe
             $number = preg_replace('/[^0-9]/', '', $clientData->address1);
         }
 
-        if ($clientData->postcode == null || $clientData->postcode == '') {
+        if (empty($clientData->postcode)) {
             $this->legacyFunctions->update_status_nfe($invoiceId, 'Error_cep');
             return;
         }
 
         $ibgeCode = $this->legacyFunctions->gnfe_ibge(preg_replace('/[^0-9]/', '', $clientData->postcode));
 
-        if ($ibgeCode == 'ERROR') {
+        if ($ibgeCode['error']) {
             $this->legacyFunctions->update_status_nfe($invoiceId, 'Error_cep');
             return;
         }
@@ -387,7 +397,7 @@ class Nfe
                     'additionalInformation' => '',
                     'district' => $clientData->address2,
                     'city' => [
-                        'code' => $ibgeCode,
+                        'code' => $ibgeCode['code'],
                         'name' => $clientData->city,
                     ],
                     'state' => $clientData->state
@@ -403,10 +413,10 @@ class Nfe
         $nfeResponse = $this->legacyFunctions->gnfe_issue_nfe($postData);
 
         if (!$nfeResponse->message) {
-            $gnfe_update_nfe = $this->legacyFunctions->gnfe_update_nfe($nfeResponse, $clientId, $invoiceId, 'n/a', date('Y-m-d H:i:s'), date('Y-m-d H:i:s'), $nfDbId);
-            logModuleCall('NFEioServiceInvoices', 'transmit_nf_success', $postData, $nfeResponse);
+            $this->legacyFunctions->gnfe_update_nfe($nfeResponse, $clientId, $invoiceId, 'n/a', $nfDbId);
+            logModuleCall('nfeio_serviceinvoices', 'nf_emit', $postData, $nfeResponse);
         } else {
-            logModuleCall('NFEioServiceInvoices', 'transmit_nf_error', $postData, $nfeResponse);
+            logModuleCall('nfeio_serviceinvoices', 'nf_emit_error', $postData, $nfeResponse);
         }
     }
 
@@ -415,21 +425,39 @@ class Nfe
      *
      * @param   $nfRemoteId string ID remoto da NF (nfe_id)
      * @param   $status     string Status da NF
-     * @return  string 'success' para sucesso
+     * @param   $flowStatus string|null Status de fluxo da NF
+     * @return  bool status da operação
      * @version 2.1.2
      */
-    public function updateLocalNfeStatus($nfRemoteId, $status)
+    public function updateLocalNfeStatus(string $nfRemoteId, string $status, string $flowStatus = null): bool
     {
+        $result = $this->serviceInvoicesRepo->updateNfStatusByNfeId($nfRemoteId, $status, $flowStatus);
+        // caso sucesso registra log
+        if ($result) {
+            logModuleCall('nfeio_serviceinvoices', 'updateLocalNfeStatus', ['nfe_id' => $nfRemoteId, 'status' => $status, 'flow_status' => $flowStatus], $result);
 
-        $_tableName = $this->serviceInvoicesRepo->tableName();
-
-        try {
-            Capsule::table($_tableName)->where('nfe_id', '=', $nfRemoteId)->update(['status' => $status]);
-        } catch (\Exception $e) {
-            return $e->getMessage();
         }
 
-        return 'success';
+        return $result;
+    }
+
+    /**
+     * Atualiza o status de uma NF no banco local pelo externalId
+     *
+     * @param $externalId string ID externo da NF (API externalId)
+     * @param $status string O novo status da NF
+     * @param $flowStatus string|null O novo status de fluxo da NF
+     * @return bool status da operação
+     */
+    public function updateLocalNfeStatusByExternalId(string $externalId, string $status, string $flowStatus = null): bool
+    {
+        $result = $this->serviceInvoicesRepo->updateNfStatusByExternalId($externalId, $status, $flowStatus);
+        // caso sucesso registra log
+        if($result) {
+            logModuleCall('nfeio_serviceinvoices', 'updateLocalNfeStatusByExternalId', ['nfe_external_id' => $externalId, 'status' => $status, 'flow_status' => $flowStatus], $result);
+        }
+
+        return $result;
     }
 
     /**
@@ -478,10 +506,10 @@ class Nfe
 
         try {
             $result = Capsule::table($_tableName)->insert($reissueNfData);
-            logModuleCall('NFEioServiceInvoices', __CLASS__ . '/' . __FUNCTION__, $reissueNfData, $result);
+            logModuleCall('nfeio_serviceinvoices', 'nf_reissue_series_by_nf', $reissueNfData, $result);
             return 'success';
         } catch (\Exception $e) {
-            logModuleCall('NFEioServiceInvoices', __CLASS__ . '/' . __FUNCTION__, $reissueNfData, $e->getMessage());
+            logModuleCall('nfeio_serviceinvoices', 'nf_reissue_series_by_nf_error', $reissueNfData, $e->getMessage());
             return $e->getMessage();
         }
     }
@@ -511,7 +539,7 @@ class Nfe
 
         $result = $this->queue($invoiceId, true);
 
-        logModuleCall('NFEioServiceInvoices', __CLASS__ . '/' . __FUNCTION__, $invoiceId, $result);
+        logModuleCall('nfeio_serviceinvoices', 'nf_reissue_series_by_invoice', $invoiceId, $result);
 
         return ['status' => 'success'];
     }
@@ -556,22 +584,47 @@ class Nfe
         if (count($existingNf) > 0) {
             foreach ($existingNf as $nf) {
                 $result = $this->legacyFunctions->gnfe_delete_nfe($nf->nfe_id);
-                logModuleCall('NFEioServiceInvoices', __CLASS__ . '/' . __FUNCTION__, $nf, $result);
-                // $message sempre retornará erro para notas com status diferente de 'Issued' na API.
-                //  Esta condição garante que status local é alterada para 'Canceled' de qualquer maneira.
-                if ($result->message or empty($result)) {
-                    $this->updateLocalNfeStatus($nf->nfe_id, 'Cancelled');
+                logModuleCall('nfeio_serviceinvoices', 'nf_cancel_series_by_invoice', $nf, $result);
+
+                /*
+                 API retorna 202 e nf no corpo quando nota em fila de cancelamento (WaitingSendCancel)
+                 $message nao faz mais parte do objeto de resposta em qualquer outro status,
+                 agora quando uma nota diferente de 'Issued' é cancelada, o corpo da resposta é
+                 uma string informando o motivo. Ex.: 'service invoice status is 'Cancelled' but must be 'Issued''.
+                */
+
+                // caso retorne objeto, respeita os status que a API retorna
+                if ($result->flowStatus && $result->status) {
+                    $this->updateLocalNfeStatus($nf->nfe_id, $result->status, $result->flowStatus);
+                } else {
+                  // caso nao tenha objeto, forca cancelamento local com status flow personalizado
+                    $this->updateLocalNfeStatus($nf->nfe_id, 'Cancelled', 'ApiNoResponse');
                 }
             }
             return ['status' => 'success'];
         } else {
             logModuleCall(
-                'NFEioServiceInvoices',
-                __CLASS__ . '/' . __FUNCTION__,
+                'nfeio_serviceinvoices',
+                'nf_cancel_series_by_invoice',
                 ['invoice ID' => $invoiceId],
                 "Não existem notas para a fatura #{$invoiceId}."
             );
             return ['status' => 'info', 'message' => "Não existem notas para a fatura #{$invoiceId}."];
         }
+    }
+
+    public function fetchNf($nfId)
+    {
+        $apiKey = $this->storage->get('api_key');
+        $companyId = $this->storage->get('company_id');
+
+        try {
+            \NFe_io::setApiKey($apiKey);
+            $invoice = \NFe_ServiceInvoice::fetch($companyId, $nfId);
+            return $invoice;
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
+
     }
 }

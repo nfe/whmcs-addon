@@ -81,7 +81,7 @@ class DailyCronJob
             if (count($invoicesIdToGenerateNF) > 0) {
                 foreach ($invoicesIdToGenerateNF as $invoice) {
                     $queue = $this->nf->queue($invoice);
-                    logModuleCall('NFEioServiceInvoices', 'Hook - DailyCronJob', $invoice, $queue);
+                    logModuleCall('nfeio_serviceinvoices', 'Hook - DailyCronJob', $invoice, $queue);
                 }
             }
         }
