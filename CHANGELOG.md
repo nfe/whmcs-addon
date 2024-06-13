@@ -1,3 +1,66 @@
+## 2.2.0 - 2024-06-13
+
+### Novos Recursos
+
+#### Validações para CPF e CNPJ
+
+Foi incluída uma nova classe de auxílio `Validations` no módulo `NFEioServiceInvoices`. Essa classe contém métodos para validar CPFs e CNPJs com base no algoritmo de validação, conforme regras de verificação, ao invés da definição de validade de documento pelo tamanho de caracteres, garantindo a integridade dos dados tratados.
+
+Agora quando o número de documento não for válido, seja um CPF ou CNPJ, o processo de emissão da nota será encerrado e uma mensagem com o motivo será mostrado ao usuário, além de um registro detalhado no log do módulo quando em modo depuração.
+
+![Screenshot of WHMCS - NFE io NFSe (1)](https://github.com/nfe/whmcs-addon/assets/5316107/87fd4fa6-b318-4f1a-84ba-474a301b64b9)
+
+![Screenshot of WHMCS - System Module Debug Log](https://github.com/nfe/whmcs-addon/assets/5316107/0248dab5-fc84-487f-a398-98f6759b05e9)
+
+#### Validação e manipulação de webhook (hmac)
+
+Foi adicionado um novo método de validação de webhook na classe de validação e uma nova manipulação de webhook no arquivo callback. Agora, é possível verificar a assinatura do [webhook (HMAC)](https://nfe.io/docs/documentacao/webhooks/duvidas-frequentes/#2_Como_saber_se_o_webhook_que_recebi_e_da_NFEio) e certificar-se de que é de uma fonte confiável antes de processá-lo.
+
+Também foi melhorado o retorno de erros e códigos de respostas para as chamadas da API ao callback, com isso é possível permitir que a API realize novas tentativas de envio em casos de impossibilidade do processamento na primeira chamada, evitando que atualizações de informações no módulo não sejam prejudicadas por qualquer impossibilidade momentânea do módulo em escutar os retornos.
+
+#### Opção para atualização da nota
+
+Foi adicionado na interface do administrador uma nova opção que permite a atualização do status da nota de forma manual. Com isso, é possível buscar as informações diretamente na API para refletir estas informações no WHMCS.
+Este recurso é útil em casos onde as informações do status da nota não foram sincronizados com o módulo.
+
+![image](https://github.com/nfe/whmcs-addon/assets/5316107/edc51efb-7dc5-421c-8839-c8c90570fbe0)
+
+### Melhorias
+
+#### Tratamento de status do cancelamento da nota via API
+
+Refatorado a manipulação do status da nota quando é realizada cancelamento para atender a estrutura atual de retorno da API de cancelamento. Antes, ao cancelar uma nota via API, o objeto de retorno possuía um atributo "message" onde o processo de atualização de notas cancelava se baseava. Agora, a API de cancelamento está retornando a nf no objeto e código de status 202. Devido a isso as notas canceladas não estavam sendo registradas adequadamente.
+
+![Screenshot from 2024-04-27 21-37-02](https://github.com/nfe/whmcs-addon/assets/5316107/2ba93cb4-7da6-4281-bf76-fcf432ab7760)
+
+#### Melhoria no tratamento de erros e registro de status do fluxo
+
+Foi adicionado o registro do valor de flowStatus dos retornos do webhook, garantindo que em cenários de falha ou problemas, a informação deste atributo esteja registrada corretamente para solução de problemas. Com isso será possível analisar as mensagens de retorno de forma mais eficiente e também utilizar seus valores para processamento nas rotinas de mensagens de retorno implementadas nestas atualizações.
+
+![image](https://github.com/nfe/whmcs-addon/assets/5316107/f9284f84-9215-4f8d-9d30-a7d581ec4f7d)
+
+Também foi padronizado os identificadores e adicionado novos registros de log para permitir uma melhor depuração, tanto do retorno do webhook quanto em rotinas internas do módulo.
+
+**NOTA:** A mensagem _ApiNoResponse_ é uma mensagem interna utilizada para identificar quando uma ação de cancelamento não retornou o devido status pela nota já se encontrar cancelada na API ou tiver sua emissão não concluída e o usuário tenta cancelar da mesma forma.
+
+#### Modais de confirmação
+
+Foi adicionado modais de confirmação para as ações de cancelamento e reemissão de notas fiscais. 
+Agora, ao realizar uma destas ações, o usuário será questionado se deseja prosseguir com a ação.
+
+### Correções
+
+#### Corrigido problema no registro de timestamp das informações no banco de dados
+
+Foi corrigido um problema na definicao do tipo de valor padrao para os campo de created_at e updated_at nas tabelas do módulo. As informações nao estavam sendo registradas devidamente por algumas definicoes manuais de data de rotinas legadas e também devido a falta de uma definicao de valores padroes para estas colunas do tipo timestamp que poderia gerar uma atribuição equivocada de valores nestes campos.
+
+Detalhes da análise e correcao podem ser encontradas na questao 156 https://github.com/nfe/whmcs-addon/issues/156
+
+#### Corrigido problema de re-emissão duplicada na fatura
+
+Foi corrigido uma condição que poderia levar a emissão duplicada de notas quando administrador tenta gerar novas notas
+a partir da visualização de uma fatura. #160
+
 ## 2.1.8 - 2023-03-15
 
 ### Correções
