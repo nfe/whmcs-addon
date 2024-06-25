@@ -262,17 +262,25 @@ class Controller
 
         $msg = new FlashMessages();
         $post = $_POST;
+        $product_id = $post['product_id'] ?? null;
+        $service_code = $post['service_code'] ?? null;
+        $product_name = $post['product_name'] ?? null;
 
-        if (!isset($post) && !is_array($post)) {
+        if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
             $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=servicesCode");
+        }
+
+        // caso $product_id, $service_code ou $product_name estejam vazios, retorna erro
+        if (is_null($product_id) || is_null($service_code) || is_null($product_name)) {
+            $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=servicesCode");
         }
 
         $productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
 
         if ($post['btnSave'] === 'true') {
-            $response = $productCodeRepo->save($post);
+            $response = $productCodeRepo->save($product_id, $service_code);
             if ($response) {
-                $msg->success("{$post['product_name']} atualizado com sucesso.", "{$vars['modulelink']}&action=servicesCode");
+                $msg->success("{$product_name} atualizado com sucesso.", "{$vars['modulelink']}&action=servicesCode");
             } else {
                 $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=servicesCode");
             }

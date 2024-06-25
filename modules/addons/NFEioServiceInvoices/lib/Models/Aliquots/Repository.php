@@ -2,6 +2,7 @@
 
 namespace NFEioServiceInvoices\Models\Aliquots;
 
+use NFEioServiceInvoices\Helpers\Timestamp;
 use WHMCS\Database\Capsule;
 
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
@@ -47,12 +48,21 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     public function save($data)
     {
+        $data = [
+            'code_service' => $data['code_service'],
+            'iss_held' => $data['iss_held'],
+            'updated_at' => Timestamp::currentTimestamp(), // campo updated_at sempre atualizado
+        ];
+
+        // Se o registro não existir, adiciona o campo 'created_at'
+        if (!Capsule::table($this->tableName)->where('code_service', '=', $data['code_service'])->exists()) {
+            $data['created_at'] = Timestamp::currentTimestamp();
+        }
+
         try {
             return Capsule::table($this->tableName)->updateOrInsert(
                 [ 'code_service' => $data['code_service'] ],
-                [
-                    'iss_held' => $data['iss_held']
-                ]
+                $data
             );
         } catch (\Exception $exception) {
             echo $exception->getMessage();
