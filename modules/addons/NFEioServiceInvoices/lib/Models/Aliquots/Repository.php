@@ -46,22 +46,22 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             ->get();
     }
 
-    public function save($data)
+    public function save($codeService, $issHeld)
     {
         $data = [
-            'code_service' => $data['code_service'],
-            'iss_held' => $data['iss_held'],
+            'code_service' => $codeService,
+            'iss_held' => $issHeld,
             'updated_at' => Timestamp::currentTimestamp(), // campo updated_at sempre atualizado
         ];
 
         // Se o registro não existir, adiciona o campo 'created_at'
-        if (!Capsule::table($this->tableName)->where('code_service', '=', $data['code_service'])->exists()) {
+        if (!Capsule::table($this->tableName)->where('code_service', '=', $codeService)->exists()) {
             $data['created_at'] = Timestamp::currentTimestamp();
         }
 
         try {
             return Capsule::table($this->tableName)->updateOrInsert(
-                [ 'code_service' => $data['code_service'] ],
+                [ 'code_service' => $codeService ],
                 $data
             );
         } catch (\Exception $exception) {
@@ -69,9 +69,14 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
     }
 
-    public function delete($data)
+    /**
+     * Remove a aliquota de retenção de ISS
+     * @param $id
+     * @return mixed
+     */
+    public function delete($id)
     {
-        return Capsule::table($this->tableName())->where('id', '=', $data['id'])->delete();
+        return Capsule::table($this->tableName())->where('id', '=', $id)->delete();
     }
 
     /**

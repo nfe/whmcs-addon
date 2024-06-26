@@ -416,17 +416,23 @@ class Controller
     public function aliquotsSave($vars)
     {
         $msg = new FlashMessages();
-        $post = $_POST;
-        $productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
         $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
+        $post = $_POST;
+        $iss_held = $post['iss_held'] ?? null;
+        $code_service = $post['code_service'] ?? null;
+        $record_id = $post['id'] ?? null;
 
-        if (!isset($post) && !is_array($post)) {
+        if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
             $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=aliquots");
+        }
+
+        if (is_null($iss_held) || is_null($code_service) || is_null($record_id)) {
+            $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=aliquots");
         }
 
 
         if ($post['btnSave'] === 'true') {
-            $response = $aliquotsRepo->save($post);
+            $response = $aliquotsRepo->save($code_service, $iss_held);
             if ($response) {
                 $msg->success("Alíquota atualizada com sucesso.", "{$vars['modulelink']}&action=aliquots");
             } else {
@@ -435,7 +441,7 @@ class Controller
         }
 
         if ($post['btnDelete'] === 'true') {
-            $aliquotsRepo->delete($post);
+            $aliquotsRepo->delete($record_id);
             $msg->warning("Alíquota removida com sucesso.", "{$vars['modulelink']}&action=aliquots");
         }
     }
