@@ -2,6 +2,7 @@
 
 namespace NFEioServiceInvoices\Models\ProductCode;
 
+use NFEioServiceInvoices\Helpers\Timestamp;
 use WHMCS\Database\Capsule;
 
 /**
@@ -51,16 +52,24 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             ->get();
     }
 
-    public function save($data)
+    public function save($productId, $serviceCode)
     {
+        $data = [
+            'product_id' => $productId,
+            'code_service' => $serviceCode,
+            'ID_user' => 1,
+            'updated_at' => Timestamp::currentTimestamp(),  // campo updated_at sempre atualizado
+        ];
+
+        // Se o registro não existir, adiciona o campo 'created_at'
+        if (!Capsule::table($this->tableName)->where('product_id', $productId)->exists()) {
+            $data['created_at'] = Timestamp::currentTimestamp();
+        }
 
         try {
             return Capsule::table($this->tableName)->updateOrInsert(
                 [ 'product_id' => $data['product_id'] ],
-                [
-                    'code_service' => $data['service_code'],
-                    'ID_user' => 1,
-                ]
+                $data
             );
         } catch (\Exception $exception) {
             echo $exception->getMessage();
