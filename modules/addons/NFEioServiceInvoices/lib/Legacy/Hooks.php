@@ -63,7 +63,7 @@ class Hooks
 
         try {
             if (Capsule::schema()->hasTable($_table)) {
-                $result =  ['Emitir nota fiscal quando' => $this->functions->gnfe_show_issue_invoice_conds($vars['userid'])];
+                $result =  ['Emitir nota fiscal quando?' => $this->functions->gnfe_show_issue_invoice_conds($vars['userid'])];
             } else {
                 $result =  ['Módulo NFE.io' => 'Não existem opções'];
             }
