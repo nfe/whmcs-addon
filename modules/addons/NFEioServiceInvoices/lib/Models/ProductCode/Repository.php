@@ -17,6 +17,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'product_id',
         'code_service',
         'iss_held',
+        'company_id',
         'created_at',
         'updated_at',
         'ID_user',
@@ -39,36 +40,73 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     /**
      * Realiza um join entre produtos e códigos personalizados de serviços
-     * e estrutura os dados para a dataTable
+     * e estrutura os dados para a dataTable, retornando apenas produtos cadastrados
      *
-     * @return array
      */
     public function servicesCodeDataTable()
     {
         return Capsule::table('tblproducts')
-            ->leftJoin($this->tableName, 'tblproducts.id', '=', "{$this->tableName}.product_id")
-            ->orderBy('tblproducts.id', 'desc')
-            ->select('tblproducts.id', 'tblproducts.name', "{$this->tableName}.code_service")
+            ->join($this->tableName(), 'tblproducts.id', '=', "{$this->tableName}.product_id")
+            ->orderBy("{$this->tableName()}.id", 'desc')
+            ->select('tblproducts.id as product_id',
+                'tblproducts.name as product_name',
+                "{$this->tableName()}.code_service",
+                "{$this->tableName()}.id as record_id",
+                "{$this->tableName()}.company_id as company_id"
+            )
             ->get();
     }
 
-    public function save($productId, $serviceCode)
+    public function aliquotsCodesDataTable()
+    {
+        $companyRepo = new \NFEioServiceInvoices\Models\Company\Repository();
+
+        return Capsule::table($this->tableName())
+            ->leftJoin(
+                $companyRepo->tableName(),
+                "{$this->tableName()}.company_id",
+                '=',
+                "{$companyRepo->tableName()}.company_id"
+            )
+            ->select(
+                "{$this->tableName()}.id as record_id",
+                "{$this->tableName()}.code_service as service_code",
+                "{$this->tableName()}.company_id",
+                "{$companyRepo->tableName()}.company_name",
+                "{$companyRepo->tableName()}.tax_number as company_tax_number"
+
+            )
+            ->orderBy("{$this->tableName()}.id", 'desc')
+            ->groupBy(
+                "{$this->tableName()}.code_service",
+                "{$this->tableName()}.company_id"
+            )
+            ->get();
+
+    }
+
+    public function save($productId, $serviceCode, $companyId)
     {
         $data = [
             'product_id' => $productId,
             'code_service' => $serviceCode,
+            'company_id' => $companyId,
             'ID_user' => 1,
             'updated_at' => Timestamp::currentTimestamp(),  // campo updated_at sempre atualizado
         ];
 
         // Se o registro não existir, adiciona o campo 'created_at'
-        if (!Capsule::table($this->tableName)->where('product_id', $productId)->exists()) {
+        $exists = Capsule::table($this->tableName)
+            ->where('product_id', $productId)
+            ->where('company_id', $companyId)
+            ->exists();
+        if (!$exists) {
             $data['created_at'] = Timestamp::currentTimestamp();
         }
 
         try {
             return Capsule::table($this->tableName)->updateOrInsert(
-                [ 'product_id' => $data['product_id'] ],
+                [ 'product_id' => $data['product_id'], 'company_id' => $data['company_id'] ],
                 $data
             );
         } catch (\Exception $exception) {
@@ -85,7 +123,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     ->update(['code_service' => null]);
             } else {
                 return Capsule::table($this->tableName)
-                    ->where('product_id', '=', $data['product_id'])
+                    ->where('id', '=', $data)
                     ->delete();
             }
         } catch (\Exception $exception) {
@@ -119,7 +157,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function createProductCodeTable()
     {
-        $db = Capsule::connection();
+//        $db = Capsule::connection();
         $schema = Capsule::schema();
 
         if (!$schema->hasTable($this->tableName)) {
@@ -129,9 +167,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->increments('id');
                     $table->integer('product_id');
                     $table->string('code_service', 30);
+                    // company_id para multi empresa #163
+                    $table->string('company_id')->nullable();
                     $table->timestamp('created_at')->nullable();
                     $table->timestamp('updated_at')->nullable();
                     $table->integer('ID_user');
+
                 }
             );
 
