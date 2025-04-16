@@ -31,8 +31,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'updated_at',
         'service_code',
         'tics',
+        'company_id',
     );
-    protected $_limit = 5;
+    protected $_limit = 10;
 
     /**
      * Define o máximo limite de registros de uma consulta
@@ -119,10 +120,13 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->string('pdf');
                     $table->string('rpsSerialNumber');
                     $table->string('rpsNumber');
+                    // company_id para multi empresa #163
+                    $table->string('company_id')->nullable();
                     $table->timestamp('created_at')->nullable();
                     $table->timestamp('updated_at')->nullable();
                     $table->string('service_code', 30)->nullable(true);
                     $table->string('tics')->nullable(true);
+
                 }
             );
         }
