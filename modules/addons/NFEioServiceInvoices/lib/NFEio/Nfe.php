@@ -52,6 +52,16 @@ class Nfe
         $this->aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
     }
 
+    private function apiAuth()
+    {
+        $apiKey = $this->storage->get('api_key');
+        if (is_null($apiKey)) {
+            return false;
+        }
+
+        \NFe_io::setApiKey($apiKey);
+    }
+
     public function companiesDropDownValues()
     {
         $companiesData = $this->getCompanies();
@@ -61,7 +71,7 @@ class Nfe
         }
         $companies = [];
         foreach ($companiesData['companies'] as $company) {
-            $companies[$company->id] = $company->id . ' - ' . strtoupper($company->name);
+            $companies[$company->id] = $company->federalTaxNumber . ' - ' . strtoupper($company->name);
         }
 
         return $companies;
@@ -86,6 +96,38 @@ class Nfe
         $companies = \NFe_Company::search();
 
         return $companies->getAttributes();
+    }
+
+    /**
+     * Retorna o nome da empresa conforme o ID informado.
+     * @param $companyId
+     * @return string
+     */
+    public function getCompanyName($companyId)
+    {
+
+        $this->apiAuth();
+        $response = \NFe_Company::fetch($companyId);
+        $company = $response->getAttributes();
+
+        if (isset($company['companies']) && is_object($company['companies'])) {
+            return strtoupper($company['companies']->name);
+        }
+        // se não encontrar a empresa retorna vazio
+        return '';
+    }
+
+    public function getCompanyDetails($companyId)
+    {
+        $this->apiAuth();
+        $response = \NFe_Company::fetch($companyId);
+        $company = $response->getAttributes();
+
+        if (isset($company['companies']) && is_object($company['companies'])) {
+            return $company['companies'];
+        }
+        // se não encontrar a empresa retorna vazio
+        return '';
     }
 
     /**
