@@ -20,7 +20,20 @@
 
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li role="presentation" {if $smarty.get.action eq "configuration"}class="active"{/if}><a href="{$modulelink}&action=configuration"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Configurações</a></li>
+        <li class="dropdown {if $smarty.get.action eq 'configuration' || $smarty.get.action eq 'associateClients'}active{/if}">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+            <span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Configurações <b class="caret"></b>
+          </a>
+          <ul class="dropdown-menu">
+            <li {if $smarty.get.action eq "configuration"}class="active"{/if}>
+              <a href="{$modulelink}&action=configuration">Configurações do Módulo</a>
+            </li>
+            <li {if $smarty.get.action eq "associateClients"}class="active"{/if}>
+              <a href="{$modulelink}&action=associateClients">Associar Clientes</a>
+            </li>
+          </ul>
+        </li>
+{*        <li role="presentation" {if $smarty.get.action eq "configuration"}class="active"{/if}><a href="{$modulelink}&action=configuration"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Configurações</a></li>*}
         <li role="presentation" {if $smarty.get.action eq "support"}class="active"{/if}><a href="{$modulelink}&action=support"><span class="glyphicon glyphicon-question-sign" aria-hidden="true"></span> Suporte</a></li>
         <li role="presentation" {if $smarty.get.action eq "about"}class="active"{/if}><a href="{$modulelink}&action=about"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span> Sobre</a></li>
 

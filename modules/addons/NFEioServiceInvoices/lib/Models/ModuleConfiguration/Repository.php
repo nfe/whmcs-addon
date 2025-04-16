@@ -72,8 +72,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public $mandatoryFields = array(
         'api_key',
-        'company_id',
-        'service_code',
         'issue_note_default_cond',
         'insc_municipal',
         'cpf_camp',
