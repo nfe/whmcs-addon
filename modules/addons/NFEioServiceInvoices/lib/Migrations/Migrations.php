@@ -103,11 +103,11 @@ class Migrations
                 // não existir a nova tabela destino mod_nfeio_si_custom_configs
                 if (!Capsule::schema()->hasTable('mod_nfeio_si_custom_configs')) {
                     // copia a antiga tabela mod_nfeio_custom_configs e renomeia para o novo nome
-                     $db = Capsule::connection();
-                     $db->statement('CREATE TABLE mod_nfeio_si_custom_configs LIKE mod_nfeio_custom_configs');
-                     $db->statement('INSERT mod_nfeio_si_custom_configs SELECT * FROM mod_nfeio_custom_configs');
+                    $db = Capsule::connection();
+                    $db->statement('CREATE TABLE mod_nfeio_si_custom_configs LIKE mod_nfeio_custom_configs');
+                    $db->statement('INSERT mod_nfeio_si_custom_configs SELECT * FROM mod_nfeio_custom_configs');
 
-                     return true;
+                    return true;
                 }
 
                 return false;
@@ -302,6 +302,119 @@ class Migrations
                     $pdo->rollBack();
                 }
             }
+        }
+    }
+
+    /**
+     * Adiciona a coluna company_id à tabela especificada.
+     *
+     * Verifica se a tabela existe e se a coluna ainda não existe antes de
+     * iniciar uma transação para adicioná-la.
+     *
+     * @param string $tableName Nome da tabela a ser alterada.
+     * @return void
+     * @see https://github.com/nfe/whmcs-addon/issues/163
+     * @version 3.0
+     * @since 3.0
+     * @author Andre Kutianski <andre@mimirtech.co>
+     */
+    public static function addCompanyIdColumn(string $tableName)
+    {
+        if (!Capsule::schema()->hasTable($tableName)) {
+            return;
+        }
+
+        // verifica se a coluna company_id já existe para evitar transaction desnecessária
+        $columns = Capsule::schema()->getColumnListing($tableName);
+        if (in_array('company_id', $columns)) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'addCompanyIdColumn',
+                $tableName,
+                'column company_id already exists'
+            );
+            return;
+        }
+
+        $pdo = Capsule::connection()->getPdo();
+        try {
+            $pdo->beginTransaction();
+            $statement = $pdo->prepare(
+                sprintf('ALTER TABLE %s ADD COLUMN company_id VARCHAR(255) NULL', $tableName)
+            );
+            $statement->execute();
+
+            if ($pdo->inTransaction()) {
+                $pdo->commit();
+
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'addCompanyIdColumn',
+                    $tableName,
+                    'success'
+                );
+            }
+        } catch (\Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'addCompanyIdColumn',
+                $e->getMessage(),
+                $e->getTraceAsString()
+            );
+        }
+    }
+
+    /**
+     * Adiciona o company_id existente na coluna company_id de
+     * cada registro existente na tabela especificada.
+     *
+     * @version 3.0
+     * @param $companyId
+     * @param $tableName
+     * @return void
+     */
+    public static function addCompanyIdRecord($companyId, $tableName)
+    {
+        if (!Capsule::schema()->hasTable($tableName)) {
+            return;
+        }
+
+        $pdo = Capsule::connection()->getPdo();
+        try {
+            $pdo->beginTransaction();
+
+            // Atualiza todos os registros da tabela com o company_id fornecido
+            $statement = $pdo->prepare(
+                sprintf('UPDATE %s SET company_id = :company_id', $tableName)
+            );
+            $statement->bindParam(':company_id', $companyId);
+            $statement->execute();
+
+            if ($pdo->inTransaction()) {
+                $pdo->commit();
+
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'addCompanyIdRecord',
+                    $tableName,
+                    'success'
+                );
+            }
+        } catch (\Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'addCompanyIdRecord',
+                $e->getMessage(),
+                $e->getTraceAsString()
+            );
         }
     }
 }

@@ -243,6 +243,16 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
         $moduleConfigurationRepo = new Models\ModuleConfiguration\Repository();
         // inicia os valores padrões nas configurações do módulo
         $moduleConfigurationRepo->initDefaultValues();
+
+        // v3.0.0
+        // inicia tabela para armazenar as empresas
+        $companyRepository = new Models\Company\Repository();
+        $companyRepository->createTable();
+
+        // v3.0.0
+        // inicia tabela de associacao de client a company_id
+        $clientCompanyRepository = new Models\ClientCompany\Repository();
+        $clientCompanyRepository->createTable();
     }
 
     public function deactivate()
@@ -307,7 +317,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
          * e realiza migracoes necessarias.
          *
          * @see https://github.com/nfe/whmcs-addon/issues/163
-         * @version 2.3.0
+         * @version 3.0
          */
         if (version_compare($currentlyInstalledVersion, '2.3.0', 'lt')) {
 
@@ -316,13 +326,17 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
             $companyRepository->createTable();
             // coleta todos os dados vinculados a empresa já configurada
             $companyData = Addon::I()->loadAddonData();
+            $company_id = $companyData->company_id;
             // busca o nome da empresa na API da NFe.io conforme o company_id já existente
             $nfeio = new \NFEioServiceInvoices\NFEio\Nfe();
-            $companyName = $nfeio->getCompanyName($companyData->company_id);
+            $company_details = $nfeio->getCompanyDetails($company_id);
+            $company_name = strtoupper($company_details->name);
+            $company_taxnumber = $company_details->federalTaxNumber;
             // salva os dados da empresa emissora existente na nova tabela
             $companyRepository->save(
-                $companyData->company_id,
-                $companyName,
+                $company_id,
+                $company_taxnumber,
+                $company_name,
                 $companyData->service_code,
                 $companyData->iss_held,
                 true
@@ -339,6 +353,14 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
             \NFEioServiceInvoices\Migrations\Migrations::addCompanyIdColumn('mod_nfeio_si_aliquots');
             // notas fiscais
             \NFEioServiceInvoices\Migrations\Migrations::addCompanyIdColumn('mod_nfeio_si_serviceinvoices');
+
+            // insere o company_id na coluna dos registros já existentes na tabela
+            // 'mod_nfeio_si_productcode'
+            \NFEioServiceInvoices\Migrations\Migrations::addCompanyIdRecord($company_id, 'mod_nfeio_si_productcode');
+            // 'mod_nfeio_si_aliquots'
+            \NFEioServiceInvoices\Migrations\Migrations::addCompanyIdRecord($company_id, 'mod_nfeio_si_aliquots');
+            // mod_nfeio_si_serviceinvoices
+            \NFEioServiceInvoices\Migrations\Migrations::addCompanyIdRecord($company_id, 'mod_nfeio_si_serviceinvoices');
 
         }
     }
