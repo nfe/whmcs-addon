@@ -13,9 +13,13 @@ use NFEioServiceInvoices\Helpers\Versions;
 use Smarty;
 use WHMCS\Database\Capsule;
 use Plasticbrain\FlashMessages\FlashMessages;
+use WHMCS\Exception;
 use WHMCSExpert\Template\Template;
 use NFEioServiceInvoices\Addon;
 
+use Tracy\Debugger;
+
+Debugger::enable(Debugger::Development);
 
 /**
  * Sample Admin Area Controller
@@ -26,8 +30,9 @@ class Controller
      * Index action.
      *
      * @param array $vars Module configuration parameters
-     *
      * @return string
+     * @version 2.0
+     * @since 2.0
      */
     public function index($vars)
     {
@@ -65,11 +70,169 @@ class Controller
         }
     }
 
+    public function associateClients($vars)
+    {
+        $msg = new FlashMessages();
+        $template = new Template(Addon::getModuleTemplatesDir());
+        $assetsURL = Addon::I()->getAssetsURL();
+        $vars['assetsURL'] = $assetsURL;
+        $vars['formAction'] = 'associateClientsSave';
+        $vars['jsonUrl'] = Addon::I()->genJSONUrl('associateClients');
+        if ($msg->hasMessages()) {
+            $msg->display();
+        }
+        return $template->fetch('associateclients', $vars);
+
+
+    }
+
+    /**
+     * Edita os dados de uma empresa associada ao módulo.
+     *
+     * @param $vars
+     * @return void
+     * @version 3.0
+     * @since 3.0
+     */
+    public function companyEdit($vars)
+    {
+        $msg = new FlashMessages();
+        $data = $_POST ?? null;
+        $recordId = $data['id'] ?? null;
+        $companyName = $data['company_name'] ?? null;
+        $serviceCode = $data['service_code'] ?? null;
+        $issHeld = $data['iss_held'] ?? null;
+        $companyDefault = $data['default'];
+
+
+        if (is_null($recordId) || is_null($companyName) || is_null($serviceCode)) {
+            $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=configuration");
+            return;
+        }
+
+        try {
+            $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
+            // edita os dados da empresa
+            $response = $companyRepository->edit(
+                $recordId,
+                $companyName,
+                $serviceCode,
+                $issHeld,
+                $companyDefault
+            );
+            if (!$response['status']) {
+                $msg->error("SQL error occurred: " . $response['error'], "{$vars['modulelink']}&action=configuration");
+            } else {
+                // registra atividade no WHMCS
+                logActivity("NFE.io: Company updated - " . $recordId, 0);
+                $msg->success("Empresa editada com sucesso.", "{$vars['modulelink']}&action=configuration");
+            }
+        } catch (\Exception $exception) {
+            $msg->error("Error {$exception->getCode()} updating: " . $exception->getMessage(), "{$vars['modulelink']}&action=configuration");
+        }
+
+    }
+
+    /**
+     * Exclui uma empresa associada ao módulo.
+     *
+     * @param $vars
+     * @return void
+     * @version 3.0
+     * @since 3.0
+     */
+    public function companyDelete($vars)
+    {
+        $msg = new FlashMessages();
+        $data = $_POST ?? null;
+        $company_id = $data['company_id'] ?? null;
+        $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
+        $result = $companyRepository->delete($company_id);
+
+        if ($result['status']) {
+            $msg->success($result['message'], "{$vars['modulelink']}&action=configuration");
+        } else {
+            $msg->error("Erro ao excluir: {$result['message']}", "{$vars['modulelink']}&action=configuration");
+        }
+
+    }
+
+    /**
+     * Associa uma empresa ao módulo.
+     *
+     * @param $vars
+     * @return void
+     * @version 3.0
+     * @since 3.0
+     */
+    public function associateCompany($vars)
+    {
+        $msg = new FlashMessages();
+        $data = $_POST ?? null;
+        $company_id = $data['company_id'] ?? null;
+        $service_code = $data['service_code'] ?? null;
+        $iss_held = $data['iss_held'] ?? null;
+        $company_default = $data['company_default'] ?? false;
+
+        if ($company_default == 'on') {
+            $company_default = true;
+        }
+
+        if (is_null($company_id)) {
+            $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=configuration");
+            return;
+        }
+
+        try {
+            $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
+            $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
+            $company_details = $nfe->getCompanyDetails($company_id);
+            $company_name = strtoupper($company_details->name);
+            $company_taxnumber = $company_details->federalTaxNumber;
+
+            // salva os dados da empresa
+            $response = $companyRepository->save(
+                $company_id,
+                $company_taxnumber,
+                $company_name,
+                $service_code,
+                $iss_held,
+                $company_default
+            );
+
+            if (!$response['status']) {
+                $msg->error("SQL error occurred: " . $response['error'], "{$vars['modulelink']}&action=configuration");
+            } else {
+                // registra atividade no WHMCS
+                logActivity("NFE.io: Company associated - " . $company_id, 0);
+                $msg->success("Empresa associada com sucesso!", "{$vars['modulelink']}&action=configuration");
+            }
+        } catch (\Exception $exception) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'associateCompany',
+                [
+                    'company_id' => $company_id,
+                    'service_code' => $service_code,
+                    'iss_held' => $iss_held,
+                    'default_company' => $company_default
+                ],
+                [
+                    'error' => $exception->getMessage(),
+                    'code' => $exception->getCode()
+                ]
+            );
+            $msg->error("Error {$exception->getCode()} updating: " . $exception->getMessage(), "{$vars['modulelink']}&action=configuration");
+        }
+    }
+
     /**
      * Exibe a página de configuração do módulo associando qualquer variável padrão ou personalizada ao tpl.
      *
      * @param  $vars array parametros do WHMCS
      * @return string|void template de visualização com parametros
+     * @version 3.0
+     * @since 2.0
      */
     public function configuration($vars)
     {
@@ -78,32 +241,31 @@ class Controller
             $template = new Template(Addon::getModuleTemplatesDir());
             $config = new \NFEioServiceInvoices\Configuration();
             $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
+            $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
             // metodo para verificar se existe algum campo obrigatório não preenchido.
             $config->verifyMandatoryFields($vars);
+
             $assetsURL = Addon::I()->getAssetsURL();
             $moduleCallBackUrl = Addon::I()->getCallBackPath();
             $moduleConfigurationRepo = new \NFEioServiceInvoices\Models\ModuleConfiguration\Repository();
             $moduleFields = $moduleConfigurationRepo->getFields();
             $customFieldsClientsOptions = CustomFields::getClientFields();
-            $companiesDropDown = $nfe->companiesDropDownValues();
+            $availableCompanies = $nfe->companiesDropDownValues();
+            $registeredCompanies = $companyRepository->getAll();
+
+            // remove as empresas que já estão cadastradas
+            $companiesDropDown = array_filter($availableCompanies, function ($key) use ($registeredCompanies) {
+                return !in_array($key, array_column($registeredCompanies->toArray(), 'company_id'));
+            }, ARRAY_FILTER_USE_KEY);
+
             $vars['customFieldsClientsOptions'] = $customFieldsClientsOptions;
             $vars['moduleFields'] = $moduleFields;
             $vars['companiesDropDown'] = $companiesDropDown;
             $vars['formAction'] = 'configurationSave';
             $vars['assetsURL'] = $assetsURL;
             $vars['moduleCallBackUrl'] = $moduleCallBackUrl;
+            $vars['companies'] = $registeredCompanies;
 
-            // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
-            $oldVersion = Versions::getOldNfeioModuleVersion();
-            // se tiver registro de versão antiga define mensagem
-            if ($oldVersion) {
-                $msg->error(
-                    "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.",
-                    '',
-                    true
-                );
-            }
 
             if ($msg->hasMessages()) {
                 $msg->display();
@@ -119,6 +281,8 @@ class Controller
      * Salva as configurações do módulo
      *
      * @param $vars array Parametros do WHMCS
+     * @since 2.0
+     * @version 3.0
      */
     public function configurationSave($vars)
     {
@@ -133,9 +297,6 @@ class Controller
         $post = isset($_POST) ? $_POST : null;
 
         // campos para atualização conforme post realizado
-        $api_key = isset($post['api_key']) ? $post['api_key'] : null;
-        $company_id = isset($post['company_id']) ? $post['company_id'] : null;
-        $service_code = isset($post['service_code']) ? $post['service_code'] : null;
         $rps_number = isset($post['rps_number']) ? $post['rps_number'] : 'RPS administrado pela NFe.';
         $gnfe_email_nfe_config = isset($post['gnfe_email_nfe_config']) ? $post['gnfe_email_nfe_config'] : '';
         $issue_note_default_cond = isset($post['issue_note_default_cond']) ? $post['issue_note_default_cond'] : null;
@@ -181,15 +342,6 @@ class Controller
             // discount_items
             $storage->set('discount_items', $discount_items);
 
-            if ($api_key) {
-                $storage->set('api_key', $api_key);
-            }
-            if ($company_id) {
-                $storage->set('company_id', $company_id);
-            }
-            if ($service_code) {
-                $storage->set('service_code', $service_code);
-            }
             if ($rps_number) {
                 $storage->set('rps_number', $rps_number);
             }
@@ -208,27 +360,73 @@ class Controller
     }
 
     /**
+     * Busca de produtos via requisicoes ajax
+     *
+     * @return mixed JSON response with found products
+     * @since 3.0
+     * @version 3.0
+     */
+    public function searchProducts()
+    {
+
+        header('Content-Type: application/json');
+
+        try {
+            $searchTerm = isset($_GET['term']) ? $_GET['term'] : '';
+
+            if (empty($searchTerm) || strlen($searchTerm) < 2) {
+                echo json_encode([]);
+                return;
+            }
+
+            // Search products in the database
+            $products = Capsule::table('tblproducts')
+                ->select('id', 'name')
+                ->where('name', 'like', '%' . $searchTerm . '%')
+                ->orderBy('name', 'asc')
+                ->limit(10)
+                ->get()
+                ->toArray();
+
+            echo json_encode($products);
+
+        } catch (\Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+
+        exit;
+    }
+
+    /**
      * Exibe a página de configuração de código de serviços e seus parametros
      *
      * @param  $vars parametros do WHMCS
      * @return string|void template
+     * @version 3.0
+     * @since 2.0
      */
     public function servicesCode($vars)
     {
+
         try {
             $msg = new FlashMessages();
             $template = new Template(Addon::getModuleTemplatesDir());
             $config = new \NFEioServiceInvoices\Configuration();
             $servicesCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
+            $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
             // metodo para verificar se existe algum campo obrigatório não preenchido.
             $config->verifyMandatoryFields($vars);
             // URL absoluta dos assets
             $assetsURL = Addon::I()->getAssetsURL();
+            $availableCompanies = $companyRepository->getAll()->toArray();
 
             $vars['assetsURL'] = $assetsURL;
             $vars['dtData'] = $servicesCodeRepo->servicesCodeDataTable();
             // parametro para o atributo action dos formulários da página
             $vars['formAction'] = 'servicesCodeSave';
+            // #163 Gera as URL para as requisicoes em json
+            $vars['jsonUrl'] = Addon::I()->genJSONUrl('servicesCode');
+            $vars['availableCompanies'] = $availableCompanies;
 
             // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
             $oldVersion = Versions::getOldNfeioModuleVersion();
@@ -253,49 +451,84 @@ class Controller
     }
 
     /**
-     * Salva os códigos de serviços do post
+     * Remove um código de serviço personalizado
      *
      * @param $vars
+     * @return void
+     * @version 3.0
+     * @since 3.0
+     */
+    public function serviceCodeRemove($vars)
+    {
+        $msg = new FlashMessages();
+        $post = $_POST;
+        $record_id = $post['record_id'] ?? null;
+
+        if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
+            $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=servicesCode");
+        }
+
+        // caso $product_id ou $service_code estejam vazios, retorna erro
+        if (is_null($record_id)) {
+            $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=servicesCode");
+        }
+
+        try {
+            $productCodeRepository = new \NFEioServiceInvoices\Models\ProductCode\Repository();
+            $productCodeRepository->delete($record_id);
+            $msg->success('Código de serviço removido com sucesso.', "{$vars['modulelink']}&action=servicesCode");
+        } catch (Exception $exception) {
+            $msg->error("Erro {$exception->getCode()} ao atualizar: {$exception->getMessage()}", "{$vars['modulelink']}&action=servicesCode");
+        }
+
+
+    }
+
+    /**
+     * Salva os códigos de serviços personalizados
+     *
+     * @param $vars
+     * @since 2.0
+     * @version 3.0
      */
     public function servicesCodeSave($vars)
     {
 
         $msg = new FlashMessages();
+        $productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
         $post = $_POST;
         $product_id = $post['product_id'] ?? null;
         $service_code = $post['service_code'] ?? null;
         $product_name = $post['product_name'] ?? null;
+        $company_id = $post['company'] ?? null;
+        $company_default = $post['company_default'] ?? null;
 
         if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
             $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=servicesCode");
         }
 
         // caso $product_id, $service_code ou $product_name estejam vazios, retorna erro
-        if (is_null($product_id) || is_null($service_code) || is_null($product_name)) {
+        if (is_null($product_id) || is_null($service_code)) {
             $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=servicesCode");
         }
 
-        $productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
+        $response = $productCodeRepo->save($product_id, $service_code, $company_id);
 
-        if ($post['btnSave'] === 'true') {
-            $response = $productCodeRepo->save($product_id, $service_code);
-            if ($response) {
-                $msg->success("{$product_name} atualizado com sucesso.", "{$vars['modulelink']}&action=servicesCode");
-            } else {
-                $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=servicesCode");
-            }
+        if ($response) {
+            // registra atividade no WHMCS
+            logActivity('NFE.io: Código de serviço atualizado - Produto: ' . $product_id . ' Código: ' . $service_code, 0);
+            $msg->success("{$product_name} atualizado com sucesso.", "{$vars['modulelink']}&action=servicesCode");
+        } else {
+            $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=servicesCode");
         }
 
-        if ($post['btnDelete'] === 'true') {
-            $productCodeRepo->delete($post);
-            $msg->warning("Código {$post['service_code']} para {$post['product_name']} removido.", "{$vars['modulelink']}&action=servicesCode");
-        }
     }
 
     /**
      * Funções legadas da area administrativa
      *
      * @param $vars
+     * @since 1.0
      */
     public function legacyFunctions($vars)
     {
@@ -328,7 +561,7 @@ class Controller
             }
         }
         // reissue
-        if ($_REQUEST['nfeio_reissue'] and ( isset($_REQUEST['nfe_id']) and !empty($_REQUEST['nfe_id']) )) {
+        if ($_REQUEST['nfeio_reissue'] and (isset($_REQUEST['nfe_id']) and !empty($_REQUEST['nfe_id']))) {
             $nfId = $_REQUEST['nfe_id'];
             $result = $nfe->reissueNfbyId($nfId);
 
@@ -373,6 +606,12 @@ class Controller
         }
     }
 
+    /**
+     * @param $vars
+     * @return string|void
+     * @version 3.0
+     * @since 2.1
+     */
     public function aliquots($vars)
     {
         try {
@@ -381,27 +620,31 @@ class Controller
             $config = new \NFEioServiceInvoices\Configuration();
             $servicesCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
             $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
+
             // metodo para verificar se existe algum campo obrigatório não preenchido.
             $config->verifyMandatoryFields($vars);
+
             // URL absoluta dos assets
             $assetsURL = Addon::I()->getAssetsURL();
-            $vars['assetsURL'] = $assetsURL;
-            $vars['dtData'] = $aliquotsRepo->aliquotsDataTable();
-            // parametro para o atributo action do formulário principal da página
+
+            $aliquots = $aliquotsRepo->aliquotsDataTable()->toArray();
+            $serviceCodes = $servicesCodeRepo->aliquotsCodesDataTable()->toArray();
+
+            // remove todos os codigos de servicos que ja possuirem uma aliquota definida para um emissor
+            $filteredServiceCodes = array_filter($serviceCodes, function ($service) use ($aliquots) {
+                foreach ($aliquots as $aliquot) {
+                    if ($service->service_code === $aliquot->code_service && $service->company_id === $aliquot->company_id) {
+                        return false; // Exclude service codes with retention already defined
+                    }
+                }
+                return true;
+            });
+
+            // action do formulário
             $vars['formAction'] = 'aliquotsSave';
-
-
-            // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
-            $oldVersion = Versions::getOldNfeioModuleVersion();
-            // se tiver registro de versão antiga define mensagem
-            if ($oldVersion) {
-                $msg->error(
-                    "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de nptas.",
-                    '',
-                    true
-                );
-            }
+            $vars['assetsURL'] = $assetsURL;
+            $vars['dtData'] = $aliquots;
+            $vars['dropdownServiceCodesAliquots'] = $filteredServiceCodes;
 
             if ($msg->hasMessages()) {
                 $msg->display();
@@ -413,45 +656,109 @@ class Controller
         }
     }
 
-    public function aliquotsSave($vars)
+    /**
+     * Remove uma alíquota de serviço
+     *
+     * @param $vars
+     * @return void
+     * @version 3.0
+     * @since 3.0
+     */
+    public function aliquotsRemove($vars)
     {
         $msg = new FlashMessages();
-        $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
         $post = $_POST;
-        $iss_held = $post['iss_held'] ?? null;
-        $code_service = $post['code_service'] ?? null;
         $record_id = $post['id'] ?? null;
 
         if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
             $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=aliquots");
         }
 
-        if (is_null($iss_held) || is_null($code_service) || is_null($record_id)) {
+        // caso $product_id ou $service_code estejam vazios, retorna erro
+        if (is_null($record_id)) {
+            $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=aliquots");
+        }
+
+        try {
+            $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
+            $aliquotsRepo->delete($record_id);
+            $msg->success('Alíquota removida com sucesso.', "{$vars['modulelink']}&action=aliquots");
+        } catch (Exception $exception) {
+            $msg->error("Erro {$exception->getCode()} ao atualizar: {$exception->getMessage()}", "{$vars['modulelink']}&action=aliquots");
+        }
+    }
+
+    /**
+     * @param $vars
+     * @return void
+     * @version 3.0
+     * @since 2.1
+     */
+    public function aliquotsSave($vars)
+    {
+        $msg = new FlashMessages();
+        $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
+        $post = $_POST;
+        $iss_held = $post['iss_held'] ?? null;
+        $code_service = $post['service_code'] ?? null;
+//        $record_id = $post['id'] ?? null;
+        $company_id = $post['company_id'] ?? null;
+
+        if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
+            $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=aliquots");
+        }
+
+        if (is_null($iss_held) || is_null($company_id) || is_null($code_service)) {
             $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=aliquots");
         }
 
 
-        if ($post['btnSave'] === 'true') {
-            $response = $aliquotsRepo->save($code_service, $iss_held);
-            if ($response) {
-                $msg->success("Alíquota atualizada com sucesso.", "{$vars['modulelink']}&action=aliquots");
-            } else {
-                $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=aliquots");
-            }
+        $response = $aliquotsRepo->new($code_service, $iss_held, $company_id);
+
+        if ($response) {
+            $msg->success("Alíquota registrada com sucesso.", "{$vars['modulelink']}&action=aliquots");
+        } else {
+            $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=aliquots");
         }
 
-        if ($post['btnDelete'] === 'true') {
-            $aliquotsRepo->delete($record_id);
-            $msg->warning("Alíquota removida com sucesso.", "{$vars['modulelink']}&action=aliquots");
+    }
+
+    public function aliquotsEdit($vars)
+    {
+        $msg = new FlashMessages();
+        $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
+        $post = $_POST;
+
+        $iss_held = $post['iss_held'] ?? null;
+        $service_code = $post['service_code'] ?? null;
+        $record_id = $post['record_id'] ?? null;
+        $company_name = $post['company_name'] ?? null;
+
+        if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
+            $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=aliquots");
         }
+
+        if (is_null($iss_held) || is_null($record_id)) {
+            $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=aliquots");
+        }
+
+        $response = $aliquotsRepo->edit($record_id, $iss_held);
+
+        if ($response) {
+            $msg->success("Alíquota para código <strong>{$service_code}</strong> emissor <strong>{$company_name}</strong> editada com sucesso.", "{$vars['modulelink']}&action=aliquots");
+        } else {
+            $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=aliquots");
+        }
+
+
     }
 
     /**
      * Reemite as notas fiscais para uma determinada fatura
      *
-     * @version 2.1
-     * @author  Andre Bellafronte <andre@eunarede.com>
      * @param   $vars array variáveis do WHMCS
+     * @author  Andre Bellafronte <andre@eunarede.com>
+     * @version 2.1
      */
     public function reissueNf($vars)
     {
