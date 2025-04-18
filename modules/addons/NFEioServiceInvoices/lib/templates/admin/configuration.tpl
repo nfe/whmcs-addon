@@ -24,10 +24,11 @@
                         <div class="alert alert-info">
                             <strong>Informações:</strong>
                             <ul>
-                                <li>O nome da empresa é para identificação interna.</li>
-                                <li>O código de serviço padrão é utilizado para emissão de NFe.</li>
-                                <li>O campo "ISS Retido (%)" deve ser preenchido com o valor percentual.</li>
-                                <li>O campo "Empresa Padrão" define a empresa padrão para emissão de NFe.</li>
+                                <li>Nome da empresa é para identificação interna.</li>
+                                <li>Código de Serviço Principal será usado como padrão de acordo com cada emissor.</li>
+                                <li>Campo "ISS Retido (%)" será usado como retenção padrão para NFe do emissor.</li>
+                                <li>Campo "Emissor Padrão" define a empresa padrão para emissão de NFe.</li>
+                                <li>Emissor padrão nao pode ser excluído.</li>
                             </ul>
                         </div>
 
@@ -61,8 +62,8 @@
                                     <th>CNPJ</th>
                                     <th>Nome</th>
                                     <th>Cód. Serv. Principal</th>
-                                    <th>ISS Ret. (%)</th>
-                                    <th>Padrão</th>
+                                    <th>ISS Retido (%)</th>
+                                    <th>Emissor Padrão</th>
                                     <th>Ações</th>
                                 </tr>
                                 </thead>
