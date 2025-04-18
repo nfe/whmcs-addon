@@ -935,15 +935,16 @@ class Controller
         $moduleLink = $params['modulelink'];
         $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
         $nfeId = $_GET['nfe_id'];
+        $companyId = $_GET['company_id'];
 
-        if (empty($nfeId)) {
+        if (empty($nfeId) && empty($companyId)) {
             $msg->warning("Nenhuma nota fiscal informada.", $moduleLink);
         }
 
-        $invoice = $nfe->fetchNf($nfeId);
+        $invoice = $nfe->fetchNf($nfeId, $companyId);
 
         if ($invoice['error']) {
-            $msg->error("Erro ao buscar NF na API: {$invoice['error']}.", $moduleLink);
+            $msg->error("Erro ao buscar NF na API: {$invoice['error']}", $moduleLink);
         }
 
         // recebe os dados da nota fiscal

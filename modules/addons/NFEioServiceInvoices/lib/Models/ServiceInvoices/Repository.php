@@ -84,10 +84,19 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function dataTable()
     {
+        $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
         return Capsule::table($this->tableName)
-            ->leftJoin('tblclients', "{$this->tableName}.user_id", '=', 'tblclients.id')
+            ->leftJoin('tblclients', "{$this->tableName()}.user_id", '=', 'tblclients.id')
+            ->leftJoin("{$companyRepository->tableName()}", "{$this->tableName()}.company_id", '=', "{$companyRepository->tableName()}.company_id")
             ->orderBy("{$this->tableName}.id", 'desc')
-            ->select("{$this->tableName}.*", 'tblclients.firstname', 'tblclients.lastname', 'tblclients.companyname')
+            ->select(
+                "{$this->tableName}.*",
+                'tblclients.firstname',
+                'tblclients.lastname',
+                'tblclients.companyname',
+                "{$companyRepository->tableName()}.company_name as emissor_name",
+                "{$companyRepository->tableName()}.tax_number as emissor_tax_number",
+            )
             ->get();
     }
 
