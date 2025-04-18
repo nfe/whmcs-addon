@@ -190,10 +190,10 @@ class Nfe
      * @param  $reissue
      * @return array
      */
-    private function buildItemsToTransmit($items, $invoiceId, $userId, $reissue = false)
+    private function buildItemsToTransmit($items, $invoiceId, $userId, $companyId, $issHeldDefault, $reissue = false)
     {
         // ISS padrão
-        $issHeld = floatval($this->storage->get('iss_held'));
+        $issHeld = $issHeldDefault;
         $result = [];
 
         // percorre $items para construir os itens a serem emitidos
@@ -212,6 +212,7 @@ class Nfe
                 'flow_status' => 'waiting',
                 'pdf' => 'waiting',
                 'rpsSerialNumber' => 'waiting',
+                'company_id' => $companyId,
                 'service_code' => $serviceCode,
             ];
 
@@ -228,10 +229,10 @@ class Nfe
             // adiciona o valor total calculado para os itens
             $nfData['services_amount'] = $itemsTotal;
             // gera id unico externo
-            $nfData['nfe_external_id'] = $this->generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $reissue);
+            $nfData['nfe_external_id'] = $this->generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $companyId, $serviceCode, $reissue);
 
             // verifica se há calculo de retenção de ISS personalizado
-            $customIssHeld = $this->aliquotsRepo->getIssHeldByServiceCode($serviceCode);
+            $customIssHeld = $this->aliquotsRepo->getIssHeldByServiceCode($serviceCode, $companyId);
 
             /**
              * se não houver retenção personalizada e houver retenção global diferente de zero, usa valor global
@@ -258,11 +259,11 @@ class Nfe
 
     /**
      * Gera um ID único para cada nota. O valor resultante é o md5 da combinação da constante inicial WHMCS
-     * seguido do ID do usuário, ID da fatura e total dos itens.
+     * seguido do ID do usuário, ID da fatura, ID da empresa, Código do servico e total dos itens.
      * Nesta lógica cada conjunto de itens faturado possuirá um ID único evitando que seja inserido na fila
      * de emissão itens que porventura já tenham sido transmitidos ou gerados.
-     * Estrutura: WHMCS-[USER_ID]-[INVOICE_ID]-[TOTAL]
-     * Exemplo: WHMCS-13-113-131
+     * Estrutura: WHMCS-[USER_ID]-[INVOICE_ID]-[COMPANY_ID]-[SERVICE_CODE]-[TOTAL]
+     * Exemplo: WHMCS-15-123-a15t...-0103-321
      * Resultado: número hexadecimal de 32 caracteres
      *
      * @param  $userId
@@ -270,7 +271,7 @@ class Nfe
      * @param  $itemsTotal
      * @return string
      */
-    private function generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $reissue = false)
+    private function generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $companyId, $serviceCode, $reissue = false)
     {
         $separator = '-';
         $prefix = 'WHMCS';
@@ -281,9 +282,9 @@ class Nfe
             $suffix = 'REISSUE';
             // usa um timestamp para tornar cada reemissão unica para a criação do ID
             $dateTimeNow = date('Y-m-d H:i:s');
-            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $itemsTotal . $separator . $suffix . $separator . $dateTimeNow);
+            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $companyId . $separator . $serviceCode . $separator . $itemsTotal . $separator . $suffix . $separator . $dateTimeNow);
         } else {
-            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $itemsTotal);
+            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $companyId . $separator . $serviceCode . $serviceCode . $itemsTotal);
         }
 
         return $result;
@@ -304,15 +305,39 @@ class Nfe
     public function queue($invoiceId, $reissue = false)
     {
         $invoiceData = \WHMCS\Billing\Invoice::find($invoiceId);
+        $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
+        $clientCompanyRepository = new \NFEioServiceInvoices\Models\ClientCompany\Repository();
+
+        $defaultCompany = $companyRepository->getDefaultCompany();
         $invoiceItems = $invoiceData->items()->get();
         $clientData = $invoiceData->client()->get();
-        $userId = $clientData[0]['id'];
-        $defaultServiceCode = $this->storage->get('service_code');
+
+        $clientId = $clientData[0]['id'];
+        $clientCompanyId = $clientCompanyRepository->getCompanyByClientId($clientId);
+
+        // se cliente possuir empresa associada, utiliza a empresa associada, senao usa a empresa padrão
+        // #163
+        if ($clientCompanyId) {
+            // define a empresa emissora como a empresa associada ao cliente
+            $companyId = $clientCompanyId;
+            // recupera o codigo de servico padrao da empresa associada ao cliente
+            $defaultServiceCode = $companyRepository->getDefaultServiceCodeByCompanyId($clientCompanyId);
+            // recupera o iss retencao padrao da empresa associada ao cliente
+            $issHeld = $companyRepository->getDefaultIssHeldByCompanyId($clientCompanyId);
+        } else {
+            // dados da empresa padrao
+            $companyId = $defaultCompany->company_id;
+            $defaultServiceCode = $defaultCompany->service_code;
+            $issHeld  = $defaultCompany->iss_held;
+        }
+
+        // $defaultServiceCode = $this->storage->get('service_code');
         $itemsByServiceCode = [];
 
         // percorre cada item da fatura para preparar as agregações de items por tipo de serviço
         foreach ($invoiceItems as $item) {
-            // código do serviço recebe o valor padrão
+            // essencial que código do serviço receba o valor padrão
+            // para cada passada do laco
             $serviceCode = $defaultServiceCode;
 
             // se o item for juros/mora automática do WHMCS, não considera para fins de cálculo de nota
@@ -322,17 +347,17 @@ class Nfe
 
             // se o item tiver um 'relid' e seu tipo for uns dos permitidos verifica se tem código personalizado
             if ($item->relid != 0 and $this->allowedItemType($item->type)) {
-                $customServiceCode = $this->productCodeRepo->getServiceCodeByRelId($item->relid);
+                $customServiceCode = $this->productCodeRepo->getServiceCodeByRelId($item->relid, $companyId);
                 if ($customServiceCode) {
                     $serviceCode = $customServiceCode;
                 }
             }
 
             // prepara o item e o adiciona em um array associativo com o código do serviço
-            $itemsByServiceCode[$serviceCode][] = $this->prepareItemsToTransmit($userId, $invoiceId, $serviceCode, $item);
+            $itemsByServiceCode[$serviceCode][] = $this->prepareItemsToTransmit($clientId, $invoiceId, $serviceCode, $item);
         }
 
-        $nfToEmit = $this->buildItemsToTransmit($itemsByServiceCode, $invoiceId, $userId, $reissue);
+        $nfToEmit = $this->buildItemsToTransmit($itemsByServiceCode, $invoiceId, $clientId, $companyId, $issHeld, $reissue);
 
         if (count($nfToEmit) > 0) {
             foreach ($nfToEmit as $nf) {
@@ -369,6 +394,7 @@ class Nfe
         $amount = $data->services_amount;
         $serviceCode = $data->service_code;
         $issAmountWithheld = $data->iss_held;
+        $companyId = $data->company_id;
         $description = $data->nfe_description;
         $environment = $data->environment;
         $clientData = \WHMCS\User\Client::find($clientId);
@@ -452,7 +478,7 @@ class Nfe
             $postData['issAmountWithheld'] = $issAmountWithheld;
         }
 
-        $nfeResponse = $this->legacyFunctions->gnfe_issue_nfe($postData);
+        $nfeResponse = $this->legacyFunctions->gnfe_issue_nfe($postData, $companyId);
 
         if (!$nfeResponse->message) {
             $this->legacyFunctions->gnfe_update_nfe($nfeResponse, $clientId, $invoiceId, 'n/a', $nfDbId);
@@ -521,10 +547,11 @@ class Nfe
         $environment = $nfData->environment;
         $issueNoteConditions = $nfData->issue_note_conditions;
         $serviceCode = $nfData->service_code;
+        $companyId = $nfData->company_id;
         $tics = $nfData->tics;
         $dateNow = date('Y-m-d H:i:s');
         // gera um novo ID externo unico para a reemissão do item/NF
-        $externalUniqueId = $this->generateUniqueExternalId($userId, $invoiceId, $amount, true);
+        $externalUniqueId = $this->generateUniqueExternalId($userId, $invoiceId, $amount, $companyId, $serviceCode, true);
 
         $reissueNfData = [
             'invoice_id' => $invoiceId,
@@ -543,6 +570,7 @@ class Nfe
             'created_at' => $dateNow,
             'updated_at' => 'waiting',
             'service_code' => $serviceCode,
+            'company_id' => $companyId,
             'tics' => ' ',
         ];
 
@@ -655,10 +683,9 @@ class Nfe
         }
     }
 
-    public function fetchNf($nfId)
+    public function fetchNf($nfId, $companyId)
     {
         $apiKey = $this->storage->get('api_key');
-        $companyId = $this->storage->get('company_id');
 
         try {
             \NFe_io::setApiKey($apiKey);
