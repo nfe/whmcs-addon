@@ -175,11 +175,15 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * Retorna a aliquota de retenção de ISS com base no código do serviço
      *
      * @param  $serviceCode string código do serviço
+     * @param  $companyId   string ID da empresa
      * @return mixed valor de retenção de ISS
      */
-    public function getIssHeldByServiceCode($serviceCode)
+    public function getIssHeldByServiceCode($serviceCode, $companyId)
     {
-        $issHeld = Capsule::table($this->tableName)->where('code_service', '=', $serviceCode)->value('iss_held');
+        $issHeld = Capsule::table($this->tableName())
+            ->where('code_service', '=', $serviceCode)
+            ->where('company_id', '=', $companyId)
+            ->value('iss_held');
         if (is_null($issHeld)) {
             return null;
         } else {
