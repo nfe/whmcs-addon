@@ -154,12 +154,12 @@ class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
         return $url;
     }
 
-    public static function genJSONUrl($page)
+    public static function genJSONUrl($action)
     {
         if (self::I()->isAdmin()) {
-            return 'addonmodules.php?module=' . self::I()->configuration()->systemName . '&json=1&mg-page=' . $page;
+            return 'addonmodules.php?module=' . self::I()->configuration()->systemName . '&json=1&action=' . $action;
         } else {
-            return 'index.php?m=' . self::I()->configuration()->systemName . '&json=1&mg-page=' . $page;
+            return 'index.php?m=' . self::I()->configuration()->systemName . '&json=1&action=' . $action;
         }
     }
 
