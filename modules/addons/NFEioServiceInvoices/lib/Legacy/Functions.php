@@ -236,7 +236,7 @@ class Functions
         return 'success';
     }
 
-    function gnfe_issue_nfe($postfields)
+    function gnfe_issue_nfe($postfields, $companyId)
     {
         $webhook_url = Addon::getCallBackPath();
         $gnfe_webhook_id = $this->gnfe_config('webhook_id');
@@ -279,7 +279,7 @@ class Functions
         }
 
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id') . '/serviceinvoices');
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $companyId . '/serviceinvoices');
         curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_POST, 1);
