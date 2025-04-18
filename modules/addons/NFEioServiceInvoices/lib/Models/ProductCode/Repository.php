@@ -106,7 +106,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
         try {
             return Capsule::table($this->tableName)->updateOrInsert(
-                [ 'product_id' => $data['product_id'], 'company_id' => $data['company_id'] ],
+                ['product_id' => $data['product_id'], 'company_id' => $data['company_id']],
                 $data
             );
         } catch (\Exception $exception) {
@@ -183,15 +183,25 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     }
 
     /**
-     * Retorna o código de serviço personalizado para um produto de acordo com o relid de um serviço.
+     * Retorna o código de serviço personalizado para um produto conforme o relid de um serviço e a empresa.
      *
-     * @param  $relId int o relid de um serviço (packageid)
+     * @version 3.0
+     * @param $relId int o relid de um serviço (packageid)
+     * @param $companyId string o company_id da empresa
      * @return mixed código de serviço se existir ou null
      */
-    public function getServiceCodeByRelId($relId)
+    public function getServiceCodeByRelId($relId, $companyId)
     {
-        $productId = Capsule::table('tblhosting')->where('id', '=', $relId)->value('packageid');
-        return Capsule::table($this->tableName)->where('product_id', '=', $productId)->value('code_service');
+        $productId = Capsule::table('tblhosting')
+            ->where('id', '=', $relId)
+            ->value('packageid');
+
+        $serviceCode = Capsule::table($this->tableName)
+            ->where('product_id', '=', $productId)
+            ->where('company_id', '=', $companyId)
+            ->value('code_service');
+
+        return $serviceCode;
     }
 
     /**
