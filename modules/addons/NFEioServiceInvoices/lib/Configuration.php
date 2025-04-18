@@ -22,7 +22,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
 
     private $encryptHash = '';
 
-    public $version = '2.3.0';
+    public $version = '3.0.0';
 
     public $tablePrefix = 'mod_nfeio_si_';
 
@@ -319,7 +319,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
          * @see https://github.com/nfe/whmcs-addon/issues/163
          * @version 3.0
          */
-        if (version_compare($currentlyInstalledVersion, '2.3.0', 'lt')) {
+        if (version_compare($currentlyInstalledVersion, '3.0.0', 'lt')) {
 
             // inicia tabela para armazenar as empresas
             $companyRepository = new Models\Company\Repository();
