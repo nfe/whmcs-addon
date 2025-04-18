@@ -74,16 +74,119 @@ class Controller
     {
         $msg = new FlashMessages();
         $template = new Template(Addon::getModuleTemplatesDir());
+        $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
+        $clientCompanyRepository = new \NFEioServiceInvoices\Models\ClientCompany\Repository();
         $assetsURL = Addon::I()->getAssetsURL();
+
+        $availableCompanies = $companyRepository->getAll()->toArray();
+        $associatedClients = $clientCompanyRepository->getAll()->toArray();
+
         $vars['assetsURL'] = $assetsURL;
         $vars['formAction'] = 'associateClientsSave';
-        $vars['jsonUrl'] = Addon::I()->genJSONUrl('associateClients');
+        $vars['availableCompanies'] = $availableCompanies;
+        $vars['associatedClients'] = $associatedClients;
+
         if ($msg->hasMessages()) {
             $msg->display();
         }
+
         return $template->fetch('associateclients', $vars);
 
 
+    }
+
+    public function associateClientsSave($vars)
+    {
+        $msg = new FlashMessages();
+        $data = $_POST ?? null;
+        $company_id = $data['company'] ?? null;
+        $client_id = $data['client_id'] ?? null;
+
+        if (is_null($company_id) || is_null($client_id)) {
+            $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=associateClients");
+            return;
+        }
+
+        try {
+
+            $clientCompanyRepository = new \NFEioServiceInvoices\Models\ClientCompany\Repository();
+            $response = $clientCompanyRepository->new($client_id, $company_id);
+
+            if (!$response['status']) {
+                $msg->error("SQL error occurred: " . $response['error'], "{$vars['modulelink']}&action=associateClients");
+            } else {
+                // registra atividade no WHMCS
+                logActivity("NFE.io: Client associated - " . $client_id, 0);
+                $msg->success("Cliente associado com sucesso.", "{$vars['modulelink']}&action=associateClients");
+            }
+
+        } catch (\Exception $exception) {
+
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'associateClients',
+                [
+                    'company_id' => $company_id,
+                    'client_id' => $client_id
+                ],
+                [
+                    'error' => $exception->getMessage(),
+                    'code' => $exception->getCode()
+                ]
+            );
+            $msg->error("Error {$exception->getCode()} updating: " . $exception->getMessage(), "{$vars['modulelink']}&action=associateClients");
+        }
+
+    }
+
+    public function associateClientsRemove($vars)
+    {
+        $msg = new FlashMessages();
+        $clientCompanyRepository = new \NFEioServiceInvoices\Models\ClientCompany\Repository();
+        $data = $_POST ?? null;
+        $record_id = $data['record_id'] ?? null;
+
+        $result = $clientCompanyRepository->delete($record_id);
+
+        if ($result['status']) {
+            $msg->success($result['message'], "{$vars['modulelink']}&action=associateClients");
+        } else {
+            $msg->error("Erro ao excluir: {$result['message']}", "{$vars['modulelink']}&action=associateClients");
+        }
+
+    }
+
+    public function searchClients($vars)
+    {
+        header('Content-Type: application/json');
+
+        try {
+            $searchTerm = isset($_GET['term']) ? $_GET['term'] : '';
+
+            if (empty($searchTerm) || strlen($searchTerm) < 2) {
+                echo json_encode([]);
+                return;
+            }
+
+            // Search products in the database
+            $clients = Capsule::table('tblclients')
+                ->select('id', 'firstname', 'lastname', 'companyname')
+                ->where('firstname', 'like', '%' . $searchTerm . '%')
+                ->orWhere('lastname', 'like', '%' . $searchTerm . '%')
+                ->orWhere('companyname', 'like', '%' . $searchTerm . '%')
+                ->orWhere('email', 'like', '%' . $searchTerm . '%')
+                ->orderBy('firstname', 'asc')
+                ->limit(3)
+                ->get()
+                ->toArray();
+
+            echo json_encode($clients);
+
+        } catch (\Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+
+        exit;
     }
 
     /**
