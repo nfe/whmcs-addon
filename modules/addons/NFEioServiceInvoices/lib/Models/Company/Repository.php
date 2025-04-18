@@ -46,6 +46,44 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return $this->tableName;
     }
 
+    public function getDefaultServiceCodeByCompanyId($companyId)
+    {
+        $serviceCode = \WHMCS\Database\Capsule::table($this->tableName())
+            ->where('company_id', '=', $companyId)
+            ->value('service_code');
+
+        return $serviceCode;
+    }
+
+    public function getDefaultIssHeldByCompanyId($companyId)
+    {
+        $issHeld = \WHMCS\Database\Capsule::table($this->tableName())
+            ->where('company_id', '=', $companyId)
+            ->value('iss_held');
+
+        return $issHeld;
+    }
+
+    /**
+     * Retorna os dados da empresa padrão
+     */
+    public function getDefaultCompany()
+    {
+        try {
+            $company = \WHMCS\Database\Capsule::table($this->tableName())
+                ->where('default', '=', 1)
+                ->first();
+            return $company;
+        } catch (\Exception $exception) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'get_default_company_error',
+                ['error' => $exception->getMessage()]
+            );
+            return null;
+        }
+    }
+
     /**
      * Cria a tabela mod_nfeio_si_companies responsável por armazenar
      * os registros de empresas configuradas no módulo.
@@ -123,18 +161,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             return ['status' => false, 'error' => $exception->getMessage()];
         }
     }
-
-//    public function delete($companyId)
-//    {
-//        // se empresa for default, nao permite a exclusao
-//        $default = \WHMCS\Database\Capsule::table($this->tableName)->where('company_id', '=', $companyId)->value('default');
-//        if ($default == 1) {
-//            return 'Não é possível excluir a empresa padrão.';
-//        }
-//        // remove o registro da empresa
-//        return \WHMCS\Database\Capsule::table($this->tableName)->where('company_id', '=', $companyId)->delete();
-//    }
-
 
     public function edit($recordId, $companyName, $serviceCode, $issHeld, $default)
     {
