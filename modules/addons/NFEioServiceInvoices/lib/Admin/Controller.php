@@ -17,9 +17,6 @@ use WHMCS\Exception;
 use WHMCSExpert\Template\Template;
 use NFEioServiceInvoices\Addon;
 
-use Tracy\Debugger;
-
-Debugger::enable(Debugger::Development);
 
 /**
  * Sample Admin Area Controller
