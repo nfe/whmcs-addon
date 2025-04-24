@@ -68,10 +68,14 @@
         disabled="true"
     {/if}
 {/function}
-<link rel="stylesheet" type="text/css"
-      href="https://cdn.datatables.net/v/bs/dt-1.11.3/af-2.3.7/b-2.0.1/fh-3.2.0/datatables.min.css"/>
-<script type="text/javascript"
-        src="https://cdn.datatables.net/v/bs/dt-1.11.3/af-2.3.7/b-2.0.1/fh-3.2.0/datatables.min.js"></script>
+<link href="https://cdn.datatables.net/v/bs/dt-2.2.2/datatables.min.css"
+      rel="stylesheet"
+      integrity="sha384-xd6yqpSXZRZVl62sBIxyT2i4xVlfaxWVjVQB7qsVte0qEr3iepsBrLi/awgmIoPV"
+      crossorigin="anonymous">
+
+<script src="https://cdn.datatables.net/v/bs/dt-2.2.2/datatables.min.js"
+        integrity="sha384-KsmaH+vFCWsWkBqzoXM7HmafapkguLKrj9aRyWzIIaUDqRN99PP25wJUm7ZE+KP3"
+        crossorigin="anonymous"></script>
 <div class="row">
     <div class="col-md-12">
         <div class="panel panel-default">
