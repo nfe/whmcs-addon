@@ -539,7 +539,6 @@ class Nfe
         // caso sucesso registra log
         if ($result) {
             logModuleCall('nfeio_serviceinvoices', 'updateLocalNfeStatus', ['nfe_id' => $nfRemoteId, 'status' => $status, 'flow_status' => $flowStatus], $result);
-
         }
 
         return $result;
@@ -557,7 +556,7 @@ class Nfe
     {
         $result = $this->serviceInvoicesRepo->updateNfStatusByExternalId($externalId, $status, $flowStatus);
         // caso sucesso registra log
-        if($result) {
+        if ($result) {
             logModuleCall('nfeio_serviceinvoices', 'updateLocalNfeStatusByExternalId', ['nfe_external_id' => $externalId, 'status' => $status, 'flow_status' => $flowStatus], $result);
         }
 
@@ -737,6 +736,5 @@ class Nfe
         } catch (\Exception $e) {
             return ['error' => $e->getMessage()];
         }
-
     }
 }

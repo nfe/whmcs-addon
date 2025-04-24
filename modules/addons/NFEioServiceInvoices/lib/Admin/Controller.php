@@ -87,8 +87,6 @@ class Controller
         }
 
         return $template->fetch('associateclients', $vars);
-
-
     }
 
     /**
@@ -117,7 +115,6 @@ class Controller
         }
 
         try {
-
             // inicializa o repositório de empresas
             $clientCompanyRepository = new \NFEioServiceInvoices\Models\ClientCompany\Repository();
             // associa o cliente a empresa
@@ -125,19 +122,14 @@ class Controller
 
             // verifica se houve erro na associação
             if (!$response['status']) {
-
                 $msg->error("SQL error occurred: " . $response['error'], "{$vars['modulelink']}&action=associateClients");
-
             } else {
-
                 // registra atividade no WHMCS
                 logActivity("NFE.io: Client associated - " . $client_id, 0);
 
                 $msg->success("Cliente associado com sucesso.", "{$vars['modulelink']}&action=associateClients");
             }
-
         } catch (\Exception $exception) {
-
             logModuleCall(
                 'nfeio_serviceinvoices',
                 'associateClients',
@@ -152,7 +144,6 @@ class Controller
             );
             $msg->error("Error {$exception->getCode()} updating: " . $exception->getMessage(), "{$vars['modulelink']}&action=associateClients");
         }
-
     }
 
     /**
@@ -183,7 +174,6 @@ class Controller
         } else {
             $msg->error("Erro ao excluir: {$result['message']}", "{$vars['modulelink']}&action=associateClients");
         }
-
     }
 
     /**
@@ -204,7 +194,6 @@ class Controller
         header('Content-Type: application/json');
 
         try {
-
             // obtém o termo de pesquisa da requisição GET
             $searchTerm = $_GET['term'] ?? '';
 
@@ -228,7 +217,6 @@ class Controller
 
             // retorna os resultados em formato JSON
             echo json_encode($clients);
-
         } catch (\Exception $e) {
             // em caso de erro, retorna uma mensagem de erro em JSON
             echo json_encode(['error' => $e->getMessage()]);
@@ -268,7 +256,6 @@ class Controller
         }
 
         try {
-
             // inicializa o repositório de empresas
             $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
             // edita os dados da empresa
@@ -282,11 +269,8 @@ class Controller
 
             // verifica se houve erro na edição
             if (!$response['status']) {
-
                 $msg->error("SQL error occurred: " . $response['error'], "{$vars['modulelink']}&action=configuration");
-
             } else {
-
                 // registra atividade no WHMCS
                 logActivity("NFE.io: Company updated - " . $recordId, 0);
 
@@ -295,7 +279,6 @@ class Controller
         } catch (\Exception $exception) {
             $msg->error("Error {$exception->getCode()} updating: " . $exception->getMessage(), "{$vars['modulelink']}&action=configuration");
         }
-
     }
 
     /**
@@ -320,7 +303,6 @@ class Controller
         } else {
             $msg->error("Erro ao excluir: {$result['message']}", "{$vars['modulelink']}&action=configuration");
         }
-
     }
 
     /**
@@ -358,7 +340,6 @@ class Controller
         }
 
         try {
-
             $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
             $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
             $company_details = $nfe->getCompanyDetails($company_id);
@@ -377,18 +358,14 @@ class Controller
 
             // verifica se houve erro na associação
             if (!$response['status']) {
-
                 $msg->error("SQL error occurred: " . $response['error'], "{$vars['modulelink']}&action=configuration");
-
             } else {
-
                 // registra atividade no WHMCS
                 logActivity("NFE.io: Company associated - " . $company_id, 0);
 
                 $msg->success("Empresa associada com sucesso!", "{$vars['modulelink']}&action=configuration");
             }
         } catch (\Exception $exception) {
-
             // registra erro na chamada do módulo
             logModuleCall(
                 'nfeio_serviceinvoices',
@@ -594,7 +571,6 @@ class Controller
 
             // retorna os resultados em formato JSON
             echo json_encode($products);
-
         } catch (\Exception $e) {
             // em caso de erro, retorna uma mensagem de erro em JSON
             echo json_encode(['error' => $e->getMessage()]);
@@ -679,20 +655,16 @@ class Controller
         }
 
         try {
-
             // inicializa o repositório de códigos de serviços
             $productCodeRepository = new \NFEioServiceInvoices\Models\ProductCode\Repository();
             // remove o código de serviço usando o id do registro
             $productCodeRepository->delete($record_id);
             // retorna sucesso
             $msg->success('Código de serviço removido com sucesso.', "{$vars['modulelink']}&action=servicesCode");
-
         } catch (Exception $exception) {
             // retorna erro
             $msg->error("Erro {$exception->getCode()} ao atualizar: {$exception->getMessage()}", "{$vars['modulelink']}&action=servicesCode");
         }
-
-
     }
 
     /**
@@ -735,7 +707,6 @@ class Controller
 
         // verifica se houve erro na associação
         if ($response) {
-
             // registra atividade no WHMCS
             logActivity('NFE.io: Código de serviço atualizado - Produto: ' . $product_id . ' Código: ' . $service_code, 0);
             // retorna sucesso
@@ -744,7 +715,6 @@ class Controller
             // retorna erro
             $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=servicesCode");
         }
-
     }
 
     /**
@@ -925,7 +895,6 @@ class Controller
             $aliquotsRepo->delete($record_id);
             // retorna sucesso
             $msg->success('Alíquota removida com sucesso.', "{$vars['modulelink']}&action=aliquots");
-
         } catch (Exception $exception) {
             // retorna erro
             $msg->error("Erro {$exception->getCode()} ao atualizar: {$exception->getMessage()}", "{$vars['modulelink']}&action=aliquots");
@@ -974,7 +943,6 @@ class Controller
         } else {
             $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=aliquots");
         }
-
     }
 
     /**
@@ -1019,7 +987,6 @@ class Controller
         } else {
             $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=aliquots");
         }
-
     }
 
     /**

@@ -139,14 +139,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->timestamp('updated_at')->nullable();
                     $table->string('service_code', 30)->nullable(true);
                     $table->string('tics')->nullable(true);
-
                 }
             );
         }
 
         // Adiciona a coluna updated_at com a configuração de auto update #156
 //        $db->statement(sprintf('ALTER TABLE %s CHANGE updated_at updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', $this->tableName));
-
     }
 
     /**
@@ -301,7 +299,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             );
             return false;
         }
-
     }
 
     /**
@@ -345,7 +342,5 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             );
             return false;
         }
-
     }
-
 }

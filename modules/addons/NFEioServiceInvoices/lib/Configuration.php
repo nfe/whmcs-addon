@@ -300,8 +300,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
          *
          * @see https://github.com/nfe/whmcs-addon/issues/156
          */
-        if(version_compare($currentlyInstalledVersion, '2.1.8', 'le')) {
-
+        if (version_compare($currentlyInstalledVersion, '2.1.8', 'le')) {
             // atualiza o nome da coluna de timestamp para a tabela productcode
             \NFEioServiceInvoices\Migrations\Migrations::changeProductCodeTimestampColumnsName();
 
@@ -309,7 +308,6 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
             \NFEioServiceInvoices\Migrations\Migrations::migrateTimestampColumns('mod_nfeio_si_productcode');
             \NFEioServiceInvoices\Migrations\Migrations::migrateTimestampColumns('mod_nfeio_si_serviceinvoices');
             \NFEioServiceInvoices\Migrations\Migrations::migrateTimestampColumns('mod_nfeio_si_aliquots');
-
         }
 
         /**
@@ -320,7 +318,6 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
          * @version 3.0
          */
         if (version_compare($currentlyInstalledVersion, '3.0.0', 'lt')) {
-
             // inicia tabela para armazenar as empresas
             $companyRepository = new Models\Company\Repository();
             $companyRepository->createTable();
@@ -361,7 +358,6 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
             \NFEioServiceInvoices\Migrations\Migrations::addCompanyIdRecord($company_id, 'mod_nfeio_si_aliquots');
             // mod_nfeio_si_serviceinvoices
             \NFEioServiceInvoices\Migrations\Migrations::addCompanyIdRecord($company_id, 'mod_nfeio_si_serviceinvoices');
-
         }
     }
 }

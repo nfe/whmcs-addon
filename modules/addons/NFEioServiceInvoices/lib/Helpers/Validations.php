@@ -81,7 +81,7 @@ class Validations
      *
      * @return string The computed hash.
      */
-    private  function webhookComputeHash(string $algo, string $secret, $payload, bool $bencode = false): string
+    private function webhookComputeHash(string $algo, string $secret, $payload, bool $bencode = false): string
     {
         $hex_hash = hash_hmac($algo, $payload, utf8_encode($secret));
         $result = $bencode ? base64_encode(hex2bin($hex_hash)) : hex2bin($hex_hash);

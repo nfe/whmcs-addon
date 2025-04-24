@@ -181,12 +181,10 @@ class Functions
         if ($data->city->code) {
             $result['code'] = $data->city->code;
             $result['success'] = true;
-
         } else {
             $result['error'] = true;
             $result['message'] = $data->message;
             logModuleCall('nfeio_serviceinvoices', 'ibge_error', $zip, array('response' => $response, 'error' => $error));
-
         }
 
         return $result;
@@ -953,8 +951,7 @@ class Functions
         $code,
         $city,
         $state
-    )
-    {
+    ) {
         $postfields = [
             'cityServiceCode' => $service_code,
             'description' => $desc,

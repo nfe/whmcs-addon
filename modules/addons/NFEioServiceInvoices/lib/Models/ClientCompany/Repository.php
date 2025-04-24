@@ -17,7 +17,6 @@ use WHMCS\Database\Capsule;
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
-
     public $tableName = 'mod_nfeio_si_clients_companies';
     public $fieldDeclaration = array(
         'id',
@@ -92,7 +91,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             ->join($this->tableName(), 'tblclients.id', '=', "{$this->tableName()}.client_id")
             ->join($companyRepo->tableName(), "{$this->tableName()}.company_id", '=', "{$companyRepo->tableName()}.company_id")
             ->orderBy("{$this->tableName()}.id", 'desc')
-            ->select("{$this->tableName()}.client_id",
+            ->select(
+                "{$this->tableName()}.client_id",
                 'tblclients.firstname as client_firstname',
                 'tblclients.lastname as client_lastname',
                 'tblclients.companyname as client_companyname',
@@ -102,8 +102,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 "{$companyRepo->tableName()}.tax_number as company_tax_number",
             )
             ->get();
-
-
     }
 
     /**
@@ -137,14 +135,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
 
         try {
-
             Capsule::table($this->tableName())
                 ->insert($data);
             return array(
                 'status' => true,
                 'message' => 'Associacao criada com sucesso',
             );
-
         } catch (\Exception $exception) {
             return array(
                 'status' => false,
@@ -163,7 +159,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     public function delete($recordId)
     {
         try {
-
             $result = \WHMCS\Database\Capsule::table($this->tableName())
                 ->where('id', '=', $recordId)
                 ->delete();
@@ -176,6 +171,4 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             return $exception->getMessage();
         }
     }
-
-
 }

@@ -37,7 +37,6 @@ function findSignatureHeader($headers)
     $headers = array_change_key_case($headers, CASE_LOWER);
     // retorna os possiveis cabecalhos de assinatura da requisicao (X-Hub-Signature e X-Nfeio-Signature)
     return $headers['x-hub-signature'] ?? $headers['x-nfeio-signature'] ?? null;
-
 }
 
 // cabecalho com a assinatura
@@ -82,7 +81,7 @@ $payload = json_decode($body, true);
 
 logModuleCall('nfeio_serviceinvoices', 'callback', 'Webhook Raw Payload', ['headers' => $headers, 'body' => $payload]);
 
-if(!is_array($payload) || ( !isset($payload['id']) && !isset($payload['status']) && !isset($payload['flowStatus']) && !isset($payload['environment']) )){
+if (!is_array($payload) || ( !isset($payload['id']) && !isset($payload['status']) && !isset($payload['flowStatus']) && !isset($payload['environment']) )) {
     logModuleCall('nfeio_serviceinvoices', 'callback_error', 'Payload inválido', ['headers' => $headers, 'body' => $payload]);
     // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/400
     http_response_code(400);

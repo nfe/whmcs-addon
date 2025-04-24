@@ -15,7 +15,6 @@ namespace NFEioServiceInvoices\Models\Company;
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
-
     public $tableName = 'mod_nfeio_si_companies';
 
     public $fieldDeclaration = array(
@@ -129,7 +128,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 $table->timestamps();
             });
         }
-
     }
 
     /**
@@ -172,7 +170,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 $data
             );
             return ['status' => true, 'result' => $result];
-
         } catch (\Exception $exception) {
             logModuleCall(
                 'nfeio_serviceinvoices',

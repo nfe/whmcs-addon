@@ -52,7 +52,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return Capsule::table('tblproducts')
             ->join($this->tableName(), 'tblproducts.id', '=', "{$this->tableName}.product_id")
             ->orderBy("{$this->tableName()}.id", 'desc')
-            ->select('tblproducts.id as product_id',
+            ->select(
+                'tblproducts.id as product_id',
                 'tblproducts.name as product_name',
                 "{$this->tableName()}.code_service",
                 "{$this->tableName()}.id as record_id",
@@ -78,7 +79,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 "{$this->tableName()}.company_id",
                 "{$companyRepo->tableName()}.company_name",
                 "{$companyRepo->tableName()}.tax_number as company_tax_number"
-
             )
             ->orderBy("{$this->tableName()}.id", 'desc')
             ->groupBy(
@@ -86,7 +86,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 "{$this->tableName()}.company_id"
             )
             ->get();
-
     }
 
     public function save($productId, $serviceCode, $companyId)
@@ -176,13 +175,11 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->timestamp('created_at')->nullable();
                     $table->timestamp('updated_at')->nullable();
                     $table->integer('ID_user');
-
                 }
             );
 
             // Adiciona a coluna updated_at com a configuração de auto update #156
 //            $db->statement(sprintf('ALTER TABLE %s CHANGE updated_at updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', $this->tableName));
-
         }
     }
 
