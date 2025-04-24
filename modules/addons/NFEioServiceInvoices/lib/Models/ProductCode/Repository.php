@@ -8,6 +8,10 @@ use WHMCS\Database\Capsule;
 /**
  * Classe responsável pela definição do modelo de dados
  * da tabela mod_nfeio_si_productcode
+ *
+ * @since 2.0
+ * @version 3.0
+ * @author Mimir Tech https://github.com/mimirtechco
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
@@ -185,10 +189,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     /**
      * Retorna o código de serviço personalizado para um produto conforme o relid de um serviço e a empresa.
      *
-     * @version 3.0
      * @param $relId int o relid de um serviço (packageid)
      * @param $companyId string o company_id da empresa
      * @return mixed código de serviço se existir ou null
+     * @version 3.0
      */
     public function getServiceCodeByRelId($relId, $companyId)
     {

@@ -8,6 +8,10 @@ use NFEioServiceInvoices\Helpers\Timestamp;
 /**
  * Classe responsável pela definição do modelo de dados e operações
  * na tabela mod_nfeio_si_serviceinvoices
+ *
+ * @version 3.0
+ * @since 2.0
+ * @author Mimir Tech https://github.com/mimirtechco
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
@@ -193,12 +197,13 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
         return $response;
     }
+
     /**
      * Atualiza as colunas necessarias para a versão 2.1.0
      *
-     * @author  Andre Bellafronte
-     * @version 2.1.0
      * @return  void
+     * @version 2.1.0
+     * @author  Andre Bellafronte
      */
     public function upgrade_to_2_1_0()
     {
@@ -282,10 +287,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         $data['updated_at'] = Timestamp::currentTimestamp();
 
         try {
-           Capsule::table($this->tableName)
+            Capsule::table($this->tableName)
                 ->where('nfe_external_id', $externalId)
                 ->update($data);
-           return true;
+            return true;
         } catch (\Exception $e) {
             logModuleCall(
                 'nfeio_serviceinvoices',
@@ -325,7 +330,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         $data['updated_at'] = Timestamp::currentTimestamp();
 
         try {
-           Capsule::table($this->tableName)
+            Capsule::table($this->tableName)
                 ->where('nfe_id', $nfeId)
                 ->update($data);
 
