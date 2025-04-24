@@ -7,6 +7,10 @@ use WHMCS\Database\Capsule;
 
 /**
  * Classe com métodos para manipulação de notas fiscais
+ *
+ * @version 3.0
+ * @since 2.0
+ * @author Mimir Tech https://github.com/mimirtechco
  */
 
 class Nfe
@@ -62,6 +66,13 @@ class Nfe
         \NFe_io::setApiKey($apiKey);
     }
 
+    /**
+     * Retorna uma lista de valores para um dropdown contendo as empresas cadastradas.
+     *
+     * @return array|bool Retorna um array associativo com o ID da empresa como chave
+     *                    e o CNPJ e nome da empresa como valor, ou `false` caso não
+     *                    existam empresas cadastradas ou ocorra algum erro.
+     */
     public function companiesDropDownValues()
     {
         $companiesData = $this->getCompanies();
@@ -117,6 +128,13 @@ class Nfe
         return '';
     }
 
+    /**
+     * Retorna os detalhes de uma empresa com base no ID informado.
+     *
+     * @param int|string $companyId O ID da empresa a ser buscada.
+     * @return object|string Retorna um objeto com os detalhes da empresa ou uma string vazia
+     *                       caso a empresa não seja encontrada.
+     */
     public function getCompanyDetails($companyId)
     {
         $this->apiAuth();
@@ -184,11 +202,18 @@ class Nfe
     }
 
     /**
-     * @param  $items
-     * @param  $invoiceId
-     * @param  $userId
-     * @param  $reissue
-     * @return array
+     * Constrói os itens a serem transmitidos para emissão de notas fiscais.
+     *
+     * Este método percorre os itens fornecidos, realiza agregações e somatórias,
+     * e prepara os dados necessários para a transmissão das notas fiscais.
+     *
+     * @param array $items Coleção de itens agrupados por código de serviço.
+     * @param int|string $invoiceId ID da fatura associada.
+     * @param int|string $userId ID do usuário associado.
+     * @param int|string $companyId ID da empresa emissora.
+     * @param float $issHeldDefault Valor padrão de retenção de ISS.
+     * @param bool $reissue Indica se é uma reemissão de nota fiscal.
+     * @return array Retorna uma lista de itens preparados para transmissão.
      */
     private function buildItemsToTransmit($items, $invoiceId, $userId, $companyId, $issHeldDefault, $reissue = false)
     {
@@ -384,6 +409,26 @@ class Nfe
         return ['success' => true];
     }
 
+    /**
+     * Emite uma nota fiscal com base nos dados fornecidos.
+     *
+     * Este método realiza a emissão de uma nota fiscal utilizando os dados do cliente,
+     * da fatura e da empresa fornecidos. Ele também valida os dados do cliente e
+     * atualiza o status da nota fiscal no banco de dados local em caso de erro.
+     *
+     * @param object $data Objeto contendo os dados necessários para a emissão da nota fiscal:
+     *                     - id: ID da nota fiscal no banco local.
+     *                     - invoice_id: ID da fatura associada.
+     *                     - user_id: ID do cliente.
+     *                     - nfe_external_id: ID externo da nota fiscal.
+     *                     - services_amount: Valor total dos serviços.
+     *                     - service_code: Código do serviço.
+     *                     - iss_held: Valor de ISS retido (opcional).
+     *                     - company_id: ID da empresa emissora.
+     *                     - nfe_description: Descrição da nota fiscal.
+     *                     - environment: Ambiente de emissão (ex.: produção ou homologação).
+     * @return void
+     */
     public function emit($data)
     {
 
@@ -683,6 +728,13 @@ class Nfe
         }
     }
 
+    /**
+     * Busca os detalhes de uma nota fiscal específica na API NFE.io.
+     *
+     * @param string $nfId O ID da nota fiscal a ser buscada.
+     * @param string $companyId O ID da empresa associada à nota fiscal.
+     * @return object|array Retorna o objeto da nota fiscal ou um array com a mensagem de erro em caso de falha.
+     */
     public function fetchNf($nfId, $companyId)
     {
         $apiKey = $this->storage->get('api_key');
