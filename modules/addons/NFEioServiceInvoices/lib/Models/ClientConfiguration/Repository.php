@@ -5,8 +5,12 @@ namespace NFEioServiceInvoices\Models\ClientConfiguration;
 use WHMCS\Database\Capsule;
 
 /**
- * Classe responsável pela definição do modelo de dados
- * da tabela mod_nfeio_si_custom_configs
+ * Repositório responsável por interagir com a tabela de configurações personalizadas
+ * de clientes para o módulo NFE.io.
+ *
+ * @since 2.0
+ * @version 2.0
+ * @author Mimir Tech https://github.com/mimirtechco
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {

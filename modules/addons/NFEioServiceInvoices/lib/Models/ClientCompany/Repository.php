@@ -60,6 +60,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return null;
     }
 
+    /**
+     * Cria a tabela de dados deste repositorio
+     * @return void
+     */
     public function createTable()
     {
         if (!\WHMCS\Database\Capsule::schema()->hasTable($this->tableName)) {
@@ -74,6 +78,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
     }
 
+    /**
+     * Obtém todos os registros de associação entre clientes e empresas emissoras.
+     *
+     * @return \Illuminate\Support\Collection Lista de registros contendo informações
+     *                                         do cliente e da empresa associada.
+     */
     public function getAll()
     {
         $companyRepo = new \NFEioServiceInvoices\Models\Company\Repository();
@@ -143,6 +153,13 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
     }
 
+    /**
+     * Exclui um registro de associação entre cliente e empresa emissora.
+     *
+     * @param int $recordId ID do registro a ser excluído.
+     * @return array|string Retorna um array com o status e a mensagem de sucesso,
+     *                      ou uma string com a mensagem de erro em caso de exceção.
+     */
     public function delete($recordId)
     {
         try {

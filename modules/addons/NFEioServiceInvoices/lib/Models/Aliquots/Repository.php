@@ -5,6 +5,15 @@ namespace NFEioServiceInvoices\Models\Aliquots;
 use NFEioServiceInvoices\Helpers\Timestamp;
 use WHMCS\Database\Capsule;
 
+/**
+ * Classe responsável pela definição do modelo de dados
+ * para as aliquotas no módulo.
+ *
+ * @see https://github.com/nfe/whmcs-addon/issues/163
+ * @since 2.1
+ * @version 3.0
+ * @author Mimir Tech https://github.com/mimirtechco
+ */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
     public $tableName = 'mod_nfeio_si_aliquots';

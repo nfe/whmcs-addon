@@ -7,6 +7,10 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 /**
  * Classe responsável pela definição do modelo de dados dos registros personalizados de configuração do módulo
  * apresentados ao administrador WHMCS na area de configuração do módulo.
+ *
+ * @since 2.0
+ * @version 3.0
+ * @author Mimir Tech https://github.com/mimirtechco
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
