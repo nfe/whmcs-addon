@@ -457,15 +457,6 @@ class Nfe
         }
 
 
-//        if ($customer['doc_type'] == 2) {
-//            if ($clientData->companyname != '') {
-//                $name = $clientData->companyname;
-//            } else {
-//                $name = $clientData->fullname;
-//            }
-//        } elseif ($customer['doc_type'] == 1 || 'CPF e/ou CNPJ ausente.' == $customer || !$customer['doc_type']) {
-//            $name = $clientData->fullname;
-//        }
         $name = $customer['name'];
 
         //define address
