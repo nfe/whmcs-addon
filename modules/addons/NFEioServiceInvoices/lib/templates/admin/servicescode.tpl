@@ -1,29 +1,6 @@
 {include file="includes/menu.tpl"}
 
 {* funcao do Smarty para associar coluna company_id de produtro com o nome da empresa disponivel em availableCompanies *}
-
-{*{function name="getCompanyName" companyId="" availableCompanies=""}*}
-{*    {assign var="companyName" value=""}*}
-{*    {assign var="companyTaxNumber" value=""}*}
-{*    {foreach from=$availableCompanies item=company}*}
-{*        {if $company->company_id == $companyId}*}
-{*            {assign var="companyName" value=$company->company_name}*}
-{*            {assign var="companyTaxNumber" value=$company->tax_number}*}
-{*            {break}*}
-{*        {/if}*}
-{*    {/foreach}*}
-{*    {if $companyName == ""}*}
-{*        {foreach from=$availableCompanies item=company}*}
-{*            {if $company->default == 1}*}
-{*                {assign var="companyName" value=$company->company_name}*}
-{*                {assign var="companyTaxNumber" value=$company->tax_number}*}
-{*                {break}*}
-{*            {/if}*}
-{*        {/foreach}*}
-{*    {/if}*}
-{*    {$companyName|default:"Empresa não encontrada"}*}
-{*{/function}*}
-
 {function name="getCompanyName" companyId="" availableCompanies=""}
     {assign var="companyName" value=""}
     {assign var="companyTaxNumber" value=""}
@@ -53,6 +30,16 @@
             </div>
             <div class="panel-body">
                 <p>Gerencie os códigos de serviço individualmente por produto existente no WHMCS.</p>
+
+                <div class="alert alert-info">
+                    <p><strong>Informações:</strong></p>
+                    <ul>
+                        <li>O mesmo código de serviço pode ser utilizado por mais de um emissor.</li>
+                        <li>Diferentes produtos podem ter o mesmo código de serviço.</li>
+                        <li>Diferentes emissores poderão ter diferentes códigos de serviço para o mesmo produto.</li>
+                    </ul>
+
+                </div>
 
                 <!-- Button to add new product code -->
                 <div style="margin-bottom: 20px;">
