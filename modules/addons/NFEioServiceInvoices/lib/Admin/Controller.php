@@ -45,18 +45,6 @@ class Controller
             // metodo para verificar se existe algum campo obrigatório não preenchido.
             $config->verifyMandatoryFields($vars, false, true);
 
-            // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
-            $oldVersion = Versions::getOldNfeioModuleVersion();
-            // se tiver registro de versão antiga define mensagem
-            if ($oldVersion) {
-                $msg->error(
-                    "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.",
-                    '',
-                    true
-                );
-            }
-
             if ($msg->hasMessages()) {
                 $msg->display();
             }
@@ -528,18 +516,6 @@ class Controller
             $vars['jsonUrl'] = Addon::I()->genJSONUrl('servicesCode');
             $vars['availableCompanies'] = $availableCompanies;
 
-            // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
-            $oldVersion = Versions::getOldNfeioModuleVersion();
-            // se tiver registro de versão antiga define mensagem
-            if ($oldVersion) {
-                $msg->error(
-                    "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de nptas.",
-                    '',
-                    true
-                );
-            }
-
             if ($msg->hasMessages()) {
                 $msg->display();
             }
@@ -974,24 +950,11 @@ class Controller
             $assetsURL = Addon::I()->getAssetsURL();
             $msg = new FlashMessages();
 
-            // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
-            $oldVersion = Versions::getOldNfeioModuleVersion();
-            // se tiver registro de versão antiga define mensagem
-            if ($oldVersion) {
-                $msg->error(
-                    "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.",
-                    '',
-                    true
-                );
-            }
-
             if ($msg->hasMessages()) {
                 $msg->display();
             }
 
             $vars['assetsURL'] = $assetsURL;
-
 
             return $template->fetch('support', $vars);
         } catch (\Exception $e) {
@@ -1004,20 +967,7 @@ class Controller
         Addon::I()->isAdmin(true);
         $template = new Template(Addon::getModuleTemplatesDir());
         $assetsURL = Addon::I()->getAssetsURL();
-
         $msg = new FlashMessages();
-
-        // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
-        $oldVersion = Versions::getOldNfeioModuleVersion();
-        // se tiver registro de versão antiga define mensagem
-        if ($oldVersion) {
-            $msg->error(
-                "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo a uma nova versão.
-                Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.",
-                '',
-                true
-            );
-        }
 
         if ($msg->hasMessages()) {
             $msg->display();
