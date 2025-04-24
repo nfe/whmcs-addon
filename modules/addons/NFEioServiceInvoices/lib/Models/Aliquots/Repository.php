@@ -26,7 +26,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'updated_at',
     );
 
-    function getModelClass()
+    public function getModelClass()
     {
         return __NAMESPACE__ . '\Repository';
     }
@@ -207,7 +207,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * @since   2.2
      * @author  Andre Bellafronte
      */
-    public function update_servicecode_var_limit()
+    public function updateServicecodeVarLimit()
     {
         // verifica se a tabela existe
         if (Capsule::schema()->hasTable($this->tableName)) {

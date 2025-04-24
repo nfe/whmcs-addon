@@ -26,7 +26,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'updated_at',
     );
 
-    function getModelClass()
+    public function getModelClass()
     {
         return __NAMESPACE__ . '\Repository';
     }

@@ -59,7 +59,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return $this->_limit;
     }
 
-    function getModelClass()
+    public function getModelClass()
     {
         return __NAMESPACE__ . '\Repository';
     }
@@ -203,7 +203,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * @version 2.1.0
      * @author  Andre Bellafronte
      */
-    public function upgrade_to_2_1_0()
+    public function upgrade201()
     {
         // verifica se a tabela existe antes de qualquer procedimento
         if (Capsule::schema()->hasTable($this->tableName)) {
@@ -245,7 +245,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * @since   2.2
      * @author  Andre Bellafronte
      */
-    public function update_servicecode_var_limit()
+    public function updateServicecodeVarLimit()
     {
         // verifica se a tabela existe
         if (Capsule::schema()->hasTable($this->tableName)) {

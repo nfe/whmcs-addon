@@ -333,7 +333,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return $fields;
     }
 
-    function getModelClass()
+    public function getModelClass()
     {
         return __NAMESPACE__ . '\Repository';
     }
@@ -445,10 +445,5 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
 
         return array_diff_key($this->getMandatoryFields(), $vars);
-    }
-
-    public function seed_service_invoices_issue_conditions()
-    {
-        $previousConditions = $this->get('issue_note_conditions');
     }
 }

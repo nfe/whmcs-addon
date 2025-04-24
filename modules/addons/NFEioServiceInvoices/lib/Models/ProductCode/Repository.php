@@ -27,7 +27,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'ID_user',
     );
 
-    function getModelClass()
+    public function getModelClass()
     {
         return __NAMESPACE__ . '\Repository';
     }
@@ -217,22 +217,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return Capsule::table($this->tableName)->where('product_id', '=', $productId)->value('iss_held');
     }
 
-    public function upgrade_to_2_1_0()
-    {
-        // verifica se a tabela existe
-        if (Capsule::schema()->hasTable($this->tableName)) {
-            // se não houver coluna adiciona
-            if (!Capsule::schema()->hasColumn($this->tableName, 'iss_held')) {
-                Capsule::schema()->table(
-                    $this->tableName,
-                    function ($table) {
-                        $table->float('iss_held', 5, 2)->after('code_service')->nullable();
-                    }
-                );
-            }
-        }
-    }
-
     /**
      * Rotina para atualização da quantidade máxima de caracteres permitidos para a coluna code_service.
      *
@@ -241,7 +225,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * @since   2.2
      * @author  Andre Bellafronte
      */
-    public function update_servicecode_var_limit()
+    public function updateServicecodeVarLimit()
     {
         // verifica se a tabela existe
         if (Capsule::schema()->hasTable($this->tableName)) {

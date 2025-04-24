@@ -30,7 +30,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     protected $_limit = 10;
 
-    function getModelClass()
+    public function getModelClass()
     {
         return __NAMESPACE__ . '\Repository';
     }

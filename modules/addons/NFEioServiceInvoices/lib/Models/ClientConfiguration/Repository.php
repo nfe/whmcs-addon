@@ -31,7 +31,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return $this->fieldDeclaration;
     }
 
-    function getModelClass()
+    public function getModelClass()
     {
         return __NAMESPACE__ . '\Repository';
     }
