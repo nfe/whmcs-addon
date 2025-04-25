@@ -9,7 +9,6 @@ if (!defined('DS')) {
 require_once dirname(dirname(__DIR__)) . DS . 'Loader.php';
 
 use NFEioServiceInvoices\CustomFields;
-use NFEioServiceInvoices\Helpers\Versions;
 use Smarty;
 use WHMCS\Database\Capsule;
 use Plasticbrain\FlashMessages\FlashMessages;
@@ -1066,26 +1065,27 @@ class Controller
     public function emailNf($params)
     {
         $msg = new FlashMessages();
-        $functions = new \NFEioServiceInvoices\Legacy\Functions();
+        $nfeio = new \NFEioServiceInvoices\NFEio\Nfe();
         $get = $_GET;
-        $nfId = $get['nfe_id'];
+        $nfeioId = $get['nfe_id'];
+        $companyId = $get['company_id'];
         $moduleLink = $params['modulelink'];
         $moduleAction = 'index';
         $redirectUrl = $moduleLink . '&action=' . $moduleAction;
 
         // verifica se o ID da nota fiscal está vazio
-        if (empty($nfId)) {
-            $msg->warning("Nenhuma nota fiscal informada.", $redirectUrl);
+        if (empty($nfeioId) || empty($companyId)) {
+            $msg->warning("Parametros incorretos.", $redirectUrl);
         }
 
         // dispara o email
-        $response = $functions->gnfe_email_nfe($nfId);
+        $response = $nfeio->sendNfeioEmail($nfeioId, $companyId);
 
         // verifica se houve erro no envio do email
-        if (empty($response->message)) {
+        if (empty($response['error'])) {
             $msg->success("Nota fiscal enviada por email com sucesso.", $redirectUrl);
         } else {
-            $msg->error($response->message, $redirectUrl);
+            $msg->error($response['error'], $redirectUrl);
         }
     }
 
