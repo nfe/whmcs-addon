@@ -55,6 +55,65 @@ class Nfe
         $this->aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
     }
 
+    /**
+     * Executa uma requisição cURL para a API da NFE.io.
+     *
+     * @param string $uri O endpoint URI a ser anexado à URL base da API.
+     * @param string $method O método HTTP a ser utilizado na requisição (padrão: 'GET').
+     * @param array|null $data Os dados a serem enviados no corpo da requisição (para métodos POST/PUT).
+     * @param int $timeout O tempo limite para a requisição cURL em segundos (padrão: 3).
+     * @return array Um array associativo contendo:
+     *               - 'response': O corpo da resposta da API.
+     *               - 'error': Mensagem de erro da requisição cURL, se houver.
+     *               - 'info': Informações adicionais sobre a requisição cURL.
+     */
+    private function executeCurl($uri, $method = 'GET', $data = null, $timeout = 3)
+    {
+        $headers = [
+            'Content-Type: text/json',
+            'Accept: application/json',
+            'Authorization: ' . $this->storage->get('api_key'),
+        ];
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/' . $uri);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+
+        if ($method === 'POST' || $method === 'PUT') {
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+        }
+
+        $response = curl_exec($curl);
+        $error = curl_error($curl);
+        $info = curl_getinfo($curl);
+        curl_close($curl);
+
+        return [
+            'response' => $response,
+            'error' => $error,
+            'info' => $info,
+        ];
+    }
+
+    /**
+     * Envia um e-mail relacionado a uma nota fiscal específica na NFE.io.
+     *
+     * @param string $nfeioId O ID da nota fiscal na NFE.io.
+     * @param string $companyId O ID da empresa associada à nota fiscal.
+     * @return array Retorna a resposta da API contendo os detalhes do envio do e-mail.
+     */
+    public function sendNfeioEmail($nfeioId, $companyId)
+    {
+        $uri = 'companies/' . $companyId . '/serviceinvoices/' . $nfeioId . '/sendemail';
+        $response = $this->executeCurl($uri, 'PUT');
+        logModuleCall('nfeio_serviceinvoices', 'email_nfe', $nfeioId, $response);
+
+        return $response;
+
+    }
+
     private function apiAuth()
     {
         $apiKey = $this->storage->get('api_key');
@@ -401,7 +460,7 @@ class Nfe
 
                 // se já houver uma nota no banco local com o mesmo external_id pula a emissão de nota
                 if (is_array($hasExternalId)) {
-                // phpcs:ignore Generic.Files.LineLength.TooLong
+                    // phpcs:ignore Generic.Files.LineLength.TooLong
                     logModuleCall(
                         'nfeio_serviceinvoices',
                         'nf_queue',
@@ -727,24 +786,16 @@ class Nfe
         $existingNf = Capsule::table($this->serviceInvoicesTable)->where('invoice_id', $invoiceId)->get();
 
         if (count($existingNf) > 0) {
+
+            $this->apiAuth();
+
             foreach ($existingNf as $nf) {
-                $result = $this->legacyFunctions->gnfe_delete_nfe($nf->nfe_id);
-                logModuleCall('nfeio_serviceinvoices', 'nf_cancel_series_by_invoice', $nf, $result);
+                $invoice = \NFe_ServiceInvoice::fetch($nf->company_id, $nf->nfe_id);
+                $invoice->cancel();
+                $this->updateLocalNfeStatus($nf->nfe_id, 'Cancelled', 'ApiNoResponse');
 
-                /*
-                 API retorna 202 e nf no corpo quando nota em fila de cancelamento (WaitingSendCancel)
-                 $message nao faz mais parte do objeto de resposta em qualquer outro status,
-                 agora quando uma nota diferente de 'Issued' é cancelada, o corpo da resposta é
-                 uma string informando o motivo. Ex.: 'service invoice status is 'Cancelled' but must be 'Issued''.
-                */
+                logModuleCall('nfeio_serviceinvoices', 'nf_cancel_series_by_invoice', $nf, $invoice);
 
-                // caso retorne objeto, respeita os status que a API retorna
-                if ($result->flowStatus && $result->status) {
-                    $this->updateLocalNfeStatus($nf->nfe_id, $result->status, $result->flowStatus);
-                } else {
-                    // caso nao tenha objeto, forca cancelamento local com status flow personalizado
-                    $this->updateLocalNfeStatus($nf->nfe_id, 'Cancelled', 'ApiNoResponse');
-                }
             }
             return ['status' => 'success'];
         } else {

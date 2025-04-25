@@ -73,11 +73,12 @@ class AdminInvoicesControlsOutput
 
         if ($request === 'email') {
             $nfeId = $post['nfe_id'];
-            $result = $legacyFunctions->gnfe_email_nfe($nfeId);
-            if (!$result->message) {
+            $companyId = $post['company_id'];
+            $result = $nfe->sendNfeioEmail($nfeId, $companyId);
+            if (!$result['error']) {
                 $msg->info("Nota enviada por e-mail com sucesso.");
             } else {
-                $msg->error("Problemas ao enviar e-mail: {$result->message}.");
+                $msg->error("Problemas ao enviar e-mail: {$result['error']}.");
             }
         }
 
