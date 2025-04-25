@@ -41,7 +41,7 @@ class AfterCronJob
         $storage = new \WHMCSExpert\Addon\Storage($storageKey);
         $dataAtual = Timestamp::currentTimestamp();
         // caso não exista valor para initial_date inicia define data que garanta a execução da rotina
-        $initialDate =  (! empty($storage->get('initial_date'))) ? $storage->get('initial_date') : '1970-01-01 00:00:00';
+        $initialDate = (!empty($storage->get('initial_date'))) ? $storage->get('initial_date') : '1970-01-01 00:00:00';
 
         // atualiza a data da ultima cron
         $storage->set('last_cron', $dataAtual);
@@ -49,33 +49,33 @@ class AfterCronJob
         $hasNfWaiting = Capsule::table($serviceInvoicesTable)->whereBetween('created_at', [$initialDate, $dataAtual])->where('status', '=', 'Waiting')->count();
         logModuleCall(
             'nfeio_serviceinvoices',
-            'hook_aftercronjob',
+            'hook_aftercronjob_1',
             "{$hasNfWaiting} notas a serem geradas",
             array(
-            [
-                'total de notas' => $hasNfWaiting,
-                'data atual' => $dataAtual,
-                'data inicial' => $initialDate,
-            ]
+                [
+                    'total de notas' => $hasNfWaiting,
+                    'data atual' => $dataAtual,
+                    'data inicial' => $initialDate,
+                ]
             )
         );
 
         if ($hasNfWaiting) {
-            $queryNf = Capsule::table($serviceInvoicesTable)->orderBy('id', 'desc')->whereBetween('created_at', [$initialDate, $dataAtual])->where('status', '=', 'Waiting')->get();
+            $queryNf = Capsule::table($serviceInvoicesTable)
+                ->orderBy('id', 'desc')
+                ->whereBetween('created_at', [$initialDate, $dataAtual])
+                ->where('status', '=', 'Waiting')
+                ->get();
+
+            logModuleCall('nfeio_serviceinvoices', 'hook_aftercronjob_2', "{$hasNfWaiting} notas a serem geradas", $queryNf);
+
 
             foreach ($queryNf as $invoice) {
-                //$getQuery = Capsule::table('tblinvoices')->where('id', '=', $waiting->invoice_id)->get(['id', 'userid', 'total']);
 
                 $this->nf->emit($invoice);
 
-                /**
-* foreach ($getQuery as $invoices) {
-                    $this->nf->emit($invoices, $waiting);
-                }
-*/
             }
 
-            logModuleCall('nfeio_serviceinvoices', 'hook_aftercronjob', "{$hasNfWaiting} notas a serem geradas", $queryNf);
         }
     }
 }
