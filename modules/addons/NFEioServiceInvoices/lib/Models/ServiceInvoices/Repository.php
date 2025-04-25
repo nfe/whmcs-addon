@@ -279,6 +279,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
         if ($flowStatus) {
             $data['flow_status'] = $flowStatus;
+        } else {
+            $data['flow_status'] = '';
         }
 
         // adiciona a data de atualização #156
@@ -304,7 +306,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     /**
      * Atualiza o status e flow status de uma NF (Nota Fiscal) pelo seu id
      *
-     * @param $nfeId string ID da Nf
+     * @param $nfeId string ID da Nfe.io
      * @param $status string O novo status da Nf
      * @param $flowStatus string|null O novo flow status da Nf (opcional)
      * @return bool|int Retorna o número de linhas afetadas ou false em caso de erro
@@ -343,4 +345,75 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             return false;
         }
     }
+
+    /**
+     * Atualiza uma nota fiscal de serviço com base no ID externo.
+     *
+     * @param string $externalId ID externo da nota fiscal.
+     * @param object $nfData Objeto contendo os dados da nota fiscal a serem atualizados.
+     *                       - id: ID da nota fiscal.
+     *                       - status: Status da nota fiscal.
+     *                       - servicesAmount: Valor dos serviços.
+     *                       - environment: Ambiente da nota fiscal (ex.: produção ou homologação).
+     *                       - flowStatus: Status do fluxo da nota fiscal.
+     *                       - rpsSerialNumber: Número de série do RPS.
+     *                       - rpsNumber: Número do RPS.
+     *
+     * @return bool|int Retorna o número de linhas afetadas ou false em caso de erro.
+     */
+    public function updateServiceInvoice($externalId, $nfData)
+    {
+        $data = [
+            'nfe_id' => $nfData->id,
+            'status' => $nfData->status,
+            'services_amount' => $nfData->servicesAmount,
+            'environment' => $nfData->environment,
+            'flow_status' => $nfData->flowStatus,
+            'rpsSerialNumber' => $nfData->rpsSerialNumber,
+            'rpsNumber' => $nfData->rpsNumber,
+        ];
+
+        try {
+            return Capsule::table($this->tableName())
+                ->where('nfe_external_id', $externalId)
+                ->update($data);
+        } catch (\Exception $e) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'updateServiceInvoice_error',
+                $data,
+                $e->getMessage(),
+                $e->getTraceAsString()
+            );
+            return false;
+        }
+
+    }
+
+    /**
+     * Insere um novo registro na tabela de notas fiscais de serviço.
+     *
+     * @param array $invoiceData Dados da nota fiscal a serem inseridos.
+     *                           - As chaves do array devem corresponder às colunas da tabela.
+     * @return bool Retorna true se a inserção for bem-sucedida, ou false em caso de erro.
+     */
+    public function create($invoiceData)
+    {
+
+        try {
+
+            return Capsule::table($this->tableName())->insert($invoiceData);
+
+        } catch (\Exception $exception) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'createServiceInvoice_error',
+                $invoiceData,
+                $exception->getMessage(),
+                $exception->getTraceAsString()
+            );
+            return false;
+        }
+    }
+
 }
