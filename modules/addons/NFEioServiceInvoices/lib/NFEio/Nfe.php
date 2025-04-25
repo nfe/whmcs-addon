@@ -358,7 +358,6 @@ class Nfe
      * @param  $itemsTotal
      * @return string
      */
-    // phpcs:ignore Generic.Files.LineLength.TooLong
     private function generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $companyId, $serviceCode, $reissue = false)
     {
         $separator = '-';
@@ -370,11 +369,9 @@ class Nfe
             $suffix = 'REISSUE';
             // usa um timestamp para tornar cada reemissão unica para a criação do ID
             $dateTimeNow = date('Y-m-d H:i:s');
-            // phpcs:ignore Generic.Files.LineLength.TooLong
             $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $companyId . $separator . $serviceCode . $separator . $itemsTotal . $separator . $suffix . $separator . $dateTimeNow);
         } else {
-            // phpcs:ignore Generic.Files.LineLength.TooLong
-            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $companyId . $separator . $serviceCode . $serviceCode . $itemsTotal);
+            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $companyId . $separator . $serviceCode . $separator . $itemsTotal);
         }
 
         return $result;
@@ -475,7 +472,8 @@ class Nfe
                 $nf['created_at'] = Timestamp::currentTimestamp();
                 $nf['updated_at'] = Timestamp::currentTimestamp();
 
-                $result = Capsule::table($this->serviceInvoicesTable)->insert($nf);
+//                $result = Capsule::table($this->serviceInvoicesTable)->insert($nf);
+                $result = $this->serviceInvoicesRepo->create($nf);
                 logModuleCall('nfeio_serviceinvoices', 'nf_queue', $nf, $result);
             }
         }
@@ -548,7 +546,7 @@ class Nfe
         }
 
         if (empty($clientData->postcode)) {
-            $this->legacyFunctions->update_status_nfe($invoiceId, 'Error_cep');
+            $this->updateLocalNfeStatusByExternalId($externalId, 'Error_cep');
             return;
         }
 
@@ -559,7 +557,7 @@ class Nfe
         ));
 
         if ($ibgeCode['error']) {
-            $this->legacyFunctions->update_status_nfe($invoiceId, 'Error_cep');
+            $this->updateLocalNfeStatusByExternalId($externalId, 'Error_cep');
             return;
         }
 
@@ -599,7 +597,7 @@ class Nfe
         $nfeResponse = $this->legacyFunctions->gnfe_issue_nfe($postData, $companyId);
 
         if (!$nfeResponse->message) {
-            $this->legacyFunctions->gnfe_update_nfe($nfeResponse, $clientId, $invoiceId, 'n/a', $nfDbId);
+            $this->serviceInvoicesRepo->updateServiceInvoice($externalId, $nfeResponse);
             logModuleCall('nfeio_serviceinvoices', 'nf_emit', $postData, $nfeResponse);
         } else {
             logModuleCall('nfeio_serviceinvoices', 'nf_emit_error', $postData, $nfeResponse);
