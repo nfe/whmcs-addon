@@ -575,7 +575,7 @@ class Nfe
                 'name' => $name,
                 'email' => $client_email,
                 'address' => [
-                    'country' => $this->legacyFunctions->gnfe_country_code($clientData->country),
+                    'country' => Validations::countryCode($clientData->country),
                     'postalCode' => preg_replace('/[^0-9]/', '', $clientData->postcode),
                     'street' => $street,
                     'number' => $number,
