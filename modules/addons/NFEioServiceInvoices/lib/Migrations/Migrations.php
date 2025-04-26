@@ -211,7 +211,8 @@ class Migrations
     private function createAlterColumnTimestampStatement($pdo, $columnName, $tableName)
     {
         $statement = $pdo->prepare(
-            sprintf('ALTER TABLE %s MODIFY COLUMN %s TIMESTAMP NULL',
+            sprintf(
+                'ALTER TABLE %s MODIFY COLUMN %s TIMESTAMP NULL',
                 $tableName,
                 $columnName
             )
@@ -253,7 +254,6 @@ class Migrations
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
-
             }
         }
     }
@@ -268,7 +268,6 @@ class Migrations
     {
 
         if (Capsule::schema()->hasTable('mod_nfeio_si_productcode')) {
-
             // verifica se a coluna create_at e update_at já foram migradas (existem)
             $columns = Capsule::schema()->getColumnListing('mod_nfeio_si_productcode');
             if (!in_array('create_at', $columns) || !in_array('update_at', $columns)) {

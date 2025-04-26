@@ -81,7 +81,7 @@ class Validations
      *
      * @return string The computed hash.
      */
-    private  function webhookComputeHash(string $algo, string $secret, $payload, bool $bencode = false): string
+    private function webhookComputeHash(string $algo, string $secret, $payload, bool $bencode = false): string
     {
         $hex_hash = hash_hmac($algo, $payload, utf8_encode($secret));
         $result = $bencode ? base64_encode(hex2bin($hex_hash)) : hex2bin($hex_hash);
@@ -91,4 +91,18 @@ class Validations
 
         return $result;
     }
+
+    /**
+     * Gera uma chave secreta criptograficamente segura.
+     *
+     * @param int $length Comprimento da chave em bytes. Padrão é 16.
+     * @return string Chave secreta em formato hexadecimal.
+     * @throws \Exception Se não for possível obter bytes aleatórios.
+     */
+    public static function generateSecretKey(int $length = 16): string
+    {
+        return bin2hex(random_bytes($length));
+
+    }
+
 }

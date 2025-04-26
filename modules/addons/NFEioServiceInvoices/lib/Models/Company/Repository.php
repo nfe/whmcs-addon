@@ -9,13 +9,12 @@ namespace NFEioServiceInvoices\Models\Company;
  * registros de empresas vinculadas ao cliente.
  *
  * @see https://github.com/nfe/whmcs-addon/issues/163
- * @since 2.3.0
- * @version 2.3.0
- * @author Andre Kutianski <andre@mimirtech.co>
+ * @since 3.0
+ * @version 3.0
+ * @author Mimir Tech https://github.com/mimirtechco
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
-
     public $tableName = 'mod_nfeio_si_companies';
 
     public $fieldDeclaration = array(
@@ -31,7 +30,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
     protected $_limit = 10;
 
-    function getModelClass()
+    public function getModelClass()
     {
         return __NAMESPACE__ . '\Repository';
     }
@@ -46,6 +45,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return $this->tableName;
     }
 
+    /**
+     * Obtém o código de serviço padrão associado a uma empresa específica.
+     *
+     * @param string $companyId O ID da empresa para a qual o código de serviço será recuperado.
+     * @return string|null Retorna o código de serviço padrão ou null se não encontrado.
+     */
     public function getDefaultServiceCodeByCompanyId($companyId)
     {
         $serviceCode = \WHMCS\Database\Capsule::table($this->tableName())
@@ -55,6 +60,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return $serviceCode;
     }
 
+    /**
+     * Obtém a retenção de ISS padrão associada a uma empresa específica.
+     *
+     * @param string $companyId O ID da empresa para a qual a retenção de ISS será recuperada.
+     * @return float|null Retorna a retenção de ISS padrão ou null se não encontrado.
+     */
     public function getDefaultIssHeldByCompanyId($companyId)
     {
         $issHeld = \WHMCS\Database\Capsule::table($this->tableName())
@@ -65,7 +76,14 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     }
 
     /**
-     * Retorna os dados da empresa padrão
+     * Obtém os dados da empresa padrão configurada no sistema.
+     *
+     * A empresa padrão é identificada pelo campo `default` com valor 1.
+     * Caso ocorra algum erro durante a consulta, o erro será registrado
+     * no log do módulo e o método retornará `null`.
+     *
+     * @return object|null Retorna os dados da empresa padrão como um objeto
+     * ou `null` se não for encontrada ou em caso de erro.
      */
     public function getDefaultCompany()
     {
@@ -110,17 +128,19 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 $table->timestamps();
             });
         }
-
     }
 
     /**
-     * Salva o registro de uma nova empresa
-     * @param $companyId
-     * @param $companyName
-     * @param $serviceCode
-     * @param $issHeld
-     * @param $default
+     * Salva o registro de uma nova empresa ou atualiza um registro existente.
      *
+     * @param string $companyId O ID da empresa.
+     * @param string $taxNumber O número do CNPJ da empresa.
+     * @param string $companyName O nome da empresa.
+     * @param string $serviceCode O código de serviço padrão da empresa.
+     * @param float $issHeld A retenção de ISS padrão da empresa.
+     * @param bool $default Define se a empresa será a padrão (true para sim, false para não).
+     *
+     * @return array Retorna um array com o status da operação e o resultado ou erro.
      */
     public function save($companyId, $taxNumber, $companyName, $serviceCode, $issHeld, $default = false)
     {
@@ -150,7 +170,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 $data
             );
             return ['status' => true, 'result' => $result];
-
         } catch (\Exception $exception) {
             logModuleCall(
                 'nfeio_serviceinvoices',
@@ -162,6 +181,17 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
     }
 
+    /**
+     * Edita o registro de uma empresa existente.
+     *
+     * @param int $recordId ID do registro da empresa a ser editada.
+     * @param string $companyName Nome da empresa.
+     * @param string $serviceCode Código de serviço da empresa.
+     * @param float $issHeld Retenção de ISS da empresa.
+     * @param bool $default Define se a empresa será a padrão (1 para sim, 0 para não).
+     *
+     * @return array Retorna um array com o status da operação e uma mensagem ou erro.
+     */
     public function edit($recordId, $companyName, $serviceCode, $issHeld, $default)
     {
         // atualiza o registro da empresa
@@ -206,6 +236,17 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
     }
 
+    /**
+     * Exclui o registro de uma empresa com base no ID da empresa.
+     *
+     * Este método verifica se a empresa a ser excluída é a empresa padrão.
+     * Caso seja, a exclusão não será permitida. Caso contrário, o registro
+     * será removido do banco de dados.
+     *
+     * @param string $companyId O ID da empresa a ser excluída.
+     * @return array|string Retorna um array com o status e a mensagem da operação
+     * ou uma string com a mensagem de erro em caso de exceção.
+     */
     public function delete($companyId)
     {
         try {
@@ -251,9 +292,11 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
 
     /**
-     * Retorna todos os registros de empresas cadastradas
-     * ordenadas por default.
-     * @return \Illuminate\Support\Collection
+     * Retorna todos os registros de empresas cadastradas.
+     *
+     * Os registros são ordenados pelo campo `default` em ordem decrescente.
+     *
+     * @return \Illuminate\Support\Collection Coleção contendo os registros das empresas.
      */
     public function getAll()
     {

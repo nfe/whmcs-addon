@@ -17,7 +17,6 @@ use WHMCS\Database\Capsule;
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
-
     public $tableName = 'mod_nfeio_si_clients_companies';
     public $fieldDeclaration = array(
         'id',
@@ -27,7 +26,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'updated_at',
     );
 
-    function getModelClass()
+    public function getModelClass()
     {
         return __NAMESPACE__ . '\Repository';
     }
@@ -60,6 +59,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return null;
     }
 
+    /**
+     * Cria a tabela de dados deste repositorio
+     * @return void
+     */
     public function createTable()
     {
         if (!\WHMCS\Database\Capsule::schema()->hasTable($this->tableName)) {
@@ -74,6 +77,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
     }
 
+    /**
+     * Obtém todos os registros de associação entre clientes e empresas emissoras.
+     *
+     * @return \Illuminate\Support\Collection Lista de registros contendo informações
+     *                                         do cliente e da empresa associada.
+     */
     public function getAll()
     {
         $companyRepo = new \NFEioServiceInvoices\Models\Company\Repository();
@@ -82,7 +91,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             ->join($this->tableName(), 'tblclients.id', '=', "{$this->tableName()}.client_id")
             ->join($companyRepo->tableName(), "{$this->tableName()}.company_id", '=', "{$companyRepo->tableName()}.company_id")
             ->orderBy("{$this->tableName()}.id", 'desc')
-            ->select("{$this->tableName()}.client_id",
+            ->select(
+                "{$this->tableName()}.client_id",
                 'tblclients.firstname as client_firstname',
                 'tblclients.lastname as client_lastname',
                 'tblclients.companyname as client_companyname',
@@ -92,8 +102,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 "{$companyRepo->tableName()}.tax_number as company_tax_number",
             )
             ->get();
-
-
     }
 
     /**
@@ -127,14 +135,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
 
         try {
-
             Capsule::table($this->tableName())
                 ->insert($data);
             return array(
                 'status' => true,
                 'message' => 'Associacao criada com sucesso',
             );
-
         } catch (\Exception $exception) {
             return array(
                 'status' => false,
@@ -143,10 +149,16 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
     }
 
+    /**
+     * Exclui um registro de associação entre cliente e empresa emissora.
+     *
+     * @param int $recordId ID do registro a ser excluído.
+     * @return array|string Retorna um array com o status e a mensagem de sucesso,
+     *                      ou uma string com a mensagem de erro em caso de exceção.
+     */
     public function delete($recordId)
     {
         try {
-
             $result = \WHMCS\Database\Capsule::table($this->tableName())
                 ->where('id', '=', $recordId)
                 ->delete();
@@ -159,6 +171,4 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             return $exception->getMessage();
         }
     }
-
-
 }

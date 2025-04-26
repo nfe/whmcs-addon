@@ -10,11 +10,11 @@
   },
   "require-dev": {
     "phpunit/phpunit": "@stable",
-    "kint-php/kint": "~5.0",
-    "tracy/tracy": "~2.7",
-    "phpmetrics/phpmetrics": "~2.8",
-    "illuminate/database": "v5.8.36",
-    "squizlabs/php_codesniffer": "~3.7"
+    "kint-php/kint": "5.1.1",
+    "tracy/tracy": "v2.9.8",
+    "phpmetrics/phpmetrics": "v2.8.2",
+    "illuminate/database": "v6.20.44",
+    "squizlabs/php_codesniffer": "3.10.3"
   },
   "config": {
     "vendor-dir": "modules/addons/NFEioServiceInvoices/lib/vendor",

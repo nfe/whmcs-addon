@@ -1,29 +1,6 @@
 {include file="includes/menu.tpl"}
 
 {* funcao do Smarty para associar coluna company_id de produtro com o nome da empresa disponivel em availableCompanies *}
-
-{*{function name="getCompanyName" companyId="" availableCompanies=""}*}
-{*    {assign var="companyName" value=""}*}
-{*    {assign var="companyTaxNumber" value=""}*}
-{*    {foreach from=$availableCompanies item=company}*}
-{*        {if $company->company_id == $companyId}*}
-{*            {assign var="companyName" value=$company->company_name}*}
-{*            {assign var="companyTaxNumber" value=$company->tax_number}*}
-{*            {break}*}
-{*        {/if}*}
-{*    {/foreach}*}
-{*    {if $companyName == ""}*}
-{*        {foreach from=$availableCompanies item=company}*}
-{*            {if $company->default == 1}*}
-{*                {assign var="companyName" value=$company->company_name}*}
-{*                {assign var="companyTaxNumber" value=$company->tax_number}*}
-{*                {break}*}
-{*            {/if}*}
-{*        {/foreach}*}
-{*    {/if}*}
-{*    {$companyName|default:"Empresa não encontrada"}*}
-{*{/function}*}
-
 {function name="getCompanyName" companyId="" availableCompanies=""}
     {assign var="companyName" value=""}
     {assign var="companyTaxNumber" value=""}
@@ -41,10 +18,14 @@
 {/function}
 
 
-<link rel="stylesheet" type="text/css"
-      href="https://cdn.datatables.net/v/bs/dt-1.11.3/af-2.3.7/b-2.0.1/fh-3.2.0/datatables.min.css"/>
-<script type="text/javascript"
-        src="https://cdn.datatables.net/v/bs/dt-1.11.3/af-2.3.7/b-2.0.1/fh-3.2.0/datatables.min.js"></script>
+<link href="https://cdn.datatables.net/v/bs/dt-2.2.2/datatables.min.css"
+      rel="stylesheet"
+      integrity="sha384-xd6yqpSXZRZVl62sBIxyT2i4xVlfaxWVjVQB7qsVte0qEr3iepsBrLi/awgmIoPV"
+      crossorigin="anonymous">
+
+<script src="https://cdn.datatables.net/v/bs/dt-2.2.2/datatables.min.js"
+        integrity="sha384-KsmaH+vFCWsWkBqzoXM7HmafapkguLKrj9aRyWzIIaUDqRN99PP25wJUm7ZE+KP3"
+        crossorigin="anonymous"></script>
 <div class="row">
     <div class="col-md-12">
         <div class="panel panel-default">
@@ -53,6 +34,16 @@
             </div>
             <div class="panel-body">
                 <p>Gerencie os códigos de serviço individualmente por produto existente no WHMCS.</p>
+
+                <div class="alert alert-info">
+                    <p><strong>Informações:</strong></p>
+                    <ul>
+                        <li>O mesmo código de serviço pode ser utilizado por mais de um emissor.</li>
+                        <li>Diferentes produtos podem ter o mesmo código de serviço.</li>
+                        <li>Diferentes emissores poderão ter diferentes códigos de serviço para o mesmo produto.</li>
+                    </ul>
+
+                </div>
 
                 <!-- Button to add new product code -->
                 <div style="margin-bottom: 20px;">

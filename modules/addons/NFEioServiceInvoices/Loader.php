@@ -18,9 +18,9 @@ require_once __DIR__ . DS . 'lib' . DS . 'vendor' . DS . 'autoload.php';
 if (!class_exists(__NAMESPACE__ . '\Loader')) {
     class Loader
     {
-        static $whmcsDir;
-        static $myName;
-        static $availableDirs = array();
+        private static $whmcsDir;
+        private static $myName;
+        private static $availableDirs = array();
 
 
 
@@ -29,7 +29,7 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
          *
          * @param string $dir
          */
-        function __construct($dir = null)
+        public function __construct($dir = null)
         {
             if (empty($dir)) {
                 $checkDirs = array(
@@ -73,7 +73,7 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
          * @throws main\mgLibs\exceptions\base
          * @throws \Exception
          */
-        static function loader($className)
+        public static function loader($className)
         {
             if (strpos($className, __NAMESPACE__) === false) {
                 return;
@@ -128,7 +128,7 @@ if (!class_exists(__NAMESPACE__ . '\Loader')) {
             return true;
         }
 
-        static function listClassesInNamespace($className)
+        private static function listClassesInNamespace($className)
         {
             $originClassName = $className;
             $className = ltrim($className, '\\');

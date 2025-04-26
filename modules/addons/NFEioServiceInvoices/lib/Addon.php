@@ -11,6 +11,7 @@ use NFEioServiceInvoices\Configuration;
  *
  * @SuppressWarnings(PHPMD)
  */
+// phpcs:ignore Generic.Files.LineLength.TooLong
 class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
 {
     public function loadAddonData()
@@ -59,7 +60,7 @@ class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
     /**
      * Return Tempalates Path
      *
-     * @param  boolean $relative
+     * @param boolean $relative
      * @return string
      */
     public static function getModuleTemplatesDir($relative = false)
@@ -86,11 +87,14 @@ class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
         return self::I()->configuration();
     }
 
+    // phpcs:ignore
     public function getAssetsURL()
     {
         if ($this->isAdmin()) {
+            // phpcs:ignore Generic.Files.LineLength.TooLong
             return '../modules/addons/' . self::I()->configuration()->systemName . '/lib/' . self::getModuleTemplatesDir(true) . '/assets';
         } else {
+            // phpcs:ignore Generic.Files.LineLength.TooLong
             return 'modules/addons/' . self::I()->configuration()->systemName . '/' . self::getModuleTemplatesDir(true) . '/assets';
         }
     }
@@ -188,11 +192,11 @@ class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
         $config = new \NFEioServiceInvoices\Configuration();
 
         return array(
-            'name'           =>  $config->getName(),
-            'description'   =>  $config->getDescription(),
-            'version'       =>  $config->getVersion(),
-            'author'        =>  $config->getAuthor(),
-            'fields'        =>  $config->getAddonWHMCSConfig(),
+            'name' => $config->getName(),
+            'description' => $config->getDescription(),
+            'version' => $config->getVersion(),
+            'author' => $config->getAuthor(),
+            'fields' => $config->getAddonWHMCSConfig(),
         );
     }
 
@@ -206,8 +210,8 @@ class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
             );
         } catch (\Exception $ex) {
             return array(
-                'status'        => 'error'
-            ,'description'  => $ex->getMessage()
+                'status' => 'error'
+            , 'description' => $ex->getMessage()
             );
         }
     }
@@ -222,8 +226,8 @@ class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
             );
         } catch (\Exception $ex) {
             return array(
-                'status'        => 'error'
-            ,'description'  => $ex->getMessage()
+                'status' => 'error'
+            , 'description' => $ex->getMessage()
             );
         }
     }
@@ -238,8 +242,8 @@ class Addon extends \WHMCSExpert\mtLibs\process\AbstractMainDriver
             );
         } catch (\Exception $ex) {
             return array(
-                'status'        => 'error'
-            ,'description'  => $ex->getMessage()
+                'status' => 'error'
+            , 'description' => $ex->getMessage()
             );
         }
     }

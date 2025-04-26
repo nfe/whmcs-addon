@@ -5,6 +5,15 @@ namespace NFEioServiceInvoices\Models\Aliquots;
 use NFEioServiceInvoices\Helpers\Timestamp;
 use WHMCS\Database\Capsule;
 
+/**
+ * Classe responsável pela definição do modelo de dados
+ * para as aliquotas no módulo.
+ *
+ * @see https://github.com/nfe/whmcs-addon/issues/163
+ * @since 2.1
+ * @version 3.0
+ * @author Mimir Tech https://github.com/mimirtechco
+ */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
     public $tableName = 'mod_nfeio_si_aliquots';
@@ -17,7 +26,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'updated_at',
     );
 
-    function getModelClass()
+    public function getModelClass()
     {
         return __NAMESPACE__ . '\Repository';
     }
@@ -167,7 +176,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
             // Adiciona a coluna updated_at com a configuração de auto update #156
 //            $db->statement(sprintf('ALTER TABLE %s CHANGE updated_at updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', $this->tableName));
-
         }
     }
 
@@ -199,7 +207,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * @since   2.2
      * @author  Andre Bellafronte
      */
-    public function update_servicecode_var_limit()
+    public function updateServicecodeVarLimit()
     {
         // verifica se a tabela existe
         if (Capsule::schema()->hasTable($this->tableName)) {

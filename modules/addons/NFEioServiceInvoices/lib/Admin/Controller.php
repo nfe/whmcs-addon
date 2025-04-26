@@ -9,7 +9,6 @@ if (!defined('DS')) {
 require_once dirname(dirname(__DIR__)) . DS . 'Loader.php';
 
 use NFEioServiceInvoices\CustomFields;
-use NFEioServiceInvoices\Helpers\Versions;
 use Smarty;
 use WHMCS\Database\Capsule;
 use Plasticbrain\FlashMessages\FlashMessages;
@@ -18,18 +17,17 @@ use WHMCSExpert\Template\Template;
 use NFEioServiceInvoices\Addon;
 
 
-/**
- * Sample Admin Area Controller
- */
 class Controller
 {
     /**
-     * Index action.
+     * Exibe a página inicial do módulo com as notas fiscais existentes. Esta função renderiza a página inicial
+     * do módulo, exibindo as notas fiscais.
      *
-     * @param array $vars Module configuration parameters
-     * @return string
-     * @version 2.0
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
+     * @return string|void Retorna o conteúdo renderizado do template ou nada em caso de erro.
+     * @throws \Exception Caso ocorra algum erro durante a execução.
      * @since 2.0
+     * @version 2.0
      */
     public function index($vars)
     {
@@ -45,18 +43,6 @@ class Controller
             // metodo para verificar se existe algum campo obrigatório não preenchido.
             $config->verifyMandatoryFields($vars, false, true);
 
-            // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
-            $oldVersion = Versions::getOldNfeioModuleVersion();
-            // se tiver registro de versão antiga define mensagem
-            if ($oldVersion) {
-                $msg->error(
-                    "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.",
-                    '',
-                    true
-                );
-            }
-
             if ($msg->hasMessages()) {
                 $msg->display();
             }
@@ -67,6 +53,18 @@ class Controller
         }
     }
 
+    /**
+     * Exibe a página de associação de clientes a empresas.
+     *
+     * Este método renderiza a página onde é possível associar clientes a empresas
+     * disponíveis no sistema. Ele carrega as empresas disponíveis e os clientes
+     * já associados, além de configurar as variáveis necessárias para o template.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
+     * @return string Retorna o conteúdo renderizado do template.
+     * @version 3.0
+     * @since 3.0
+     */
     public function associateClients($vars)
     {
         $msg = new FlashMessages();
@@ -88,10 +86,20 @@ class Controller
         }
 
         return $template->fetch('associateclients', $vars);
-
-
     }
 
+    /**
+     * Salva a associação de um cliente a uma empresa.
+     *
+     * Este método processa os dados enviados via POST para associar um cliente a uma empresa.
+     * Ele valida os campos obrigatórios, realiza a associação no repositório e registra
+     * atividades no WHMCS. Em caso de erro, mensagens apropriadas são exibidas.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
+     * @return void
+     * @version 3.0
+     * @since 3.0
+     */
     public function associateClientsSave($vars)
     {
         $msg = new FlashMessages();
@@ -99,26 +107,28 @@ class Controller
         $company_id = $data['company'] ?? null;
         $client_id = $data['client_id'] ?? null;
 
+        // verifica se os campos obrigatórios foram preenchidos
         if (is_null($company_id) || is_null($client_id)) {
             $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=associateClients");
             return;
         }
 
         try {
-
+            // inicializa o repositório de empresas
             $clientCompanyRepository = new \NFEioServiceInvoices\Models\ClientCompany\Repository();
+            // associa o cliente a empresa
             $response = $clientCompanyRepository->new($client_id, $company_id);
 
+            // verifica se houve erro na associação
             if (!$response['status']) {
                 $msg->error("SQL error occurred: " . $response['error'], "{$vars['modulelink']}&action=associateClients");
             } else {
                 // registra atividade no WHMCS
                 logActivity("NFE.io: Client associated - " . $client_id, 0);
+
                 $msg->success("Cliente associado com sucesso.", "{$vars['modulelink']}&action=associateClients");
             }
-
         } catch (\Exception $exception) {
-
             logModuleCall(
                 'nfeio_serviceinvoices',
                 'associateClients',
@@ -133,9 +143,20 @@ class Controller
             );
             $msg->error("Error {$exception->getCode()} updating: " . $exception->getMessage(), "{$vars['modulelink']}&action=associateClients");
         }
-
     }
 
+    /**
+     * Remove a associação de um cliente a uma empresa.
+     *
+     * Este método processa a remoção de uma associação entre cliente e empresa
+     * com base no ID do registro fornecido. Ele utiliza o repositório de associações
+     * para realizar a exclusão e exibe mensagens de sucesso ou erro conforme o resultado.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
+     * @return void
+     * @since 3.0
+     * @version 3.0
+     */
     public function associateClientsRemove($vars)
     {
         $msg = new FlashMessages();
@@ -143,29 +164,45 @@ class Controller
         $data = $_POST ?? null;
         $record_id = $data['record_id'] ?? null;
 
+        // remove a associação do cliente a empresa usando o id do registro
         $result = $clientCompanyRepository->delete($record_id);
 
+        // verifica se houve erro na remoção
         if ($result['status']) {
             $msg->success($result['message'], "{$vars['modulelink']}&action=associateClients");
         } else {
             $msg->error("Erro ao excluir: {$result['message']}", "{$vars['modulelink']}&action=associateClients");
         }
-
     }
 
+    /**
+     * Realiza a busca de clientes no banco de dados com base em um termo de pesquisa.
+     *
+     * Este método é utilizado para buscar clientes no banco de dados com base em um termo
+     * fornecido via requisição GET. Ele retorna os resultados em formato JSON.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
+     * @return void Retorna os resultados da busca em formato JSON ou uma mensagem de erro.
+     * @throws \Exception Caso ocorra algum erro durante a execução.
+     * @version 3.0
+     * @since 3.0
+     */
     public function searchClients($vars)
     {
+        // define o cabeçalho de resposta como JSON
         header('Content-Type: application/json');
 
         try {
-            $searchTerm = isset($_GET['term']) ? $_GET['term'] : '';
+            // obtém o termo de pesquisa da requisição GET
+            $searchTerm = $_GET['term'] ?? '';
 
+            // verifica se o termo de pesquisa possui menos de 2 caracteres
             if (empty($searchTerm) || strlen($searchTerm) < 2) {
                 echo json_encode([]);
                 return;
             }
 
-            // Search products in the database
+            // realiza a busca de clientes no banco de dados
             $clients = Capsule::table('tblclients')
                 ->select('id', 'firstname', 'lastname', 'companyname')
                 ->where('firstname', 'like', '%' . $searchTerm . '%')
@@ -177,9 +214,10 @@ class Controller
                 ->get()
                 ->toArray();
 
+            // retorna os resultados em formato JSON
             echo json_encode($clients);
-
         } catch (\Exception $e) {
+            // em caso de erro, retorna uma mensagem de erro em JSON
             echo json_encode(['error' => $e->getMessage()]);
         }
 
@@ -189,10 +227,16 @@ class Controller
     /**
      * Edita os dados de uma empresa associada ao módulo.
      *
-     * @param $vars
+     * Este método processa os dados enviados via POST para editar as informações
+     * de uma empresa associada. Ele valida os campos obrigatórios, realiza a edição
+     * no repositório e registra atividades no WHMCS. Em caso de erro, mensagens
+     * apropriadas são exibidas.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
      * @return void
-     * @version 3.0
+     * @throws \Exception Caso ocorra algum erro durante a execução.
      * @since 3.0
+     * @version 3.0
      */
     public function companyEdit($vars)
     {
@@ -204,13 +248,14 @@ class Controller
         $issHeld = $data['iss_held'] ?? null;
         $companyDefault = $data['default'];
 
-
+        // verifica se os campos obrigatórios foram preenchidos
         if (is_null($recordId) || is_null($companyName) || is_null($serviceCode)) {
             $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=configuration");
             return;
         }
 
         try {
+            // inicializa o repositório de empresas
             $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
             // edita os dados da empresa
             $response = $companyRepository->edit(
@@ -220,17 +265,19 @@ class Controller
                 $issHeld,
                 $companyDefault
             );
+
+            // verifica se houve erro na edição
             if (!$response['status']) {
                 $msg->error("SQL error occurred: " . $response['error'], "{$vars['modulelink']}&action=configuration");
             } else {
                 // registra atividade no WHMCS
                 logActivity("NFE.io: Company updated - " . $recordId, 0);
+
                 $msg->success("Empresa editada com sucesso.", "{$vars['modulelink']}&action=configuration");
             }
         } catch (\Exception $exception) {
             $msg->error("Error {$exception->getCode()} updating: " . $exception->getMessage(), "{$vars['modulelink']}&action=configuration");
         }
-
     }
 
     /**
@@ -245,8 +292,9 @@ class Controller
     {
         $msg = new FlashMessages();
         $data = $_POST ?? null;
-        $company_id = $data['company_id'] ?? null;
         $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
+        $company_id = $data['company_id'] ?? null;
+
         $result = $companyRepository->delete($company_id);
 
         if ($result['status']) {
@@ -254,16 +302,21 @@ class Controller
         } else {
             $msg->error("Erro ao excluir: {$result['message']}", "{$vars['modulelink']}&action=configuration");
         }
-
     }
 
     /**
      * Associa uma empresa ao módulo.
      *
-     * @param $vars
+     * Este método processa os dados enviados via POST para associar uma empresa ao módulo.
+     * Ele valida os campos obrigatórios, obtém os detalhes da empresa via API, salva os dados
+     * no repositório e registra atividades no WHMCS. Em caso de erro, mensagens apropriadas
+     * são exibidas e o erro é registrado.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
      * @return void
-     * @version 3.0
+     * @throws \Exception Caso ocorra algum erro durante a execução.
      * @since 3.0
+     * @version 3.0
      */
     public function associateCompany($vars)
     {
@@ -274,10 +327,12 @@ class Controller
         $iss_held = $data['iss_held'] ?? null;
         $company_default = $data['company_default'] ?? false;
 
+        // converte o valor de company_default para booleano
         if ($company_default == 'on') {
             $company_default = true;
         }
 
+        // verifica se os campos obrigatórios foram preenchidos
         if (is_null($company_id)) {
             $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=configuration");
             return;
@@ -300,14 +355,17 @@ class Controller
                 $company_default
             );
 
+            // verifica se houve erro na associação
             if (!$response['status']) {
                 $msg->error("SQL error occurred: " . $response['error'], "{$vars['modulelink']}&action=configuration");
             } else {
                 // registra atividade no WHMCS
                 logActivity("NFE.io: Company associated - " . $company_id, 0);
+
                 $msg->success("Empresa associada com sucesso!", "{$vars['modulelink']}&action=configuration");
             }
         } catch (\Exception $exception) {
+            // registra erro na chamada do módulo
             logModuleCall(
                 'nfeio_serviceinvoices',
                 'associateCompany',
@@ -322,17 +380,25 @@ class Controller
                     'code' => $exception->getCode()
                 ]
             );
+
+            // exibe mensagem de erro
             $msg->error("Error {$exception->getCode()} updating: " . $exception->getMessage(), "{$vars['modulelink']}&action=configuration");
         }
     }
 
     /**
-     * Exibe a página de configuração do módulo associando qualquer variável padrão ou personalizada ao tpl.
+     * Exibe a página de configuração do módulo.
      *
-     * @param  $vars array parametros do WHMCS
-     * @return string|void template de visualização com parametros
-     * @version 3.0
+     * Este método é responsável por renderizar a página de configuração do módulo,
+     * associando variáveis padrão e personalizadas ao template. Ele também verifica
+     * se há campos obrigatórios não preenchidos e filtra as empresas disponíveis
+     * para exibição no dropdown.
+     *
+     * @param array $vars Parâmetros fornecidos pelo WHMCS.
+     * @return string|void Retorna o conteúdo renderizado do template ou nada em caso de erro.
+     * @throws \Exception Caso ocorra algum erro durante a execução.
      * @since 2.0
+     * @version 3.0
      */
     public function configuration($vars)
     {
@@ -378,9 +444,16 @@ class Controller
     }
 
     /**
-     * Salva as configurações do módulo
+     * Salva as configurações do módulo.
      *
-     * @param $vars array Parametros do WHMCS
+     * Este método processa os dados enviados via POST para salvar as configurações
+     * do módulo no armazenamento persistente. Ele valida os campos recebidos,
+     * define valores padrão para campos ausentes e exibe mensagens de sucesso ou erro
+     * conforme o resultado da operação.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
+     * @return void
+     * @throws \Exception Caso ocorra algum erro durante a execução.
      * @since 2.0
      * @version 3.0
      */
@@ -460,26 +533,33 @@ class Controller
     }
 
     /**
-     * Busca de produtos via requisicoes ajax
+     * Realiza a busca de produtos no banco de dados com base em um termo de pesquisa.
      *
-     * @return mixed JSON response with found products
+     * Este método é utilizado para buscar produtos no banco de dados com base em um termo
+     * fornecido via requisição GET. Ele retorna os resultados em formato JSON.
+     *
+     * @return void Retorna os resultados da busca em formato JSON ou uma mensagem de erro.
+     * @throws \Exception Caso ocorra algum erro durante a execução.
      * @since 3.0
      * @version 3.0
      */
     public function searchProducts()
     {
 
+        // define o cabeçalho de resposta como JSON
         header('Content-Type: application/json');
 
         try {
+            // obtém o termo de pesquisa da requisição GET
             $searchTerm = isset($_GET['term']) ? $_GET['term'] : '';
 
+            // verifica se o termo de pesquisa possui menos de 2 caracteres
             if (empty($searchTerm) || strlen($searchTerm) < 2) {
                 echo json_encode([]);
                 return;
             }
 
-            // Search products in the database
+            // realiza a busca de produtos no banco de dados
             $products = Capsule::table('tblproducts')
                 ->select('id', 'name')
                 ->where('name', 'like', '%' . $searchTerm . '%')
@@ -488,9 +568,10 @@ class Controller
                 ->get()
                 ->toArray();
 
+            // retorna os resultados em formato JSON
             echo json_encode($products);
-
         } catch (\Exception $e) {
+            // em caso de erro, retorna uma mensagem de erro em JSON
             echo json_encode(['error' => $e->getMessage()]);
         }
 
@@ -498,12 +579,17 @@ class Controller
     }
 
     /**
-     * Exibe a página de configuração de código de serviços e seus parametros
+     * Exibe a página de configuração de códigos de serviços e seus parâmetros.
      *
-     * @param  $vars parametros do WHMCS
-     * @return string|void template
-     * @version 3.0
+     * Este método é responsável por renderizar a página de configuração de códigos de serviços,
+     * associando as variáveis necessárias ao template. Ele também verifica se há campos obrigatórios
+     * não preenchidos e carrega as empresas disponíveis para exibição.
+     *
+     * @param array $vars Parâmetros fornecidos pelo WHMCS.
+     * @return string|void Retorna o conteúdo renderizado do template ou nada em caso de erro.
+     * @throws \Exception Caso ocorra algum erro durante a execução.
      * @since 2.0
+     * @version 3.0
      */
     public function servicesCode($vars)
     {
@@ -528,18 +614,6 @@ class Controller
             $vars['jsonUrl'] = Addon::I()->genJSONUrl('servicesCode');
             $vars['availableCompanies'] = $availableCompanies;
 
-            // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
-            $oldVersion = Versions::getOldNfeioModuleVersion();
-            // se tiver registro de versão antiga define mensagem
-            if ($oldVersion) {
-                $msg->error(
-                    "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de nptas.",
-                    '',
-                    true
-                );
-            }
-
             if ($msg->hasMessages()) {
                 $msg->display();
             }
@@ -551,12 +625,17 @@ class Controller
     }
 
     /**
-     * Remove um código de serviço personalizado
+     * Remove um código de serviço personalizado.
      *
-     * @param $vars
+     * Este método processa a remoção de um código de serviço com base no ID do registro fornecido.
+     * Ele utiliza o repositório de códigos de serviços para realizar a exclusão e exibe mensagens
+     * de sucesso ou erro conforme o resultado.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
      * @return void
-     * @version 3.0
+     * @throws \Exception Caso ocorra algum erro durante a execução.
      * @since 3.0
+     * @version 3.0
      */
     public function serviceCodeRemove($vars)
     {
@@ -564,6 +643,7 @@ class Controller
         $post = $_POST;
         $record_id = $post['record_id'] ?? null;
 
+        // caso requisição não for POST ou não houver dados, retorna erro
         if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
             $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=servicesCode");
         }
@@ -574,20 +654,28 @@ class Controller
         }
 
         try {
+            // inicializa o repositório de códigos de serviços
             $productCodeRepository = new \NFEioServiceInvoices\Models\ProductCode\Repository();
+            // remove o código de serviço usando o id do registro
             $productCodeRepository->delete($record_id);
+            // retorna sucesso
             $msg->success('Código de serviço removido com sucesso.', "{$vars['modulelink']}&action=servicesCode");
         } catch (Exception $exception) {
+            // retorna erro
             $msg->error("Erro {$exception->getCode()} ao atualizar: {$exception->getMessage()}", "{$vars['modulelink']}&action=servicesCode");
         }
-
-
     }
 
     /**
-     * Salva os códigos de serviços personalizados
+     * Salva os códigos de serviços personalizados.
      *
-     * @param $vars
+     * Este método processa os dados enviados via POST para salvar ou atualizar
+     * os códigos de serviços associados a produtos. Ele valida os campos obrigatórios,
+     * realiza a operação no repositório e exibe mensagens de sucesso ou erro conforme o resultado.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
+     * @return void
+     * @throws \Exception Caso ocorra algum erro durante a execução.
      * @since 2.0
      * @version 3.0
      */
@@ -603,6 +691,7 @@ class Controller
         $company_id = $post['company'] ?? null;
         $company_default = $post['company_default'] ?? null;
 
+        // caso requisição não for POST ou não houver dados, retorna erro
         if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
             $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=servicesCode");
         }
@@ -612,105 +701,34 @@ class Controller
             $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=servicesCode");
         }
 
+        // salva os dados do código de serviço
         $response = $productCodeRepo->save($product_id, $service_code, $company_id);
 
+        // verifica se houve erro na associação
         if ($response) {
             // registra atividade no WHMCS
             logActivity('NFE.io: Código de serviço atualizado - Produto: ' . $product_id . ' Código: ' . $service_code, 0);
+            // retorna sucesso
             $msg->success("{$product_name} atualizado com sucesso.", "{$vars['modulelink']}&action=servicesCode");
         } else {
+            // retorna erro
             $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=servicesCode");
         }
-
     }
 
     /**
-     * Funções legadas da area administrativa
+     * Exibe a página de alíquotas de serviços.
      *
-     * @param $vars
-     * @since 1.0
-     */
-    public function legacyFunctions($vars)
-    {
-
-        $msg = new FlashMessages();
-        $functions = new \NFEioServiceInvoices\Legacy\Functions();
-        $moduleLink = $vars['modulelink'];
-        $moduleAction = 'index';
-        $redirectUrl = $moduleLink . '&action=' . $moduleAction;
-        $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
-
-        // create
-        if ($_REQUEST['gnfe_create']) {
-            $nfe_for_invoice = $functions->gnfe_get_local_nfe(
-                $_REQUEST['invoice_id'],
-                ['invoice_id', 'user_id', 'nfe_id', 'status', 'services_amount', 'environment', 'pdf', 'created_at', 'rpsSerialNumber']
-            );
-            if (!$nfe_for_invoice['id']) {
-                $queue = $functions->gnfe_queue_nfe($_REQUEST['invoice_id'], true);
-                if ($queue !== 'success') {
-                    $msg->error("Erro ao salvar nota fiscal no DB: <b>{$queue}</b>", $redirectUrl);
-                }
-                if ($queue === 'success') {
-                    $msg->success("Nota fiscal enviada para processamento", $redirectUrl);
-                }
-            } else {
-                if ($queue !== 'success') {
-                    $msg->error("Erro ao salvar nota fiscal no DB: nota fiscal já solicitada", $redirectUrl);
-                }
-            }
-        }
-        // reissue
-        if ($_REQUEST['nfeio_reissue'] and (isset($_REQUEST['nfe_id']) and !empty($_REQUEST['nfe_id']))) {
-            $nfId = $_REQUEST['nfe_id'];
-            $result = $nfe->reissueNfbyId($nfId);
-
-            if ($result === 'success') {
-                $msg->success('NF reemitida com sucesso', $redirectUrl);
-            } else {
-                $msg->error("Erro ao reemitir NF: {$result}", $redirectUrl);
-            }
-        }
-
-        // cancel
-        if ($_REQUEST['gnfe_cancel']) {
-            $delete_nfe = $functions->gnfe_delete_nfe($_REQUEST['gnfe_cancel']);
-            $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
-            if ($delete_nfe->message) {
-                $response = $nfe->updateLocalNfeStatus($_REQUEST['gnfe_cancel'], 'Cancelled');
-
-                logModuleCall('nfeio_serviceinvoices', 'cancel_nf', $_REQUEST['gnfe_cancel'], "NF API Response: \n {$delete_nfe->message} \n NF LOCAL Response: \n {$response}");
-
-                $msg->warning("Nota fiscal cancelada, mas com aviso: {$delete_nfe->message}", $redirectUrl);
-            } else {
-                logModuleCall('nfeio_serviceinvoices', 'cancel_nf', $_REQUEST['gnfe_cancel'], $delete_nfe);
-
-                $msg->success("Nota fiscal cancelada com sucesso", $redirectUrl);
-            }
-        }
-
-        // email
-        if ($_REQUEST['gnfe_email']) {
-            $gnfe_email = $functions->gnfe_email_nfe($_REQUEST['gnfe_email']);
-            if (!$gnfe_email->message) {
-                $msg->info("Email Enviado com Sucesso", $redirectUrl);
-            }
-            if ($gnfe_email->message) {
-                $msg->error($gnfe_email->message, $redirectUrl);
-            }
-        }
-
-        // message
-        if ($_REQUEST['gnfe_message']) {
-            echo urldecode(base64_decode($_REQUEST['gnfe_message']));
-        }
-    }
-
-    /**
-     * @param $vars
-     * @return string|void
-     * @version 3.0
+     * Este método é responsável por renderizar a página de alíquotas de serviços,
+     * associando as variáveis necessárias ao template e filtrando os códigos de
+     * serviços que já possuem alíquotas definidas.
+     *
+     * @param array $vars Parâmetros de configuração do módulo fornecidos pelo WHMCS.
+     * @return string|void Retorna o conteúdo renderizado do template ou nada em caso de erro.
+     * @throws \Exception Caso ocorra algum erro durante a execução.
+     *
      * @since 2.1
+     * @version 3.0
      */
     public function aliquots($vars)
     {
@@ -727,7 +745,9 @@ class Controller
             // URL absoluta dos assets
             $assetsURL = Addon::I()->getAssetsURL();
 
+            // carrega os dados da tabela de alíquotas
             $aliquots = $aliquotsRepo->aliquotsDataTable()->toArray();
+            // carrega os dados da tabela de códigos de serviços
             $serviceCodes = $servicesCodeRepo->aliquotsCodesDataTable()->toArray();
 
             // remove todos os codigos de servicos que ja possuirem uma aliquota definida para um emissor
@@ -757,12 +777,17 @@ class Controller
     }
 
     /**
-     * Remove uma alíquota de serviço
+     * Remove uma alíquota de serviço.
      *
-     * @param $vars
+     * Este método processa a remoção de uma alíquota de serviço com base no ID do registro fornecido.
+     * Ele utiliza o repositório de alíquotas para realizar a exclusão e exibe mensagens de sucesso ou erro
+     * conforme o resultado.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
      * @return void
-     * @version 3.0
+     * @throws \Exception Caso ocorra algum erro durante a execução.
      * @since 3.0
+     * @version 3.0
      */
     public function aliquotsRemove($vars)
     {
@@ -770,6 +795,7 @@ class Controller
         $post = $_POST;
         $record_id = $post['id'] ?? null;
 
+        // caso requisição não for POST ou não houver dados, retorna erro
         if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
             $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=aliquots");
         }
@@ -780,19 +806,30 @@ class Controller
         }
 
         try {
+            // inicializa o repositório de alíquotas
             $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
+            // remove a alíquota usando o id do registro
             $aliquotsRepo->delete($record_id);
+            // retorna sucesso
             $msg->success('Alíquota removida com sucesso.', "{$vars['modulelink']}&action=aliquots");
         } catch (Exception $exception) {
+            // retorna erro
             $msg->error("Erro {$exception->getCode()} ao atualizar: {$exception->getMessage()}", "{$vars['modulelink']}&action=aliquots");
         }
     }
 
     /**
-     * @param $vars
+     * Salva uma nova alíquota de serviço.
+     *
+     * Este método processa os dados enviados via POST para salvar uma nova alíquota de serviço
+     * associada a um código de serviço e uma empresa. Ele valida os campos obrigatórios,
+     * realiza a operação no repositório e exibe mensagens de sucesso ou erro conforme o resultado.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
      * @return void
-     * @version 3.0
+     * @throws \Exception Caso ocorra algum erro durante a execução.
      * @since 2.1
+     * @version 3.0
      */
     public function aliquotsSave($vars)
     {
@@ -804,25 +841,39 @@ class Controller
 //        $record_id = $post['id'] ?? null;
         $company_id = $post['company_id'] ?? null;
 
+        // caso requisição não for POST ou não houver dados, retorna erro
         if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
             $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=aliquots");
         }
 
+        // caso iss_held ou company_id ou code_service forem nulos, retorna erro
         if (is_null($iss_held) || is_null($company_id) || is_null($code_service)) {
             $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=aliquots");
         }
 
-
+        // salva aliquota no banco de dados
         $response = $aliquotsRepo->new($code_service, $iss_held, $company_id);
 
+        // verifica retorno da operacao
         if ($response) {
             $msg->success("Alíquota registrada com sucesso.", "{$vars['modulelink']}&action=aliquots");
         } else {
             $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=aliquots");
         }
-
     }
 
+    /**
+     * Edita uma alíquota de serviço.
+     *
+     * Este método processa os dados enviados via POST para editar uma alíquota de serviço
+     * associada a um código de serviço e uma empresa. Ele valida os campos obrigatórios,
+     * realiza a operação no repositório e exibe mensagens de sucesso ou erro conforme o resultado.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
+     * @return void
+     * @since 2.1
+     * @version 3.0
+     */
     public function aliquotsEdit($vars)
     {
         $msg = new FlashMessages();
@@ -834,30 +885,37 @@ class Controller
         $record_id = $post['record_id'] ?? null;
         $company_name = $post['company_name'] ?? null;
 
+        // caso requisição não for POST ou não houver dados, retorna erro
         if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
             $msg->error("Erro na submissão: dados inválidos", "{$vars['modulelink']}&action=aliquots");
         }
 
+        // caso iss_held ou ou record_id forem nulos, retorna erro
         if (is_null($iss_held) || is_null($record_id)) {
             $msg->error("Erro na submissão: campos obrigatórios não preenchidos", "{$vars['modulelink']}&action=aliquots");
         }
 
+        // salva aliquota no banco de dados
         $response = $aliquotsRepo->edit($record_id, $iss_held);
 
+        // verifica retorno da operacao
         if ($response) {
             $msg->success("Alíquota para código <strong>{$service_code}</strong> emissor <strong>{$company_name}</strong> editada com sucesso.", "{$vars['modulelink']}&action=aliquots");
         } else {
             $msg->info("Nenhuma alteração realizada.", "{$vars['modulelink']}&action=aliquots");
         }
-
-
     }
 
     /**
-     * Reemite as notas fiscais para uma determinada fatura
+     * Reemite as notas fiscais para uma determinada fatura.
      *
-     * @param   $vars array variáveis do WHMCS
-     * @author  Andre Bellafronte <andre@eunarede.com>
+     * Este método utiliza a API da NFE.io para reemitir todas as notas fiscais
+     * associadas a uma fatura específica, identificada pelo ID da fatura.
+     * Ele exibe mensagens de erro ou sucesso conforme o resultado da operação.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS.
+     * @return void
+     * @since 2.1
      * @version 2.1
      */
     public function reissueNf($vars)
@@ -879,6 +937,18 @@ class Controller
         }
     }
 
+    /**
+     * Cancela as notas fiscais associadas a uma fatura específica.
+     *
+     * Este método utiliza a API da NFE.io para cancelar todas as notas fiscais
+     * associadas a uma fatura identificada pelo ID da fatura. Ele exibe mensagens
+     * de sucesso ou informações adicionais conforme o resultado da operação.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS, incluindo o link do módulo.
+     * @return void
+     * @since 2.1
+     * @version 2.1
+     */
     public function cancelNf($vars)
     {
         $msg = new FlashMessages();
@@ -899,33 +969,56 @@ class Controller
     }
 
     /**
-     * Envia a nota fiscal por email ao cliente através da API da NFE.io
+     * Envia a nota fiscal por email ao cliente através da API da NFE.io.
      *
-     * @param   $params array variáveis do WHMCS
+     * Este método utiliza a função legada para enviar a nota fiscal por email
+     * com base no ID da nota fiscal fornecido. Ele verifica se o ID foi informado,
+     * dispara o email e exibe mensagens de sucesso ou erro conforme o resultado.
+     *
+     * @param array $params Parâmetros fornecidos pelo WHMCS, incluindo o link do módulo.
+     * @return void
+     * @since 2.0
+     * @version 2.0
      */
     public function emailNf($params)
     {
         $msg = new FlashMessages();
-        $functions = new \NFEioServiceInvoices\Legacy\Functions();
+        $nfeio = new \NFEioServiceInvoices\NFEio\Nfe();
         $get = $_GET;
-        $nfId = $get['nfe_id'];
+        $nfeioId = $get['nfe_id'];
+        $companyId = $get['company_id'];
         $moduleLink = $params['modulelink'];
         $moduleAction = 'index';
         $redirectUrl = $moduleLink . '&action=' . $moduleAction;
 
-        if (empty($nfId)) {
-            $msg->warning("Nenhuma nota fiscal informada.", $redirectUrl);
+        // verifica se o ID da nota fiscal está vazio
+        if (empty($nfeioId) || empty($companyId)) {
+            $msg->warning("Parametros incorretos.", $redirectUrl);
         }
 
-        $response = $functions->gnfe_email_nfe($nfId);
+        // dispara o email
+        $response = $nfeio->sendNfeioEmail($nfeioId, $companyId);
 
-        if (empty($response->message)) {
+        // verifica se houve erro no envio do email
+        if (empty($response['error'])) {
             $msg->success("Nota fiscal enviada por email com sucesso.", $redirectUrl);
         } else {
-            $msg->error($response->message, $redirectUrl);
+            $msg->error($response['error'], $redirectUrl);
         }
     }
 
+    /**
+     * Atualiza o status de uma nota fiscal.
+     *
+     * Este método utiliza a API da NFE.io para buscar e atualizar o status de uma nota fiscal
+     * no banco de dados local. Ele verifica se os parâmetros necessários foram fornecidos,
+     * realiza a busca da nota fiscal na API e atualiza o status localmente.
+     *
+     * @param array $params Parâmetros fornecidos pelo WHMCS, incluindo o link do módulo.
+     * @return void
+     * @since 2.2
+     * @version 2.2
+     */
     public function updateNfStatus($params)
     {
         $msg = new FlashMessages();
@@ -934,12 +1027,15 @@ class Controller
         $nfeId = $_GET['nfe_id'];
         $companyId = $_GET['company_id'];
 
+        // verifica se o ID da nota fiscal e o ID da empresa estão vazios
         if (empty($nfeId) && empty($companyId)) {
             $msg->warning("Nenhuma nota fiscal informada.", $moduleLink);
         }
 
+        // busca a nota fiscal na API
         $invoice = $nfe->fetchNf($nfeId, $companyId);
 
+        // verifica se houve erro na busca da nota fiscal
         if ($invoice['error']) {
             $msg->error("Erro ao buscar NF na API: {$invoice['error']}", $moduleLink);
         }
@@ -974,24 +1070,11 @@ class Controller
             $assetsURL = Addon::I()->getAssetsURL();
             $msg = new FlashMessages();
 
-            // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
-            $oldVersion = Versions::getOldNfeioModuleVersion();
-            // se tiver registro de versão antiga define mensagem
-            if ($oldVersion) {
-                $msg->error(
-                    "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo com uma nova versão.
-                <br> Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.",
-                    '',
-                    true
-                );
-            }
-
             if ($msg->hasMessages()) {
                 $msg->display();
             }
 
             $vars['assetsURL'] = $assetsURL;
-
 
             return $template->fetch('support', $vars);
         } catch (\Exception $e) {
@@ -1004,20 +1087,7 @@ class Controller
         Addon::I()->isAdmin(true);
         $template = new Template(Addon::getModuleTemplatesDir());
         $assetsURL = Addon::I()->getAssetsURL();
-
         $msg = new FlashMessages();
-
-        // procuro pelo registro de versão da estrutura legada para avisar o admin para não rodar duas versões
-        $oldVersion = Versions::getOldNfeioModuleVersion();
-        // se tiver registro de versão antiga define mensagem
-        if ($oldVersion) {
-            $msg->error(
-                "<b>Atenção:</b> Você está rodando uma versão antiga do módulo ({$oldVersion}) em paralelo a uma nova versão.
-                Caso você tenha acabado de concluir uma migração para a última versão, <b>desative a versão anterior e remova o antigo diretório <i>addons/gofasnfe</i> imediatamente</b> para evitar duplicidade na geração de notas.",
-                '',
-                true
-            );
-        }
 
         if ($msg->hasMessages()) {
             $msg->display();

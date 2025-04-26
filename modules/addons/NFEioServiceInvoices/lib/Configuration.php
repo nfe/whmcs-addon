@@ -214,7 +214,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
         // executa as rotinas de sql para a model ServiceInvoices
         $serviceInvoicesRepo->createServiceInvoicesTable();
         // garante que em uma migração de v1.4 para v2.1 as novas colunas estejam presentes
-        $serviceInvoicesRepo->upgrade_to_2_1_0();
+        $serviceInvoicesRepo->upgrade201();
 
         // rotinas de ativação da model ProductCode (tabela productcode)
         $productCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
@@ -276,7 +276,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
         // upgrade to 2.1
         if (version_compare($currentlyInstalledVersion, '2.1.0', 'lt')) {
             $serviceInvoiceRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
-            $serviceInvoiceRepo->upgrade_to_2_1_0();
+            $serviceInvoiceRepo->upgrade201();
             $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
             $aliquotsRepo->createAliquotsTable();
         }
@@ -286,9 +286,9 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
             $aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
             $serviceInvoiceRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
 
-            $productRepo->update_servicecode_var_limit();
-            $aliquotsRepo->update_servicecode_var_limit();
-            $serviceInvoiceRepo->update_servicecode_var_limit();
+            $productRepo->updateServicecodeVarLimit();
+            $aliquotsRepo->updateServicecodeVarLimit();
+            $serviceInvoiceRepo->updateServicecodeVarLimit();
             /**
              * @see https://github.com/nfe/whmcs-addon/issues/134
              */
@@ -300,8 +300,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
          *
          * @see https://github.com/nfe/whmcs-addon/issues/156
          */
-        if(version_compare($currentlyInstalledVersion, '2.1.8', 'le')) {
-
+        if (version_compare($currentlyInstalledVersion, '2.1.8', 'le')) {
             // atualiza o nome da coluna de timestamp para a tabela productcode
             \NFEioServiceInvoices\Migrations\Migrations::changeProductCodeTimestampColumnsName();
 
@@ -309,7 +308,6 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
             \NFEioServiceInvoices\Migrations\Migrations::migrateTimestampColumns('mod_nfeio_si_productcode');
             \NFEioServiceInvoices\Migrations\Migrations::migrateTimestampColumns('mod_nfeio_si_serviceinvoices');
             \NFEioServiceInvoices\Migrations\Migrations::migrateTimestampColumns('mod_nfeio_si_aliquots');
-
         }
 
         /**
@@ -320,7 +318,6 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
          * @version 3.0
          */
         if (version_compare($currentlyInstalledVersion, '3.0.0', 'lt')) {
-
             // inicia tabela para armazenar as empresas
             $companyRepository = new Models\Company\Repository();
             $companyRepository->createTable();
@@ -361,7 +358,6 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
             \NFEioServiceInvoices\Migrations\Migrations::addCompanyIdRecord($company_id, 'mod_nfeio_si_aliquots');
             // mod_nfeio_si_serviceinvoices
             \NFEioServiceInvoices\Migrations\Migrations::addCompanyIdRecord($company_id, 'mod_nfeio_si_serviceinvoices');
-
         }
     }
 }

@@ -16,12 +16,9 @@ class AdminInvoicesControlsOutput
     public function run()
     {
         $whmcs = \WHMCS\Application::getInstance();
-        $legacyFunctions = new \NFEioServiceInvoices\Legacy\Functions();
         $template = new \WHMCSExpert\Template\Template(\NFEioServiceInvoices\Addon::getModuleTemplatesDir());
-        $assetsURL = \NFEioServiceInvoices\Addon::I()->getAssetsURL();
         $post = $_POST;
         $request = $post['nfeiosi'];
-        //$request = $whmcs->get_req_var("nfeiosi");
         $msg = new \Plasticbrain\FlashMessages\FlashMessages();
         $config = new \NFEioServiceInvoices\Configuration();
         $storage = new \WHMCSExpert\Addon\Storage($config->getStorageKey());
@@ -73,11 +70,12 @@ class AdminInvoicesControlsOutput
 
         if ($request === 'email') {
             $nfeId = $post['nfe_id'];
-            $result = $legacyFunctions->gnfe_email_nfe($nfeId);
-            if (!$result->message) {
+            $companyId = $post['company_id'];
+            $result = $nfe->sendNfeioEmail($nfeId, $companyId);
+            if (!$result['error']) {
                 $msg->info("Nota enviada por e-mail com sucesso.");
             } else {
-                $msg->error("Problemas ao enviar e-mail: {$result->message}.");
+                $msg->error("Problemas ao enviar e-mail: {$result['error']}.");
             }
         }
 
