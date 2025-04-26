@@ -2,16 +2,27 @@
 
 namespace NFEioServiceInvoices\Helpers;
 
-use NFEioServiceInvoices\Helpers\Invoices as InvoicesHelper;
 use WHMCS\Database\Capsule;
 
 class Invoices
 {
+    /**
+     * Obtém o status de uma fatura pelo seu ID.
+     *
+     * @param int $id O ID da fatura.
+     * @return string O status da fatura (ex.: 'Paid', 'Unpaid', 'Cancelled').
+     */
     public static function getInvoiceStatus($id)
     {
         return Capsule::table('tblinvoices')->where('id', '=', $id)->value('status');
     }
 
+    /**
+     * Obtém a URL completa para visualização da fatura.
+     *
+     * @param int $id ID da fatura.
+     * @return string URL completa da fatura.
+     */
     public static function getInvoiceViewUrl($id)
     {
         $systemUrl = \WHMCS\Config\Setting::getValue('SystemURL');
@@ -20,6 +31,17 @@ class Invoices
         return $systemUrl . $invoiceUrl;
     }
 
+    /**
+     * Gera a descrição do serviço para a nota fiscal.
+     *
+     * @param int $invoiceId ID da fatura.
+     * @param string $description Descrição inicial do serviço.
+     * @return string Descrição completa do serviço para a nota fiscal.
+     *
+     * O método utiliza configurações armazenadas para construir a descrição
+     * da nota fiscal, incluindo informações opcionais como o número da fatura,
+     * nome dos serviços, URL da fatura e uma descrição adicional personalizada.
+     */
     public static function generateNfServiceDescription($invoiceId, $description)
     {
         $config = new \NFEioServiceInvoices\Configuration();
