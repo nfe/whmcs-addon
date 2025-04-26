@@ -2,7 +2,6 @@
 
 namespace NFEioServiceInvoices\Legacy;
 
-use NFEioServiceInvoices\Helpers\Timestamp;
 use WHMCS\Database\Capsule;
 use NFEioServiceInvoices\Addon;
 use NFEioServiceInvoices\Helpers\Validations;
@@ -190,50 +189,6 @@ class Functions
         return $result;
     }
 
-    function gnfe_queue_nfe($invoice_id, $create_all = false)
-    {
-        $invoice = \WHMCS\Billing\Invoice::find($invoice_id);
-        $itens = $this->get_product_invoice($invoice_id);
-        $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
-        $_tableName = $serviceInvoicesRepo->tableName();
-
-        foreach ($itens as $item) {
-            $data = [
-                'invoice_id' => $invoice_id,
-                'user_id' => $invoice->userid,
-                'nfe_id' => 'waiting',
-                'status' => 'Waiting',
-                'services_amount' => $item['amount'],
-                'environment' => 'waiting',
-                'flow_status' => 'waiting',
-                'pdf' => 'waiting',
-                'rpsSerialNumber' => 'waiting',
-                'service_code' => $item['code_service'],
-            ];
-            $nfe_for_invoice = $this->gnfe_get_local_nfe($invoice_id, ['status']);
-
-            if (!$nfe_for_invoice['status'] || $create_all) {
-                $create_all = true;
-                try {
-                    $service_code_row = Capsule::table($_tableName)->where('service_code', '=', $item['code_service'])->where('invoice_id', '=', $invoice_id)->where('status', '=', 'waiting')->get(['id', 'services_amount']);
-
-                    if (count($service_code_row) == 1) {
-                        $mountDB = floatval($service_code_row[0]->services_amount);
-                        $mount_item = floatval($item['amount']);
-                        $mount = $mountDB + $mount_item;
-
-                        Capsule::table($_tableName)->where('id', '=', $service_code_row[0]->id)->update(['services_amount' => $mount]);
-                    } else {
-                        Capsule::table($_tableName)->insert($data);
-                    }
-                } catch (\Exception $e) {
-                    return $e->getMessage();
-                }
-            }
-        }
-        return 'success';
-    }
-
     function gnfe_issue_nfe($postfields, $companyId)
     {
         $webhook_url = Addon::getCallBackPath();
@@ -277,41 +232,6 @@ class Functions
         }
     }
 
-
-    function gnfe_delete_nfe($nf, $companyId)
-    {
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $companyId . '/serviceinvoices/' . $nf);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
-        $response = curl_exec($curl);
-        curl_close($curl);
-
-        logModuleCall('nfeio_serviceinvoices', 'delete_nfe', $nf, $response, json_decode($response, true), '');
-
-        return json_decode($response);
-    }
-
-    function gnfe_email_nfe($nf)
-    {
-        if ('on' == $this->gnfe_config('gnfe_email_nfe_config')) {
-            $curl = curl_init();
-            curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $this->gnfe_config('company_id') . '/serviceinvoices/' . $nf . '/sendemail');
-            curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
-            curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'PUT');
-            $response = curl_exec($curl);
-            curl_close($curl);
-
-            logModuleCall('nfeio_serviceinvoices', 'email_nfe', $nf, $response, json_decode($response, true), '');
-
-            return json_decode($response);
-        }
-    }
-
     function gnfe_pdf_nfe($nf)
     {
         $curl = curl_init();
@@ -351,42 +271,6 @@ class Functions
         return $result;
     }
 
-    function gnfe_update_nfe($nfe, $user_id, $invoice_id, $pdf, $id_gofasnfeio = false)
-    {
-        $data = [
-            'invoice_id' => $invoice_id,
-            'user_id' => $user_id,
-            'nfe_id' => $nfe->id,
-            'status' => $nfe->status,
-            'services_amount' => $nfe->servicesAmount,
-            'environment' => $nfe->environment,
-            'flow_status' => $nfe->flowStatus,
-            'pdf' => $pdf,
-            'rpsSerialNumber' => $nfe->rpsSerialNumber,
-            'rpsNumber' => $nfe->rpsNumber,
-        ];
-
-        try {
-            $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
-            $_tableName = $serviceInvoicesRepo->tableName();
-
-            if (!$id_gofasnfeio) {
-                $id = $invoice_id;
-                $camp = 'nfe_id';
-            } else {
-                $id = $id_gofasnfeio;
-                $camp = 'id';
-            }
-            $save_nfe = Capsule::table($_tableName)->where($camp, '=', $id)->update($data);
-
-            logModuleCall('nfeio_serviceinvoices', 'update_nfe', $data, $save_nfe, '', '');
-
-            return 'success';
-        } catch (\Exception $e) {
-            return $e->getMessage();
-        }
-    }
-
     /**
      * Returns the data of a invoice from the local WHMCS database.
      *
@@ -406,53 +290,6 @@ class Functions
         return $nfe_for_invoice['0'];
     }
 
-
-    /**
-     * @gnfe_nfe_flowStatus string
-     * Possible values:
-     * CancelFailed, IssueFailed, Issued, Cancelled, PullFromCityHall, WaitingCalculateTaxes,
-     * WaitingDefineRpsNumber, WaitingSend, WaitingSendCancel, WaitingReturn, WaitingDownload
-     * @param               $flowStatus
-     * @return              string
-     */
-    function gnfe_nfe_flowStatus($flowStatus)
-    {
-        if ($flowStatus === 'CancelFailed') {
-            $status = 'Cancelado por Erro';
-        }
-        if ($flowStatus === 'IssueFailed') {
-            $status = 'Falha ao Emitir';
-        }
-        if ($flowStatus === 'Issued') {
-            $status = 'Emitida';
-        }
-        if ($flowStatus === 'Cancelled') {
-            $status = 'Cancelada';
-        }
-        if ($flowStatus === 'PullFromCityHall') {
-            $status = 'Obtendo da Prefeitura';
-        }
-        if ($flowStatus === 'WaitingCalculateTaxes') {
-            $status = 'Aguardando Calcular Impostos';
-        }
-        if ($flowStatus === 'WaitingDefineRpsNumber') {
-            $status = 'Aguardando Definir Número Rps';
-        }
-        if ($flowStatus === 'WaitingSend') {
-            $status = 'Aguardando Enviar';
-        }
-        if ($flowStatus === 'WaitingSendCancel') {
-            $status = 'Aguardando Cancelar Envio';
-        }
-        if ($flowStatus === 'WaitingReturn') {
-            $status = 'Aguardando Retorno';
-        }
-        if ($flowStatus === 'WaitingDownload') {
-            $status = 'Aguardando Download';
-        }
-
-        return $status;
-    }
 
     function get_product_invoice($invoice_id)
     {
@@ -503,23 +340,6 @@ class Functions
         }
 
         return $products_details;
-    }
-
-    function update_status_nfe($invoice_id, $status)
-    {
-
-        $serviceInvoicesRepo = new \NFEioServiceInvoices\Models\ServiceInvoices\Repository();
-        $_tableName = $serviceInvoicesRepo->tableName();
-
-        try {
-            $return = Capsule::table($_tableName)->where('invoice_id', '=', $invoice_id)->update([
-                'status' => $status,
-                'updated_at' => Timestamp::currentTimestamp(),
-            ]);
-            return $return;
-        } catch (Exception $e) {
-            return $e->getMessage();
-        }
     }
 
 
@@ -623,32 +443,6 @@ class Functions
                     'value' => $newCond
                 ]
             );
-        }
-    }
-
-    /**
-     * Inserts the conditions of sending invoices in the database.
-     */
-    function gnfe_insert_issue_nfe_cond_in_database()
-    {
-
-        $_storageKey = Addon::I()->configuration()->storageKey;
-        $conditions = 'Quando a fatura é gerada,Quando a fatura é paga,Seguir configuração do módulo NFE.io';
-
-        $previousConditions = Capsule::table('tbladdonmodules')
-            ->where('module', '=', $_storageKey)
-            ->where('setting', '=', 'issue_note_conditions')
-            ->get(['value'])[0]->value;
-
-        if (count($previousConditions) <= 0 || $previousConditions != $conditions) {
-            Capsule::table('tbladdonmodules')
-                ->where('module', '=', $_storageKey)
-                ->where('setting', '=', 'issue_note_conditions')
-                ->update(['value' => $conditions]);
-        }
-
-        if (count($previousConditions) <= 0) {
-            Capsule::table('tbladdonmodules')->insert(['module' => $_storageKey, 'setting' => 'issue_note_conditions', 'value' => $conditions]);
         }
     }
 
