@@ -56,6 +56,8 @@ $nf_status = $payload['status'];
 $nf_flow_status = $payload['flowStatus'];
 $nf_flow_message = $payload['flowMessage'] ?? '';
 $nf_environment = $payload['environment'];
+$nf_rps_number = $payload['rpsNumber'];
+$nf_rps_serial = $payload['rpsSerialNumber'] ?? 'IO';
 
 if (($environment === 'on' && $nf_environment === 'Production') || ($environment === '' && $nf_environment === 'Development')) {
     logModuleCall('nfeio_serviceinvoices', 'callback_error_environment', 'Ambiente incompatível', $payload);
@@ -80,14 +82,10 @@ if (!$nfe) {
 
 if ($nfe->nfe_id === $nf_id && $nfe->status !== $nf_status) {
     $new_nfe = [
-        'invoice_id' => $nfe->invoice_id,
-        'user_id' => $nfe->user_id,
-        'nfe_id' => $nfe->nfe_id,
+        'rpsNumber' => $nf_rps_number,
+        'rpsSerialNumber' => $nf_rps_serial,
         'status' => $nf_status,
-        'services_amount' => $nfe->services_amount,
-        'environment' => $nfe->environment,
         'flow_status' => $nf_flow_status,
-        'pdf' => $nfe->pdf,
         'issue_note_conditions' => $nf_flow_message,
     ];
 
