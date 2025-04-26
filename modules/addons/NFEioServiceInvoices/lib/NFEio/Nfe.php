@@ -876,4 +876,55 @@ class Nfe
             return ['error' => $error];
         }
     }
+
+    /**
+     * Recupera o PDF de uma nota fiscal específica na NFE.io.
+     *
+     * @param string $nfeioId   ID da nota fiscal na NFE.io.
+     * @param string $companyId ID da empresa associada à nota fiscal.
+     * @return mixed Conteúdo binário do PDF em caso de sucesso, ou array com chave 'error' em caso de falha.
+     */
+    public function getPdf($nfeioId, $companyId)
+    {
+        $this->apiAuth();
+        try {
+            return \NFe_ServiceInvoice::pdf($companyId, $nfeioId);
+        } catch (\Exception $e) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'get_nfe_pdf',
+                ['nfeio_id' => $nfeioId, 'company_id' => $companyId],
+                $e->getMessage()
+            );
+            return ['error' => $e->getMessage()];
+        }
+
+    }
+
+    /**
+     * Recupera o XML de uma nota fiscal específica na NFE.io.
+     *
+     * Este método assegura a autenticação da API, tenta obter o XML através do SDK
+     * e captura exceções para registrar logs de erro e retornar uma resposta padronizada.
+     *
+     * @param string $nfeioId   ID da nota fiscal na NFE.io.
+     * @param string $companyId ID da empresa associada à nota fiscal.
+     *
+     * @return mixed Conteúdo XML em caso de sucesso, ou array com chave 'error' em caso de falha.
+     */
+    public function getXml($nfeioId, $companyId)
+    {
+        $this->apiAuth();
+        try {
+            return \NFe_ServiceInvoice::xml($companyId, $nfeioId);
+        } catch (\Exception $e) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'get_nfe_xml',
+                ['nfeio_id' => $nfeioId, 'company_id' => $companyId],
+                $e->getMessage()
+            );
+            return ['error' => $e->getMessage()];
+        }
+    }
 }

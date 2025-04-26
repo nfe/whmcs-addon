@@ -42,7 +42,8 @@ class ClientAreaPageViewInvoice
                 'nfe_id' => $nf->nfe_id,
                 'status' => $nf->status,
                 'status_flow' => $nf->flow_status,
-                'amount' => $nf->services_amount
+                'amount' => $nf->services_amount,
+                'company_id' => $nf->company_id,
             ];
         }
 
