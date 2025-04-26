@@ -519,6 +519,7 @@ class Nfe
         $customer = $this->legacyFunctions->gnfe_customer($clientId, $clientData);
         $emailNfeConfig = (bool)$this->storage->get('gnfe_email_nfe_config');
         $client_email = $emailNfeConfig ? $clientData->email : '';
+        $client_postcode  = Validations::sanitizePostCode($clientData->postcode);
 
         logModuleCall('nfeio_serviceinvoices', 'nf_emit_for_customer', $data, $customer);
 
@@ -529,10 +530,15 @@ class Nfe
             return;
         }
 
-
-        $name = $customer['name'];
-
-        //define address
+        /**
+        Esse trecho separa `address1` em **logradouro** e **número** de duas formas:
+        1. Quando existe vírgula
+            - Usa `strpos` para detectar vírgula
+            - `explode(',', …)` divide a string em dois pedaços
+        2. Quando não há vírgula
+            - Remove dígitos via `preg_replace('/[0-9]+/i', '', …)` para obter o logradouro
+            - Extrai apenas números com `preg_replace('/[^0-9]/', '', …)` para obter o número
+         */
         if (strpos($clientData->address1, ',')) {
             $array_adress = explode(',', $clientData->address1);
             $street = $array_adress[0];
@@ -546,23 +552,18 @@ class Nfe
             $number = preg_replace('/[^0-9]/', '', $clientData->address1);
         }
 
-        if (empty($clientData->postcode)) {
-            $this->updateLocalNfeStatusByExternalId($externalId, 'Error_cep');
+        // se cliente não possuir um CEP válido, atualiza o status da NF e para emissão
+        if (!$client_postcode) {
+            $this->updateLocalNfeStatusByExternalId($externalId, 'Error_cep', 'CEP inválido');
             return;
         }
 
-        $ibgeCode = $this->legacyFunctions->gnfe_ibge(preg_replace(
-            '/[^0-9]/',
-            '',
-            $clientData->postcode
-        ));
+        $ibgeCode = $this->legacyFunctions->gnfe_ibge($client_postcode);
 
         if ($ibgeCode['error']) {
             $this->updateLocalNfeStatusByExternalId($externalId, 'Error_cep');
             return;
         }
-
-        //strlen($insc_municipal) == 0 ? '' : $postfields['borrower']['municipalTaxNumber'] = $insc_municipal;
 
         $postData = [
             'cityServiceCode' => $serviceCode,
@@ -572,11 +573,11 @@ class Nfe
             'borrower' => [
                 'federalTaxNumber' => $customer['document'],
                 'municipalTaxNumber' => $customer['insc_municipal'],
-                'name' => $name,
+                'name' => $customer['name'],
                 'email' => $client_email,
                 'address' => [
                     'country' => Validations::countryCode($clientData->country),
-                    'postalCode' => preg_replace('/[^0-9]/', '', $clientData->postcode),
+                    'postalCode' => $client_postcode,
                     'street' => $street,
                     'number' => $number,
                     'additionalInformation' => '',

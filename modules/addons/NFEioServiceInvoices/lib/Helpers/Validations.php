@@ -149,4 +149,28 @@ class Validations
         ][$country] ?? null;
     }
 
+    /**
+     * Remove caracteres não numéricos de um CEP e garante 8 dígitos.
+     *
+     * @param string $postcode CEP a ser sanitizado. Pode conter máscara ou outros caracteres.
+     * @return string|false Retorna o CEP com apenas 8 dígitos ou false se o comprimento for inválido.
+     */
+    public static function sanitizePostCode($postcode)
+    {
+        // Remove caracteres não numéricos
+        $postcode = preg_replace('/\D/', '', $postcode);
+
+        // Verifica se o comprimento é 8 ou 9
+        if (strlen($postcode) !== 8 && strlen($postcode) !== 9) {
+            return false;
+        }
+
+        // Se o comprimento for 9, remova o último caractere
+        if (strlen($postcode) === 9) {
+            $postcode = substr($postcode, 0, -1);
+        }
+
+        return $postcode;
+    }
+
 }
