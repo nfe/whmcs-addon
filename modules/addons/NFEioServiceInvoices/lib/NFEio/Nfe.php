@@ -3,6 +3,7 @@
 namespace NFEioServiceInvoices\NFEio;
 
 use NFEioServiceInvoices\Helpers\Timestamp;
+use NFEioServiceInvoices\Helpers\Validations;
 use WHMCS\Database\Capsule;
 
 /**
@@ -824,6 +825,55 @@ class Nfe
             return $invoice;
         } catch (\Exception $e) {
             return ['error' => $e->getMessage()];
+        }
+    }
+
+    /**
+     * Cria um webhook na NFE.io para receber eventos específicos.
+     *
+     * @param string $url URL que receberá as notificações do webhook.
+     * @return \NFe_Webhook|array Retorna a instância do webhook criado ou um array com chave 'error' em caso de falha.
+     * @throws \Exception
+     */
+    public function createWebhook($url)
+    {
+        $this->apiAuth();
+        $data = [
+            'url' => $url,
+            'contentType' => 'application/json',
+            'secret' => Validations::generateSecretKey(),
+            'events' => ['issue', 'cancel', 'WaitingCalculateTaxes'],
+            'status' => 'active',
+        ];
+
+        try {
+            $hook = \NFe_Webhook::create($data);
+            logModuleCall('nfeio_serviceinvoices', 'create_webhook', $data, $hook);
+            return $hook;
+        } catch (\Exception $exception) {
+            logModuleCall('nfeio_serviceinvoices', 'create_webhook_error', $data, $exception->getMessage());
+            return ['error' => $exception->getMessage()];
+        }
+    }
+
+    /**
+     * Recupera um webhook existente na NFE.io.
+     *
+     * @param string $webhookId ID do webhook a ser buscado.
+     * @return \NFe_Webhook|array Retorna a instância do webhook ou um array com chave 'error' em caso de falha.
+     */
+    public function getWebhook(string $webhookId)
+    {
+        $this->apiAuth();
+
+        try {
+            $webhook = \NFe_Webhook::fetch($webhookId);
+            logModuleCall('nfeio_serviceinvoices', 'get_webhook', $webhookId, $webhook);
+            return $webhook;
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+            logModuleCall('nfeio_serviceinvoices', 'get_webhook_error', $webhookId, $error);
+            return ['error' => $error];
         }
     }
 }

@@ -91,4 +91,18 @@ class Validations
 
         return $result;
     }
+
+    /**
+     * Gera uma chave secreta criptograficamente segura.
+     *
+     * @param int $length Comprimento da chave em bytes. Padrão é 16.
+     * @return string Chave secreta em formato hexadecimal.
+     * @throws \Exception Se não for possível obter bytes aleatórios.
+     */
+    public static function generateSecretKey(int $length = 16): string
+    {
+        return bin2hex(random_bytes($length));
+
+    }
+
 }
