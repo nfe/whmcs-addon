@@ -144,7 +144,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function save($companyId, $taxNumber, $companyName, $serviceCode, $issHeld, $default = false)
     {
-        // insere ou atualiza registro da empresa
         try {
             $data = [
                 'company_id' => $companyId,
@@ -156,19 +155,27 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 'updated_at' => \WHMCS\Database\Capsule::raw('NOW()')
             ];
 
-            if (!\WHMCS\Database\Capsule::table($this->tableName)->where('company_id', '=', $companyId)->exists()) {
+            $defaultExists = \WHMCS\Database\Capsule::table($this->tableName())->where('default', 1)->exists();
+
+            if (!\WHMCS\Database\Capsule::table($this->tableName())->where('company_id', $companyId)->exists()) {
                 $data['created_at'] = \WHMCS\Database\Capsule::raw('NOW()');
             }
 
-            // se data['default'] for igual a 1, remove o default de todas as outras empresas
-            if ($default == 1) {
-                \WHMCS\Database\Capsule::table($this->tableName)->where('default', '=', 1)->update(['default' => 0]);
+            // se for default e um ja existir, remove o default de todas as outras empresas
+            if ($default && $defaultExists) {
+                \WHMCS\Database\Capsule::table($this->tableName())->where('default', 1)->update(['default' => 0]);
             }
 
-            $result = \WHMCS\Database\Capsule::table($this->tableName)->updateOrInsert(
+            // se nao houver defaut e o default for 0, define o registro atual como default
+            if (!$defaultExists && !$default) {
+                $data['default'] = 1;
+            }
+
+            $result = \WHMCS\Database\Capsule::table($this->tableName())->updateOrInsert(
                 ['company_id' => $companyId],
                 $data
             );
+
             return ['status' => true, 'result' => $result];
         } catch (\Exception $exception) {
             logModuleCall(
