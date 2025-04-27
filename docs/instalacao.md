@@ -17,8 +17,8 @@ Antes de realizar a instalação do módulo, leia com atenção as informações
 Os requisitos a seguir são necessários para o funcionamento adequado do módulo e integração.
 
 1. WHMCS versão 8 ou superior;
-2. PHP 7.2 ou superior;
-3. Chave de API da NFE.io;
+2. PHP 7.4 ou superior;
+3. Chave de API da [NFE.io](https://nfe.io);
 4. Automação do WHMCS devidamente configurada ([https://docs.whmcs.com/Automation_Settings](https://docs.whmcs.com/Automation_Settings));
 5. Tarefas cron do Sistema sendo executadas conforme recomendações do WHMCS [https://docs.whmcs.com/Crons#System_Cron](https://docs.whmcs.com/Crons#System_Cron).
 
@@ -73,11 +73,7 @@ Por exemplo, tendo o WHMCS instalado em `public_html`, carregue o diretório `mo
 
 Após realizar o carregamento dos arquivos do módulo, ele está disponível para ativação e configuração no WHMCS.
 
-Veja a seguir os passos para ativação do módulo no WHMCS 8 e WHMCS 7.
-
-#### WHMCS 8.X
-
-Para ativar o módulo adicional no WHMCS versão 8.x vá até o ícone de chave no canto superior direito e clique em `Opções`.
+Para ativar o módulo adicional no WHMCS vá até o ícone de chave no canto superior direito e clique em `Opções`.
 
 ![](../assets/img/nfeio-whmcs-docs-instalacao-03.png)
 
@@ -103,21 +99,6 @@ Chave de acesso privada gerado na sua conta NFE.io, necessária para a autentica
 
 Obtenha uma chave de acesso a API neste link [https://app.nfe.io/account/apikeys](https://app.nfe.io/account/apikeys)
 
-#### ID da Empresa
-
-> campo obrigatório
-
-Informe o ID da empresa ao qual serão associadas as notas fiscais gerados pelo WHMCS.
-
-Obtenha o ID da empresa neste link [https://app.nfe.io/companies/](https://app.nfe.io/account/apikeys)
-
-#### Código do Serviço Principal
-
-> campo obrigatório
-
-Código de serviço que será usado como padrão para geração das notas fiscais pelo WHMCS. Este código irá variar de acordo com a categoria de tributação do negócio no município. 
-
-Saiba mais sobre o código de serviço neste link [https://nfe.io/docs/nota-fiscal-servico/conceitos-nfs-e/#o-que-e-codigo-de-servico](https://app.nfe.io/account/apikeys)
 
 #### Ambiente de desenvolvimento
 
@@ -131,7 +112,7 @@ Marque essa opção para salvar informações de diagnóstico no Log de Módulo 
 
 Escolha os grupos de administradores ou  operadores que terão para acessar o módulo.
 
-> **dics:** informe todos os grupos de operadores que precisem acessar e operar o módulo. 
+> **Dica:** informe todos os grupos de operadores que necessitem acessar e operar o módulo. 
 
 
 Após realizar a instalação e configuração inicial, siga para as configurações detalhadas do módulo em [https://nfe.github.io/whmcs-addon/docs/configuracao](https://nfe.github.io/whmcs-addon/docs/instalacao/)

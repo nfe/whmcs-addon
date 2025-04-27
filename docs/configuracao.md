@@ -7,41 +7,47 @@ title: Configuração
 
 Este documento irá mostrar como configurar com sucesso o [Módulo Nota Fiscal para WHMCS via NFE.io](https://github.com/nfe/whmcs-addon). Ela irá guiar passo a passo por todo o processo de configuração.
 
-## Configurações do Módulo
-
 Após a instalação e configuração inicial do addon como chave de API e código da empresa, é necessário realizar as configurações avançadas e rotinas de emissão das notas fiscais. Para isso acesse `Addons -> NFE.io NFSe -> Configurações`.
 
 ![](../assets/img/nfeio-whmcs-docs-configuracao-05.png)
 
 As configurações disponíveis estão descritas a seguir.
 
-### API Key
+## Definicoes de Emissão
 
-Chave de acesso privada gerado na sua conta NFE.io, necessária para a autenticação das chamadas à API.
+É possível configurar diferentes empresas a serem utilizados para emissão de notas fiscais pelo módulo, cada um com suas definições.
 
-> Configurado na etapa de instalação do módulo.
+![](../assets/img/nfeio-whmcs-docs-configuracao-06.png)
 
-### ID da Empresa
+Para adicionar uma nova empresa, clique no botão `Cadastrar Emissor` e preencha os campos obrigatórios.
 
-ID da empresa ao qual serão associadas as notas fiscais gerados pelo WHMCS.
+![](../assets/img/nfeio-whmcs-docs-configuracao-07.png)
 
-> Configurado na etapa de instalação do módulo.
+### Empresa
+
+Selecione a empresa que será configurada para emissão. Será exibida uma lista com todas as empresas cadastradas na sua conta NFE.io.
 
 ### Código de Serviço Principal
 
-Código de serviço que será usado como padrão para geração das notas fiscais pelo WHMCS.
-
-> Configurado na etapa de instalação do módulo.
+Código de serviço que será usado como padrão para geração das notas fiscais pelo WHMCS para este emissor. O código de serviço padrão será utilizado para todos os produtos/serviços que não possuírem um código de serviço personalizado definido.
 
 ### Retenção de ISS
 
 Alíquota em porcentagem (%) padrão de retenção de ISS. Será aplicado a todos os produtos/serviços.
 
+### Empresa Padrão
+
+Marque esta opção para definir a empresa como padrão. A empresa padrão será utilizada para emissão de notas fiscais quando houver mais de uma empresa configurada. Caso haja apenas uma empresa configurada, a mesma será utilizada como padrão.
+
+## Configurações Globais
+
+As configurações globais são aplicadas a todas as empresas cadastradas no módulo. As opções disponíveis estão descritas a seguir.
+
 ### Deduzir descontos da fatura na NF
 
 Deduzir descontos/abatimentos existentes na fatura do valor total da nota a ser emitida. Quando uma fatura possuir um item de desconto ou item com valor negativo, o mesmo será deduzido do valor total da nota a ser emitida. Se uma fatura possuir vários itens de desconto para diferentes serviços, os descontos serão somados e descontados com base no grupo de código de serviço.
 
-Opção habilitada por padrão.
+> Opção habilitada por padrão.
 
 ### Quando emitir NFE
 
@@ -59,7 +65,7 @@ A NFSe será emitida apenas quando a fatura registrar um pagamento. Esse pagamen
 
 Número de dias após o pagamento da fatura que as notas devem ser emitidas. Informe quantos dias após o registro do pagamento em uma fatura a NFSe será emitida.
 
-**Atenção:** agendar emissão de notas desativa a configuração **Quando emitir NFE**.
+> **Atenção:** agendar emissão de notas desativa a configuração **Quando emitir NFE**.
 
 ### Cancelar NFE Quando Cancelar Fatura
 
