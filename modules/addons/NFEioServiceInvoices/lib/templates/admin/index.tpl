@@ -68,10 +68,14 @@
         disabled="true"
     {/if}
 {/function}
-<link rel="stylesheet" type="text/css"
-      href="https://cdn.datatables.net/v/bs/dt-1.11.3/af-2.3.7/b-2.0.1/fh-3.2.0/datatables.min.css"/>
-<script type="text/javascript"
-        src="https://cdn.datatables.net/v/bs/dt-1.11.3/af-2.3.7/b-2.0.1/fh-3.2.0/datatables.min.js"></script>
+<link href="https://cdn.datatables.net/v/bs/dt-2.2.2/datatables.min.css"
+      rel="stylesheet"
+      integrity="sha384-xd6yqpSXZRZVl62sBIxyT2i4xVlfaxWVjVQB7qsVte0qEr3iepsBrLi/awgmIoPV"
+      crossorigin="anonymous">
+
+<script src="https://cdn.datatables.net/v/bs/dt-2.2.2/datatables.min.js"
+        integrity="sha384-KsmaH+vFCWsWkBqzoXM7HmafapkguLKrj9aRyWzIIaUDqRN99PP25wJUm7ZE+KP3"
+        crossorigin="anonymous"></script>
 <div class="row">
     <div class="col-md-12">
         <div class="panel panel-default">
@@ -85,10 +89,11 @@
                             <thead>
                             <th class="text-center">Fatura</th>
                             <th class="text-center">NFe.io ID</th>
-                            <th class="text-center">Data de Criação</th>
+                            <th class="text-center">Status</th>
                             <th class="text-center">Cliente</th>
                             <th class="text-center">Valor</th>
-                            <th class="text-center">Status</th>
+                            <th class="text-center">Emissor</th>
+                            <th class="text-center">Gerado em</th>
                             <th class="text-center">Ações</th>
                             </thead>
                             <tbody>
@@ -97,7 +102,17 @@
                                     <td class="text-center"><a href="invoices.php?action=edit&id={$nota->invoice_id}"
                                                                target="_blank">{$nota->invoice_id}</a></td>
                                     <td class="text-center">{$nota->nfe_id}</td>
-                                    <td class="text-center"><abbr title="{$nota->created_at}">{$nota->created_at|date_format:"%d/%m/%Y %H:%M"}</abbr></td>
+                                    <td class="text-center">
+                                        <div>
+                                            <abbr title="{flowStatus data=$nota->flow_status}">
+                                                {statusLabel data=$nota->status}
+                                            </abbr>
+                                        </div>
+
+
+                                    </td>
+
+
                                     <td>
                                         <a href="clientssummary.php?userid={$nota->user_id}" target="_blank">
                                             {if $nota->companyname}
@@ -108,83 +123,100 @@
                                         </a>
                                     </td>
                                     <td>R${$nota->services_amount}</td>
-                                    <td class="text-center">
-                                        <div>
-                                            <abbr title="Status Flow: {flowStatus data=$nota->flow_status}">
-                                                {statusLabel data=$nota->status}
-                                            </abbr>
-                                        </div>
-                                        {if $nota->issue_note_conditions}
-                                            <p class="bg-warning">{$nota->issue_note_conditions}</p>
-                                        {/if}
-
-
+                                    <td class="text-center">{$nota->emissor_tax_number} - {$nota->emissor_name}</td>
+                                    <td class="text-center"><abbr
+                                                title="{$nota->created_at}">{$nota->created_at|date_format:"%d/%m/%Y"}</abbr>
                                     </td>
-                                    <td class="text-right">
-                                        <div class="btn-group" role="group" aria-label="Acoes">
-
+                                    <td>
+                                        <div class="btn-group">
                                             <button
                                                     class="btn btn-default btn-xs"
-                                                    id="btnUpdate"
                                                     data-toggle="modal"
-                                                    data-target="#actionConfirmationModal"
+                                                    data-target="#modalInvoiceDetails"
                                                     data-nfeid="{$nota->nfe_id}"
                                                     data-invoiceid="{$nota->invoice_id}"
-                                                    data-action="updateNfStatus"
-                                                    data-actionname="atualizar status"
-                                                    data-actiondesc="atualiza o status da nota fiscal de serviço"
+                                                    data-status='{statusLabel data=$nota->status}'
+                                                    data-flowstatus='{flowStatus data=$nota->flow_status}'
+                                                    data-createdat="{$nota->created_at|date_format:'%d/%m/%Y %H:%M'}"
+                                                    data-client="{$nota->firstname} {$nota->lastname} ({$nota->companyname})"
+                                                    data-amount="R${$nota->services_amount}"
+                                                    data-companyid="{$nota->emissor_tax_number} - {$nota->emissor_name}"
+                                                    data-servicecode="{$nota->service_code}"
+                                                    data-condition="{$nota->issue_note_conditions}"
                                             >
-                                                Atualizar
+                                                Detalhes
                                             </button>
-
-                                            <button onclick="goTo('https://app.nfe.io/companies/{$company_id}/service-invoices/{$nota->nfe_id}', '_blank');"
-                                                    formtarget="_blank" class="btn btn-success btn-xs" id="gnfe_view">
-                                                Visualizar
+                                            <button class="btn btn-default dropdown-toggle btn-xs" type="button"
+                                                    id="dropdownMenuActions"
+                                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                Ações
+                                                <span class="caret"></span>
                                             </button>
-
-                                            <button {disableGenerateButtonAction data=$nota->status}
-                                                    class="btn btn-primary btn-xs"
-                                                    id="btnReissue"
-                                                    data-toggle="modal"
-                                                    data-target="#actionConfirmationModal"
-                                                    data-nfeid="{$nota->nfe_id}"
-                                                    data-invoiceid="{$nota->invoice_id}"
-                                                    data-action="reissueNf"
-                                                    data-actionname="reemitir"
-                                                    data-actiondesc="reemite a nota fiscal de serviço"
-                                            >
-                                                Reemitir NFSe
-                                            </button>
-
-                                            <button {disableButtonAction data=$nota->status}
-                                                    class="btn btn-info btn-xs"
-                                                    id="gnfe_email"
-                                                    data-toggle="modal"
-                                                    data-target="#actionConfirmationModal"
-                                                    data-nfeid="{$nota->nfe_id}"
-                                                    data-invoiceid="{$nota->invoice_id}"
-                                                    data-action="emailNf"
-                                                    data-actionname="enviar e-mail"
-                                                    data-actiondesc="envia o e-mail com a nota fiscal de serviço. O e-mail é enviado pela plataforma da NFE.io"
-                                            >
-                                                Enviar e-mail
-                                            </button>
-
-
-                                            <button {disableCancelButtonAction data=$nota->status}
-                                                    class="btn btn-danger btn-xs"
-                                                    id="btnCancel"
-                                                    data-toggle="modal"
-                                                    data-target="#actionConfirmationModal"
-                                                    data-nfeid="{$nota->nfe_id}"
-                                                    data-invoiceid="{$nota->invoice_id}"
-                                                    data-action="cancelNf"
-                                                    data-actionname="cancelar"
-                                                    data-actiondesc="cancela toda a serie de notas fiscais de serviço para a mesma fatura"
-                                            >
-                                                Cancelar NFSe
-                                            </button>
-
+                                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuActions">
+                                                <li>
+{*                                                    <div class="btn-group-vertical" role="group" aria-label="...">*}
+                                                        <button
+                                                                class="btn btn-default btn-xs btn-block"
+                                                                id="btnUpdate"
+                                                                data-toggle="modal"
+                                                                data-target="#actionConfirmationModal"
+                                                                data-nfeid="{$nota->nfe_id}"
+                                                                data-invoiceid="{$nota->invoice_id}"
+                                                                data-companyid="{$nota->company_id}"
+                                                                data-action="updateNfStatus"
+                                                                data-actionname="atualizar status"
+                                                                data-actiondesc="atualiza o status da nota fiscal de serviço"
+                                                        >
+                                                            Atualizar
+                                                        </button>
+                                                        <button onclick="goTo('https://app.nfe.io/companies/{$nota->company_id}/service-invoices/{$nota->nfe_id}', '_blank');"
+                                                                formtarget="_blank"
+                                                                class="btn btn-success btn-xs btn-block"
+                                                                id="gnfe_view">
+                                                            Visualizar
+                                                        </button>
+                                                        <button {disableGenerateButtonAction data=$nota->status}
+                                                                class="btn btn-primary btn-xs btn-block"
+                                                                id="btnReissue"
+                                                                data-toggle="modal"
+                                                                data-target="#actionConfirmationModal"
+                                                                data-nfeid="{$nota->nfe_id}"
+                                                                data-invoiceid="{$nota->invoice_id}"
+                                                                data-action="reissueNf"
+                                                                data-actionname="reemitir"
+                                                                data-actiondesc="reemite a nota fiscal de serviço"
+                                                        >
+                                                            Reemitir NFSe
+                                                        </button>
+                                                        <button {disableButtonAction data=$nota->status}
+                                                                class="btn btn-info btn-xs btn-block"
+                                                                id="gnfe_email"
+                                                                data-toggle="modal"
+                                                                data-target="#actionConfirmationModal"
+                                                                data-nfeid="{$nota->nfe_id}"
+                                                                data-invoiceid="{$nota->invoice_id}"
+                                                                data-action="emailNf"
+                                                                data-actionname="enviar e-mail"
+                                                                data-actiondesc="envia o e-mail com a nota fiscal de serviço. O e-mail é enviado pela plataforma da NFE.io"
+                                                        >
+                                                            Enviar e-mail
+                                                        </button>
+                                                        <button {disableCancelButtonAction data=$nota->status}
+                                                                class="btn btn-danger btn-xs btn-block"
+                                                                id="btnCancel"
+                                                                data-toggle="modal"
+                                                                data-target="#actionConfirmationModal"
+                                                                data-nfeid="{$nota->nfe_id}"
+                                                                data-invoiceid="{$nota->invoice_id}"
+                                                                data-action="cancelNf"
+                                                                data-actionname="cancelar"
+                                                                data-actiondesc="cancela toda a serie de notas fiscais de serviço para a mesma fatura"
+                                                        >
+                                                            Cancelar NFSe
+                                                        </button>
+{*                                                    </div>*}
+                                                </li>
+                                            </ul>
                                         </div>
                                     </td>
                                 </tr>
@@ -222,4 +254,5 @@
     </script>
 {/literal}
 
-{include file="includes/modalaction.tpl" id="actionConfirmationModal" modulelink=$modulelink}
+{include file="includes/modals/modal_taxinvoice_actions.tpl" id="actionConfirmationModal" modulelink=$modulelink}
+{include file="includes/modals/modal_taxinvoice_details.tpl" id="modalInvoiceDetails"}

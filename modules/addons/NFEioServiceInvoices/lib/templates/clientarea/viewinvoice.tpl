@@ -56,8 +56,8 @@
                                 <td class="text-center">{statusLabel data=$nf.status_flow}</td>
                                 <td class="text-center">
                                     {if $nf.status_flow eq 'Issued'}
-                                        <a href="index.php?m=NFEioServiceInvoices&action=downloadNfPdf&nfid={$nf.nfe_id}" target="_blank" class="btn btn-primary btn-sm">PDF</a>
-                                        <a href="index.php?m=NFEioServiceInvoices&action=downloadNfXml&nfid={$nf.nfe_id}" target="_blank" class="btn btn-primary btn-sm">XML</a>
+                                        <a href="index.php?m=NFEioServiceInvoices&action=downloadNfPdf&nfid={$nf.nfe_id}&c={$nf.company_id}" target="_blank" class="btn btn-primary btn-sm">PDF</a>
+                                        <a href="index.php?m=NFEioServiceInvoices&action=downloadNfXml&nfid={$nf.nfe_id}&c={$nf.company_id}" target="_blank" class="btn btn-primary btn-sm">XML</a>
                                     {/if}
                                 </td>
 

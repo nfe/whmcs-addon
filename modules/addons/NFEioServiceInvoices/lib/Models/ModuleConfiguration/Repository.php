@@ -7,6 +7,10 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 /**
  * Classe responsável pela definição do modelo de dados dos registros personalizados de configuração do módulo
  * apresentados ao administrador WHMCS na area de configuração do módulo.
+ *
+ * @since 2.0
+ * @version 3.0
+ * @author Mimir Tech https://github.com/mimirtechco
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
@@ -72,8 +76,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public $mandatoryFields = array(
         'api_key',
-        'company_id',
-        'service_code',
         'issue_note_default_cond',
         'insc_municipal',
         'cpf_camp',
@@ -331,7 +333,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return $fields;
     }
 
-    function getModelClass()
+    public function getModelClass()
     {
         return __NAMESPACE__ . '\Repository';
     }
@@ -443,10 +445,5 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
 
         return array_diff_key($this->getMandatoryFields(), $vars);
-    }
-
-    public function seed_service_invoices_issue_conditions()
-    {
-        $previousConditions = $this->get('issue_note_conditions');
     }
 }

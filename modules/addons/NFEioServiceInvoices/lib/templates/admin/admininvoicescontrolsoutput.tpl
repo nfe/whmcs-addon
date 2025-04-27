@@ -158,9 +158,10 @@
                                 <form action="" method="post" id="nfeio_frm_email_{$smarty.foreach.nf.iteration}">
                                     <input type="hidden" name="nfeiosi" value="email">
                                     <input type="hidden" name="nfe_id" value="{$nota->nfe_id}">
+                                    <input type="hidden" name="company_id" value="{$nota->company_id}">
                                 </form>
                                 <div class="btn-group btn-group-xs" role="group" aria-label="Ações">
-                                    <button {disableButtonAction data=$nota->status} type="button" class="btn btn-success" onclick="goTo('https://app.nfe.io/companies/{$companyId}/service-invoices/{$nota->nfe_id}', '_blank')">Visualizar</button>
+                                    <button {disableButtonAction data=$nota->status} type="button" class="btn btn-success" onclick="goTo('https://app.nfe.io/companies/{$nota->company_id}/service-invoices/{$nota->nfe_id}', '_blank')">Visualizar</button>
                                     <button {disableButtonAction data=$nota->status} type="submit" class="btn btn-info" form="nfeio_frm_email_{$smarty.foreach.nf.iteration}">Enviar e-mail</button>
                                 </div>
 

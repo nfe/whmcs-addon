@@ -3,12 +3,16 @@
 namespace NFEioServiceInvoices\NFEio;
 
 use NFEioServiceInvoices\Helpers\Timestamp;
+use NFEioServiceInvoices\Helpers\Validations;
 use WHMCS\Database\Capsule;
 
 /**
  * Classe com métodos para manipulação de notas fiscais
+ *
+ * @version 3.0
+ * @since 2.0
+ * @author Mimir Tech https://github.com/mimirtechco
  */
-
 class Nfe
 {
     /**
@@ -52,6 +56,82 @@ class Nfe
         $this->aliquotsRepo = new \NFEioServiceInvoices\Models\Aliquots\Repository();
     }
 
+    /**
+     * Executa uma requisição cURL para a API da NFE.io.
+     *
+     * @param string $uri O endpoint URI a ser anexado à URL base da API.
+     * @param string $method O método HTTP a ser utilizado na requisição (padrão: 'GET').
+     * @param array|null $data Os dados a serem enviados no corpo da requisição (para métodos POST/PUT).
+     * @param int $timeout O tempo limite para a requisição cURL em segundos (padrão: 3).
+     * @return array Um array associativo contendo:
+     *               - 'response': O corpo da resposta da API.
+     *               - 'error': Mensagem de erro da requisição cURL, se houver.
+     *               - 'info': Informações adicionais sobre a requisição cURL.
+     */
+    private function executeCurl($uri, $method = 'GET', $data = null, $timeout = 3)
+    {
+        $headers = [
+            'Content-Type: text/json',
+            'Accept: application/json',
+            'Authorization: ' . $this->storage->get('api_key'),
+        ];
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/' . $uri);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+
+        if ($method === 'POST' || $method === 'PUT') {
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+        }
+
+        $response = curl_exec($curl);
+        $error = curl_error($curl);
+        $info = curl_getinfo($curl);
+        curl_close($curl);
+
+        return [
+            'response' => $response,
+            'error' => $error,
+            'info' => $info,
+        ];
+    }
+
+    /**
+     * Envia um e-mail relacionado a uma nota fiscal específica na NFE.io.
+     *
+     * @param string $nfeioId O ID da nota fiscal na NFE.io.
+     * @param string $companyId O ID da empresa associada à nota fiscal.
+     * @return array Retorna a resposta da API contendo os detalhes do envio do e-mail.
+     */
+    public function sendNfeioEmail($nfeioId, $companyId)
+    {
+        $uri = 'companies/' . $companyId . '/serviceinvoices/' . $nfeioId . '/sendemail';
+        $response = $this->executeCurl($uri, 'PUT');
+        logModuleCall('nfeio_serviceinvoices', 'email_nfe', $nfeioId, $response);
+
+        return $response;
+
+    }
+
+    private function apiAuth()
+    {
+        $apiKey = $this->storage->get('api_key');
+        if (is_null($apiKey)) {
+            return false;
+        }
+
+        \NFe_io::setApiKey($apiKey);
+    }
+
+    /**
+     * Retorna uma lista de valores para um dropdown contendo as empresas cadastradas.
+     *
+     * @return array|bool Retorna um array associativo com o ID da empresa como chave
+     *                    e o CNPJ e nome da empresa como valor, ou `false` caso não
+     *                    existam empresas cadastradas ou ocorra algum erro.
+     */
     public function companiesDropDownValues()
     {
         $companiesData = $this->getCompanies();
@@ -61,7 +141,7 @@ class Nfe
         }
         $companies = [];
         foreach ($companiesData['companies'] as $company) {
-            $companies[$company->id] = $company->id . ' - ' . strtoupper($company->name);
+            $companies[$company->id] = $company->federalTaxNumber . ' - ' . strtoupper($company->name);
         }
 
         return $companies;
@@ -86,6 +166,45 @@ class Nfe
         $companies = \NFe_Company::search();
 
         return $companies->getAttributes();
+    }
+
+    /**
+     * Retorna o nome da empresa conforme o ID informado.
+     * @param $companyId
+     * @return string
+     */
+    public function getCompanyName($companyId)
+    {
+
+        $this->apiAuth();
+        $response = \NFe_Company::fetch($companyId);
+        $company = $response->getAttributes();
+
+        if (isset($company['companies']) && is_object($company['companies'])) {
+            return strtoupper($company['companies']->name);
+        }
+        // se não encontrar a empresa retorna vazio
+        return '';
+    }
+
+    /**
+     * Retorna os detalhes de uma empresa com base no ID informado.
+     *
+     * @param int|string $companyId O ID da empresa a ser buscada.
+     * @return object|string Retorna um objeto com os detalhes da empresa ou uma string vazia
+     *                       caso a empresa não seja encontrada.
+     */
+    public function getCompanyDetails($companyId)
+    {
+        $this->apiAuth();
+        $response = \NFe_Company::fetch($companyId);
+        $company = $response->getAttributes();
+
+        if (isset($company['companies']) && is_object($company['companies'])) {
+            return $company['companies'];
+        }
+        // se não encontrar a empresa retorna vazio
+        return '';
     }
 
     /**
@@ -142,16 +261,23 @@ class Nfe
     }
 
     /**
-     * @param  $items
-     * @param  $invoiceId
-     * @param  $userId
-     * @param  $reissue
-     * @return array
+     * Constrói os itens a serem transmitidos para emissão de notas fiscais.
+     *
+     * Este método percorre os itens fornecidos, realiza agregações e somatórias,
+     * e prepara os dados necessários para a transmissão das notas fiscais.
+     *
+     * @param array $items Coleção de itens agrupados por código de serviço.
+     * @param int|string $invoiceId ID da fatura associada.
+     * @param int|string $userId ID do usuário associado.
+     * @param int|string $companyId ID da empresa emissora.
+     * @param float $issHeldDefault Valor padrão de retenção de ISS.
+     * @param bool $reissue Indica se é uma reemissão de nota fiscal.
+     * @return array Retorna uma lista de itens preparados para transmissão.
      */
-    private function buildItemsToTransmit($items, $invoiceId, $userId, $reissue = false)
+    private function buildItemsToTransmit($items, $invoiceId, $userId, $companyId, $issHeldDefault, $reissue = false)
     {
         // ISS padrão
-        $issHeld = floatval($this->storage->get('iss_held'));
+        $issHeld = $issHeldDefault;
         $result = [];
 
         // percorre $items para construir os itens a serem emitidos
@@ -170,6 +296,7 @@ class Nfe
                 'flow_status' => 'waiting',
                 'pdf' => 'waiting',
                 'rpsSerialNumber' => 'waiting',
+                'company_id' => $companyId,
                 'service_code' => $serviceCode,
             ];
 
@@ -182,14 +309,16 @@ class Nfe
                 $itemsTotal = $itemsTotal + $value['itemAmount'];
             }
             // adiciona a descrição da nota no formato parametrizado
+            // phpcs:ignore Generic.Files.LineLength.TooLong
             $nfData['nfe_description'] = \NFEioServiceInvoices\Helpers\Invoices::generateNfServiceDescription($invoiceId, $itemsDescription);
             // adiciona o valor total calculado para os itens
             $nfData['services_amount'] = $itemsTotal;
             // gera id unico externo
-            $nfData['nfe_external_id'] = $this->generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $reissue);
+            // phpcs:ignore Generic.Files.LineLength.TooLong
+            $nfData['nfe_external_id'] = $this->generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $companyId, $serviceCode, $reissue);
 
             // verifica se há calculo de retenção de ISS personalizado
-            $customIssHeld = $this->aliquotsRepo->getIssHeldByServiceCode($serviceCode);
+            $customIssHeld = $this->aliquotsRepo->getIssHeldByServiceCode($serviceCode, $companyId);
 
             /**
              * se não houver retenção personalizada e houver retenção global diferente de zero, usa valor global
@@ -202,7 +331,9 @@ class Nfe
             /**
              * se houver retenção personalizada e for diferente de zero, usa valor personalizado para cálculo.
              */
+            // phpcs:ignore Generic.Files.LineLength.TooLong
             if (!is_null($customIssHeld) and $customIssHeld != 0) {
+                // phpcs:ignore Generic.Files.LineLength.TooLong
                 $nfData['iss_held'] = \NFEioServiceInvoices\Helpers\Invoices::getIssHeldAmount($itemsTotal, $customIssHeld);
             }
             // se valor total dos itens for maior que zero adiciona as informações para retorno
@@ -216,11 +347,11 @@ class Nfe
 
     /**
      * Gera um ID único para cada nota. O valor resultante é o md5 da combinação da constante inicial WHMCS
-     * seguido do ID do usuário, ID da fatura e total dos itens.
+     * seguido do ID do usuário, ID da fatura, ID da empresa, Código do servico e total dos itens.
      * Nesta lógica cada conjunto de itens faturado possuirá um ID único evitando que seja inserido na fila
      * de emissão itens que porventura já tenham sido transmitidos ou gerados.
-     * Estrutura: WHMCS-[USER_ID]-[INVOICE_ID]-[TOTAL]
-     * Exemplo: WHMCS-13-113-131
+     * Estrutura: WHMCS-[USER_ID]-[INVOICE_ID]-[COMPANY_ID]-[SERVICE_CODE]-[TOTAL]
+     * Exemplo: WHMCS-15-123-a15t...-0103-321
      * Resultado: número hexadecimal de 32 caracteres
      *
      * @param  $userId
@@ -228,7 +359,7 @@ class Nfe
      * @param  $itemsTotal
      * @return string
      */
-    private function generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $reissue = false)
+    private function generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $companyId, $serviceCode, $reissue = false)
     {
         $separator = '-';
         $prefix = 'WHMCS';
@@ -239,38 +370,61 @@ class Nfe
             $suffix = 'REISSUE';
             // usa um timestamp para tornar cada reemissão unica para a criação do ID
             $dateTimeNow = date('Y-m-d H:i:s');
-            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $itemsTotal . $separator . $suffix . $separator . $dateTimeNow);
+            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $companyId . $separator . $serviceCode . $separator . $itemsTotal . $separator . $suffix . $separator . $dateTimeNow);
         } else {
-            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $itemsTotal);
+            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $companyId . $separator . $serviceCode . $separator . $itemsTotal);
         }
 
         return $result;
     }
 
 
-
     /**
      * Cria a nota fiscal com base na fatura e insere na fila (tabela) para emissão.
      *
-     * @version 2.1.0
-     * @author  Andre Bellafronte
      * @param   $invoiceId int|string ID da fatura do WHMCS
      * @param   $reissue   boolean informe 'true' quando for
      *                     reemissão
      * @return  array|bool[] status da inserção na fila
+     * @author  Andre Bellafronte
+     * @version 2.1.0
      */
     public function queue($invoiceId, $reissue = false)
     {
         $invoiceData = \WHMCS\Billing\Invoice::find($invoiceId);
+        $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
+        $clientCompanyRepository = new \NFEioServiceInvoices\Models\ClientCompany\Repository();
+
+        $defaultCompany = $companyRepository->getDefaultCompany();
         $invoiceItems = $invoiceData->items()->get();
         $clientData = $invoiceData->client()->get();
-        $userId = $clientData[0]['id'];
-        $defaultServiceCode = $this->storage->get('service_code');
+
+        $clientId = $clientData[0]['id'];
+        $clientCompanyId = $clientCompanyRepository->getCompanyByClientId($clientId);
+
+        // se cliente possuir empresa associada, utiliza a empresa associada, senao usa a empresa padrão
+        // #163
+        if ($clientCompanyId) {
+            // define a empresa emissora como a empresa associada ao cliente
+            $companyId = $clientCompanyId;
+            // recupera o codigo de servico padrao da empresa associada ao cliente
+            $defaultServiceCode = $companyRepository->getDefaultServiceCodeByCompanyId($clientCompanyId);
+            // recupera o iss retencao padrao da empresa associada ao cliente
+            $issHeld = $companyRepository->getDefaultIssHeldByCompanyId($clientCompanyId);
+        } else {
+            // dados da empresa padrao
+            $companyId = $defaultCompany->company_id;
+            $defaultServiceCode = $defaultCompany->service_code;
+            $issHeld = $defaultCompany->iss_held;
+        }
+
+        // $defaultServiceCode = $this->storage->get('service_code');
         $itemsByServiceCode = [];
 
         // percorre cada item da fatura para preparar as agregações de items por tipo de serviço
         foreach ($invoiceItems as $item) {
-            // código do serviço recebe o valor padrão
+            // essencial que código do serviço receba o valor padrão
+            // para cada passada do laco
             $serviceCode = $defaultServiceCode;
 
             // se o item for juros/mora automática do WHMCS, não considera para fins de cálculo de nota
@@ -280,28 +434,38 @@ class Nfe
 
             // se o item tiver um 'relid' e seu tipo for uns dos permitidos verifica se tem código personalizado
             if ($item->relid != 0 and $this->allowedItemType($item->type)) {
-                $customServiceCode = $this->productCodeRepo->getServiceCodeByRelId($item->relid);
+                $customServiceCode = $this->productCodeRepo->getServiceCodeByRelId($item->relid, $companyId);
                 if ($customServiceCode) {
                     $serviceCode = $customServiceCode;
                 }
             }
 
             // prepara o item e o adiciona em um array associativo com o código do serviço
-            $itemsByServiceCode[$serviceCode][] = $this->prepareItemsToTransmit($userId, $invoiceId, $serviceCode, $item);
+            // phpcs:ignore Generic.Files.LineLength.TooLong
+            $itemsByServiceCode[$serviceCode][] = $this->prepareItemsToTransmit($clientId, $invoiceId, $serviceCode, $item);
         }
 
-        $nfToEmit = $this->buildItemsToTransmit($itemsByServiceCode, $invoiceId, $userId, $reissue);
+        // phpcs:ignore Generic.Files.LineLength.TooLong
+        $nfToEmit = $this->buildItemsToTransmit($itemsByServiceCode, $invoiceId, $clientId, $companyId, $issHeld, $reissue);
 
         if (count($nfToEmit) > 0) {
             foreach ($nfToEmit as $nf) {
                 /**
                  * verifica se existe um external_id igual
                  */
-                $hasExternalId = Capsule::table($this->serviceInvoicesTable)->where('nfe_external_id', '=', $nf['nfe_external_id'])->first();
+                $hasExternalId = Capsule::table($this->serviceInvoicesTable)
+                    ->where('nfe_external_id', '=', $nf['nfe_external_id'])->first();
 
                 // se já houver uma nota no banco local com o mesmo external_id pula a emissão de nota
                 if (is_array($hasExternalId)) {
-                    logModuleCall('nfeio_serviceinvoices', 'nf_queue', "Um external_id idêntico foi encontrado para {$nf['nfe_external_id']}, NF não adicionada para transmissão", $hasExternalId);
+                    // phpcs:ignore Generic.Files.LineLength.TooLong
+                    logModuleCall(
+                        'nfeio_serviceinvoices',
+                        'nf_queue',
+                        // phpcs:ignore Generic.Files.LineLength.TooLong
+                        "Um external_id idêntico foi encontrado para {$nf['nfe_external_id']}, NF não adicionada para transmissão",
+                        $hasExternalId
+                    );
                     continue;
                 }
 
@@ -309,7 +473,8 @@ class Nfe
                 $nf['created_at'] = Timestamp::currentTimestamp();
                 $nf['updated_at'] = Timestamp::currentTimestamp();
 
-                $result = Capsule::table($this->serviceInvoicesTable)->insert($nf);
+//                $result = Capsule::table($this->serviceInvoicesTable)->insert($nf);
+                $result = $this->serviceInvoicesRepo->create($nf);
                 logModuleCall('nfeio_serviceinvoices', 'nf_queue', $nf, $result);
             }
         }
@@ -317,6 +482,26 @@ class Nfe
         return ['success' => true];
     }
 
+    /**
+     * Emite uma nota fiscal com base nos dados fornecidos.
+     *
+     * Este método realiza a emissão de uma nota fiscal utilizando os dados do cliente,
+     * da fatura e da empresa fornecidos. Ele também valida os dados do cliente e
+     * atualiza o status da nota fiscal no banco de dados local em caso de erro.
+     *
+     * @param object $data Objeto contendo os dados necessários para a emissão da nota fiscal:
+     *                     - id: ID da nota fiscal no banco local.
+     *                     - invoice_id: ID da fatura associada.
+     *                     - user_id: ID do cliente.
+     *                     - nfe_external_id: ID externo da nota fiscal.
+     *                     - services_amount: Valor total dos serviços.
+     *                     - service_code: Código do serviço.
+     *                     - iss_held: Valor de ISS retido (opcional).
+     *                     - company_id: ID da empresa emissora.
+     *                     - nfe_description: Descrição da nota fiscal.
+     *                     - environment: Ambiente de emissão (ex.: produção ou homologação).
+     * @return void
+     */
     public function emit($data)
     {
 
@@ -327,12 +512,14 @@ class Nfe
         $amount = $data->services_amount;
         $serviceCode = $data->service_code;
         $issAmountWithheld = $data->iss_held;
+        $companyId = $data->company_id;
         $description = $data->nfe_description;
         $environment = $data->environment;
         $clientData = \WHMCS\User\Client::find($clientId);
         $customer = $this->legacyFunctions->gnfe_customer($clientId, $clientData);
-        $emailNfeConfig = (bool) $this->storage->get('gnfe_email_nfe_config');
+        $emailNfeConfig = (bool)$this->storage->get('gnfe_email_nfe_config');
         $client_email = $emailNfeConfig ? $clientData->email : '';
+        $client_postcode  = Validations::sanitizePostCode($clientData->postcode);
 
         logModuleCall('nfeio_serviceinvoices', 'nf_emit_for_customer', $data, $customer);
 
@@ -343,41 +530,40 @@ class Nfe
             return;
         }
 
-
-//        if ($customer['doc_type'] == 2) {
-//            if ($clientData->companyname != '') {
-//                $name = $clientData->companyname;
-//            } else {
-//                $name = $clientData->fullname;
-//            }
-//        } elseif ($customer['doc_type'] == 1 || 'CPF e/ou CNPJ ausente.' == $customer || !$customer['doc_type']) {
-//            $name = $clientData->fullname;
-//        }
-        $name = $customer['name'];
-
-        //define address
+        /**
+        Esse trecho separa `address1` em **logradouro** e **número** de duas formas:
+        1. Quando existe vírgula
+            - Usa `strpos` para detectar vírgula
+            - `explode(',', …)` divide a string em dois pedaços
+        2. Quando não há vírgula
+            - Remove dígitos via `preg_replace('/[0-9]+/i', '', …)` para obter o logradouro
+            - Extrai apenas números com `preg_replace('/[^0-9]/', '', …)` para obter o número
+         */
         if (strpos($clientData->address1, ',')) {
             $array_adress = explode(',', $clientData->address1);
             $street = $array_adress[0];
             $number = $array_adress[1];
         } else {
-            $street = str_replace(',', '', preg_replace('/[0-9]+/i', '', $clientData->address1));
+            $street = str_replace(',', '', preg_replace(
+                '/[0-9]+/i',
+                '',
+                $clientData->address1
+            ));
             $number = preg_replace('/[^0-9]/', '', $clientData->address1);
         }
 
-        if (empty($clientData->postcode)) {
-            $this->legacyFunctions->update_status_nfe($invoiceId, 'Error_cep');
+        // se cliente não possuir um CEP válido, atualiza o status da NF e para emissão
+        if (!$client_postcode) {
+            $this->updateLocalNfeStatusByExternalId($externalId, 'Error_cep', 'CEP inválido');
             return;
         }
 
-        $ibgeCode = $this->legacyFunctions->gnfe_ibge(preg_replace('/[^0-9]/', '', $clientData->postcode));
+        $ibgeCode = $this->legacyFunctions->gnfe_ibge($client_postcode);
 
         if ($ibgeCode['error']) {
-            $this->legacyFunctions->update_status_nfe($invoiceId, 'Error_cep');
+            $this->updateLocalNfeStatusByExternalId($externalId, 'Error_cep');
             return;
         }
-
-        //strlen($insc_municipal) == 0 ? '' : $postfields['borrower']['municipalTaxNumber'] = $insc_municipal;
 
         $postData = [
             'cityServiceCode' => $serviceCode,
@@ -387,11 +573,11 @@ class Nfe
             'borrower' => [
                 'federalTaxNumber' => $customer['document'],
                 'municipalTaxNumber' => $customer['insc_municipal'],
-                'name' => $name,
+                'name' => $customer['name'],
                 'email' => $client_email,
                 'address' => [
-                    'country' => $this->legacyFunctions->gnfe_country_code($clientData->country),
-                    'postalCode' => preg_replace('/[^0-9]/', '', $clientData->postcode),
+                    'country' => Validations::countryCode($clientData->country),
+                    'postalCode' => $client_postcode,
                     'street' => $street,
                     'number' => $number,
                     'additionalInformation' => '',
@@ -410,10 +596,10 @@ class Nfe
             $postData['issAmountWithheld'] = $issAmountWithheld;
         }
 
-        $nfeResponse = $this->legacyFunctions->gnfe_issue_nfe($postData);
+        $nfeResponse = $this->legacyFunctions->gnfe_issue_nfe($postData, $companyId);
 
         if (!$nfeResponse->message) {
-            $this->legacyFunctions->gnfe_update_nfe($nfeResponse, $clientId, $invoiceId, 'n/a', $nfDbId);
+            $this->serviceInvoicesRepo->updateServiceInvoice($externalId, $nfeResponse);
             logModuleCall('nfeio_serviceinvoices', 'nf_emit', $postData, $nfeResponse);
         } else {
             logModuleCall('nfeio_serviceinvoices', 'nf_emit_error', $postData, $nfeResponse);
@@ -434,8 +620,12 @@ class Nfe
         $result = $this->serviceInvoicesRepo->updateNfStatusByNfeId($nfRemoteId, $status, $flowStatus);
         // caso sucesso registra log
         if ($result) {
-            logModuleCall('nfeio_serviceinvoices', 'updateLocalNfeStatus', ['nfe_id' => $nfRemoteId, 'status' => $status, 'flow_status' => $flowStatus], $result);
-
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'updateLocalNfeStatus',
+                ['nfe_id' => $nfRemoteId, 'status' => $status, 'flow_status' => $flowStatus],
+                $result
+            );
         }
 
         return $result;
@@ -449,12 +639,18 @@ class Nfe
      * @param $flowStatus string|null O novo status de fluxo da NF
      * @return bool status da operação
      */
+    // phpcs:ignore Generic.Files.LineLength.TooLong
     public function updateLocalNfeStatusByExternalId(string $externalId, string $status, string $flowStatus = null): bool
     {
         $result = $this->serviceInvoicesRepo->updateNfStatusByExternalId($externalId, $status, $flowStatus);
         // caso sucesso registra log
-        if($result) {
-            logModuleCall('nfeio_serviceinvoices', 'updateLocalNfeStatusByExternalId', ['nfe_external_id' => $externalId, 'status' => $status, 'flow_status' => $flowStatus], $result);
+        if ($result) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'updateLocalNfeStatusByExternalId',
+                ['nfe_external_id' => $externalId, 'status' => $status, 'flow_status' => $flowStatus],
+                $result
+            );
         }
 
         return $result;
@@ -479,10 +675,12 @@ class Nfe
         $environment = $nfData->environment;
         $issueNoteConditions = $nfData->issue_note_conditions;
         $serviceCode = $nfData->service_code;
+        $companyId = $nfData->company_id;
         $tics = $nfData->tics;
         $dateNow = date('Y-m-d H:i:s');
         // gera um novo ID externo unico para a reemissão do item/NF
-        $externalUniqueId = $this->generateUniqueExternalId($userId, $invoiceId, $amount, true);
+        // phpcs:ignore Generic.Files.LineLength.TooLong
+        $externalUniqueId = $this->generateUniqueExternalId($userId, $invoiceId, $amount, $companyId, $serviceCode, true);
 
         $reissueNfData = [
             'invoice_id' => $invoiceId,
@@ -501,6 +699,7 @@ class Nfe
             'created_at' => $dateNow,
             'updated_at' => 'waiting',
             'service_code' => $serviceCode,
+            'company_id' => $companyId,
             'tics' => ' ',
         ];
 
@@ -517,10 +716,10 @@ class Nfe
     /**
      * Realiza a reemissão da(s) nota(s) com base no ID da fatura.
      *
-     * @version 2.1
-     * @author  Andre Bellafronte <andre@eunarede.com>
      * @param   $invoiceId integer ID da fatura
      * @return  string[] status do resultado
+     * @version 2.1
+     * @author  Andre Bellafronte <andre@eunarede.com>
      */
     public function reissueNfSeriesByInvoiceId($invoiceId)
     {
@@ -533,8 +732,12 @@ class Nfe
 
         // verifica se todas as notas já existentes para a fatura estão canceladas para permitir a reemissão da série
         $hasAllCancelled = $this->hasAllNfCancelled($invoiceId);
+        // phpcs:ignore Generic.Files.LineLength.TooLong
         if (!$hasAllCancelled) {
-            return ['status' => 'error', 'message' => "Impossível reemitir fatura #{$invoiceId}: ainda existem notas que não foram canceladas para a mesma."];
+            return [
+                'status' => 'error',
+                // phpcs:ignore Generic.Files.LineLength.TooLong
+                'message' => "Impossível reemitir fatura #{$invoiceId}: ainda existem notas que não foram canceladas para a mesma."];
         }
 
         $result = $this->queue($invoiceId, true);
@@ -548,15 +751,16 @@ class Nfe
      * Verifica se a fatura informada possui todas as notas vinculadas com mesmo status 'Cancelled'.
      * Isso previne que notas sejam reemitidas se anterior não estiver cancelada.
      *
-     * @version 2.1
-     * @author  Andre Bellafronte <andre@eunarede.com>
      * @param   $invoiceId integer ID da fatura a ser verificado
      * @return  bool retorna `true` somente quando todas as notas existentes para a fatura possuírem status 'Cancelled'.
+     * @version 2.1
+     * @author  Andre Bellafronte <andre@eunarede.com>
      */
     public function hasAllNfCancelled($invoiceId)
     {
         $status = [];
-        $query = Capsule::table($this->serviceInvoicesTable)->where('invoice_id', $invoiceId)->distinct()->pluck('status');
+        $query = Capsule::table($this->serviceInvoicesTable)->where('invoice_id', $invoiceId)
+            ->distinct()->pluck('status');
 
         foreach ($query as $value) {
             $status[] = $value;
@@ -572,34 +776,26 @@ class Nfe
     /**
      * Cancela as notas fiscais existentes para uma fatura.
      *
-     * @version 2.1
-     * @author  Andre Bellafronte <andre@eunarede.com>
      * @param   $invoiceId integer ID da fatura
      * @return  string[] status e mensagem do resultado da operação.
+     * @version 2.1
+     * @author  Andre Bellafronte <andre@eunarede.com>
      */
     public function cancelNfSeriesByInvoiceId($invoiceId)
     {
         $existingNf = Capsule::table($this->serviceInvoicesTable)->where('invoice_id', $invoiceId)->get();
 
         if (count($existingNf) > 0) {
+
+            $this->apiAuth();
+
             foreach ($existingNf as $nf) {
-                $result = $this->legacyFunctions->gnfe_delete_nfe($nf->nfe_id);
-                logModuleCall('nfeio_serviceinvoices', 'nf_cancel_series_by_invoice', $nf, $result);
+                $invoice = \NFe_ServiceInvoice::fetch($nf->company_id, $nf->nfe_id);
+                $invoice->cancel();
+                $this->updateLocalNfeStatus($nf->nfe_id, 'Cancelled', 'ApiNoResponse');
 
-                /*
-                 API retorna 202 e nf no corpo quando nota em fila de cancelamento (WaitingSendCancel)
-                 $message nao faz mais parte do objeto de resposta em qualquer outro status,
-                 agora quando uma nota diferente de 'Issued' é cancelada, o corpo da resposta é
-                 uma string informando o motivo. Ex.: 'service invoice status is 'Cancelled' but must be 'Issued''.
-                */
+                logModuleCall('nfeio_serviceinvoices', 'nf_cancel_series_by_invoice', $nf, $invoice);
 
-                // caso retorne objeto, respeita os status que a API retorna
-                if ($result->flowStatus && $result->status) {
-                    $this->updateLocalNfeStatus($nf->nfe_id, $result->status, $result->flowStatus);
-                } else {
-                  // caso nao tenha objeto, forca cancelamento local com status flow personalizado
-                    $this->updateLocalNfeStatus($nf->nfe_id, 'Cancelled', 'ApiNoResponse');
-                }
             }
             return ['status' => 'success'];
         } else {
@@ -613,10 +809,16 @@ class Nfe
         }
     }
 
-    public function fetchNf($nfId)
+    /**
+     * Busca os detalhes de uma nota fiscal específica na API NFE.io.
+     *
+     * @param string $nfId O ID da nota fiscal a ser buscada.
+     * @param string $companyId O ID da empresa associada à nota fiscal.
+     * @return object|array Retorna o objeto da nota fiscal ou um array com a mensagem de erro em caso de falha.
+     */
+    public function fetchNf($nfId, $companyId)
     {
         $apiKey = $this->storage->get('api_key');
-        $companyId = $this->storage->get('company_id');
 
         try {
             \NFe_io::setApiKey($apiKey);
@@ -625,6 +827,105 @@ class Nfe
         } catch (\Exception $e) {
             return ['error' => $e->getMessage()];
         }
+    }
 
+    /**
+     * Cria um webhook na NFE.io para receber eventos específicos.
+     *
+     * @param string $url URL que receberá as notificações do webhook.
+     * @return \NFe_Webhook|array Retorna a instância do webhook criado ou um array com chave 'error' em caso de falha.
+     * @throws \Exception
+     */
+    public function createWebhook($url)
+    {
+        $this->apiAuth();
+        $data = [
+            'url' => $url,
+            'contentType' => 'application/json',
+            'secret' => Validations::generateSecretKey(),
+            'events' => ['issue', 'cancel', 'WaitingCalculateTaxes'],
+            'status' => 'active',
+        ];
+
+        try {
+            $hook = \NFe_Webhook::create($data);
+            logModuleCall('nfeio_serviceinvoices', 'create_webhook', $data, $hook);
+            return $hook;
+        } catch (\Exception $exception) {
+            logModuleCall('nfeio_serviceinvoices', 'create_webhook_error', $data, $exception->getMessage());
+            return ['error' => $exception->getMessage()];
+        }
+    }
+
+    /**
+     * Recupera um webhook existente na NFE.io.
+     *
+     * @param string $webhookId ID do webhook a ser buscado.
+     * @return \NFe_Webhook|array Retorna a instância do webhook ou um array com chave 'error' em caso de falha.
+     */
+    public function getWebhook(string $webhookId)
+    {
+        $this->apiAuth();
+
+        try {
+            $webhook = \NFe_Webhook::fetch($webhookId);
+            logModuleCall('nfeio_serviceinvoices', 'get_webhook', $webhookId, $webhook);
+            return $webhook;
+        } catch (\Exception $e) {
+            $error = $e->getMessage();
+            logModuleCall('nfeio_serviceinvoices', 'get_webhook_error', $webhookId, $error);
+            return ['error' => $error];
+        }
+    }
+
+    /**
+     * Recupera o PDF de uma nota fiscal específica na NFE.io.
+     *
+     * @param string $nfeioId   ID da nota fiscal na NFE.io.
+     * @param string $companyId ID da empresa associada à nota fiscal.
+     * @return mixed Conteúdo binário do PDF em caso de sucesso, ou array com chave 'error' em caso de falha.
+     */
+    public function getPdf($nfeioId, $companyId)
+    {
+        $this->apiAuth();
+        try {
+            return \NFe_ServiceInvoice::pdf($companyId, $nfeioId);
+        } catch (\Exception $e) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'get_nfe_pdf',
+                ['nfeio_id' => $nfeioId, 'company_id' => $companyId],
+                $e->getMessage()
+            );
+            return ['error' => $e->getMessage()];
+        }
+
+    }
+
+    /**
+     * Recupera o XML de uma nota fiscal específica na NFE.io.
+     *
+     * Este método assegura a autenticação da API, tenta obter o XML através do SDK
+     * e captura exceções para registrar logs de erro e retornar uma resposta padronizada.
+     *
+     * @param string $nfeioId   ID da nota fiscal na NFE.io.
+     * @param string $companyId ID da empresa associada à nota fiscal.
+     *
+     * @return mixed Conteúdo XML em caso de sucesso, ou array com chave 'error' em caso de falha.
+     */
+    public function getXml($nfeioId, $companyId)
+    {
+        $this->apiAuth();
+        try {
+            return \NFe_ServiceInvoice::xml($companyId, $nfeioId);
+        } catch (\Exception $e) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'get_nfe_xml',
+                ['nfeio_id' => $nfeioId, 'company_id' => $companyId],
+                $e->getMessage()
+            );
+            return ['error' => $e->getMessage()];
+        }
     }
 }

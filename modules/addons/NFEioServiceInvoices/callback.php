@@ -1,11 +1,7 @@
 <?php
 
-if (!defined('DS')) {
-    define('DS', DIRECTORY_SEPARATOR);
-}
-
 require_once __DIR__ . '/../../../init.php';
-require_once __DIR__ . DS . 'Loader.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'Loader.php';
 
 use WHMCS\Database\Capsule;
 use NFEioServiceInvoices\Legacy\Functions;
@@ -13,174 +9,97 @@ use NFEioServiceInvoices\Helpers\Validations;
 
 new NFEioServiceInvoices\Loader();
 
-
-if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-    // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/405
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo "Method Not Allowed";
     exit();
 }
 
-// workaround para retornar status code 200 quando a requisição conter uma query iniciando em 'echo' (verificacao do webhook)
 if (isset($_GET['echo'])) {
     http_response_code(200);
     echo "ok";
     exit();
 }
 
-// armazena o cabecalho da requisição
-$headers = getallheaders();
+$headers = array_change_key_case(getallheaders(), CASE_LOWER);
+$signature = $headers['x-hub-signature'] ?? $headers['x-nfeio-signature'] ?? null;
 
-function findSignatureHeader($headers)
-{
-    // normaliza todos os cabecalhos para lowercase
-    $headers = array_change_key_case($headers, CASE_LOWER);
-    // retorna os possiveis cabecalhos de assinatura da requisicao (X-Hub-Signature e X-Nfeio-Signature)
-    return $headers['x-hub-signature'] ?? $headers['x-nfeio-signature'] ?? null;
-
-}
-
-// cabecalho com a assinatura
-$signature = findSignatureHeader($headers);
-
-// corpo da requisição
-$body = file_get_contents('php://input');
-
-// se requisicao nao possuir assinatura, retorna erro
 if (!$signature) {
-    logModuleCall('nfeio_serviceinvoices', 'callback_error', 'Assinatura não encontrada', ['headers' => $headers, 'body' => $body]);
-    // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/403
+    logModuleCall('nfeio_serviceinvoices', 'callback_error', 'Assinatura não encontrada', ['headers' => $headers]);
     http_response_code(403);
     exit();
 }
 
-// separa o algoritmo do hmac da assinatura
-$signature = explode('=', $signature);
-$signature = $signature[1];
-
-// carrega as configurações do módulo
+$signature = explode('=', $signature)[1];
+$body = file_get_contents('php://input');
 $functions = new Functions();
 $module = $functions->gnfe_config();
-
-// segredo do webhook
 $secret = $module['webhook_secret'];
 
-// verifica se a assinatura é válida
-$sign_valid = Validations::webhookHashValid($secret, $body, $signature);
-
-// se a assinatura for inválida, retorna erro
-if (!$sign_valid) {
-    logModuleCall('nfeio_serviceinvoices', 'callback_error', 'Assinatura inválida', [
-        'valid' => $sign_valid, 'headers' => $headers, 'body' => $body
-    ]);
-    // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/403
+if (!Validations::webhookHashValid($secret, $body, $signature)) {
+    logModuleCall('nfeio_serviceinvoices', 'callback_error', 'Assinatura inválida', ['headers' => $headers]);
     http_response_code(403);
     exit();
 }
 
 $payload = json_decode($body, true);
 
-logModuleCall('nfeio_serviceinvoices', 'callback', 'Webhook Raw Payload', ['headers' => $headers, 'body' => $payload]);
-
-if(!is_array($payload) || ( !isset($payload['id']) && !isset($payload['status']) && !isset($payload['flowStatus']) && !isset($payload['environment']) )){
-    logModuleCall('nfeio_serviceinvoices', 'callback_error', 'Payload inválido', ['headers' => $headers, 'body' => $payload]);
-    // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/400
+if (!is_array($payload) || !isset($payload['id'], $payload['status'], $payload['flowStatus'], $payload['environment'])) {
+    logModuleCall('nfeio_serviceinvoices', 'callback_error', 'Payload inválido', ['body' => $payload]);
     http_response_code(400);
     exit();
 }
 
 $environment = $module['NFEioEnvironment'];
-
 $nf_id = $payload['id'];
 $nf_status = $payload['status'];
 $nf_flow_status = $payload['flowStatus'];
 $nf_flow_message = $payload['flowMessage'] ?? '';
 $nf_environment = $payload['environment'];
+$nf_rps_number = $payload['rpsNumber'];
+$nf_rps_serial = $payload['rpsSerialNumber'] ?? 'IO';
 
-//verificar o ambiente
-if ($environment == 'on' && $nf_environment == 'Production') {
-    logModuleCall('nfeio_serviceinvoices', 'callback_error_development', 'Ambiente Development ativo mas recebendo notas de Production', $payload, $module);
-    // informa que requisição é inválida
-    // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/400
-    http_response_code(400);
-    exit();
-} elseif ($environment == '' && $nf_environment == 'Development') {
-    logModuleCall('nfeio_serviceinvoices', 'callback_error_production', 'Ambiente Production ativo mas recebendo notas de Development', $payload, $module);
-    // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/400
+if (($environment === 'on' && $nf_environment === 'Production') || ($environment === '' && $nf_environment === 'Development')) {
+    logModuleCall('nfeio_serviceinvoices', 'callback_error_environment', 'Ambiente incompatível', $payload);
     http_response_code(400);
     exit();
 }
-//fim verificar o ambiente
 
-// total de notas locais existentes para NF
-$totalNfLocal = Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', '=', $nf_id)->count();
-
-//verificar se a nfe existe na tabela
-if ($totalNfLocal == 0) {
+if (!Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', $nf_id)->exists()) {
     logModuleCall('nfeio_serviceinvoices', 'callback_error', 'Nota Fiscal não existe no banco local', $payload);
-
-    // informa que informação não foi encontrada
-    // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/404
     http_response_code(404);
     exit();
 }
-//fim verificar se a nfe existe na tabela
 
-// seleciona as informações da nota local
-$nfData = Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', '=', $nf_id)
-    ->get(
-        [
-            'id',
-            'invoice_id',
-            'user_id',
-            'nfe_id',
-            'status',
-            'services_amount',
-            'environment',
-            'flow_status',
-            'pdf',
-            'created_at',
-            'updated_at'
-        ]
-    );
+$nfData = Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', $nf_id)->get()->toArray();
+$nfe = $nfData[0] ?? null;
 
-foreach ($nfData as $key => $value) {
-    $nfe_for_invoice[$key] = json_decode(json_encode($value), true);
+if (!$nfe) {
+    logModuleCall('nfeio_serviceinvoices', 'callback_error', 'Nota Fiscal não encontrada no banco local', $payload);
+    http_response_code(404);
+    exit();
 }
-$nfe = $nfe_for_invoice['0'];
 
-if ((string)$nfe['nfe_id'] === (string)$nf_id and $nfe['status'] !== (string)$nf_status) {
+if ($nfe->nfe_id === $nf_id && $nfe->status !== $nf_status) {
     $new_nfe = [
-        'invoice_id' => $nfe['invoice_id'],
-        'user_id' => $nfe['user_id'],
-        'nfe_id' => $nfe['nfe_id'],
+        'rpsNumber' => $nf_rps_number,
+        'rpsSerialNumber' => $nf_rps_serial,
         'status' => $nf_status,
-        'services_amount' => $nfe['services_amount'],
-        'environment' => $nfe['environment'],
         'flow_status' => $nf_flow_status,
-        'pdf' => $nfe['pdf'],
-        'issue_note_conditions' => $nf_flow_message, // utilizando coluna existente, mas sem uso, para armazenar a mensagem do flow
+        'issue_note_conditions' => $nf_flow_message,
     ];
 
     try {
-        $save_nfe = Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', '=', $nf_id)->update($new_nfe);
-        logModuleCall('nfeio_serviceinvoices', 'callback_success', $payload, $save_nfe);
+        Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', $nf_id)->update($new_nfe);
+        logModuleCall('nfeio_serviceinvoices', 'callback_success', $payload, $new_nfe);
+        http_response_code(202);
     } catch (\Exception $e) {
-        logModuleCall('nfeio_serviceinvoices', 'callback_error', "Erro ao atualizar a nota no banco de dados \n\n Nota: \n {$new_nfe} Callback: \n {$payload}", $e->getMessage());
-        // informa que a requisição falhou
-        // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/500
+        logModuleCall('nfeio_serviceinvoices', 'callback_error', 'Erro ao atualizar a nota no banco de dados', $e->getMessage());
         http_response_code(500);
+        exit();
     }
-
-    // informa que a requisição foi aceita
-    // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/202
-    http_response_code(202);
 } else {
-    logModuleCall('nfeio_serviceinvoices', 'callback', 'Nenhuma informação foi alterada', [
-        'nfe' => $nfe, 'payload' => $payload
-    ]);
-    // retorna 200 para informar que a requisição foi recebida
-    // https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/200
+    logModuleCall('nfeio_serviceinvoices', 'callback', 'Nenhuma informação foi alterada', ['nfe' => $nfe, 'payload' => $payload]);
     http_response_code(200);
     exit();
 }

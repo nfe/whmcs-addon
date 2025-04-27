@@ -8,6 +8,10 @@ use NFEioServiceInvoices\Helpers\Timestamp;
 /**
  * Classe responsável pela definição do modelo de dados e operações
  * na tabela mod_nfeio_si_serviceinvoices
+ *
+ * @version 3.0
+ * @since 2.0
+ * @author Mimir Tech https://github.com/mimirtechco
  */
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
@@ -31,8 +35,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'updated_at',
         'service_code',
         'tics',
+        'company_id',
     );
-    protected $_limit = 5;
+    protected $_limit = 10;
 
     /**
      * Define o máximo limite de registros de uma consulta
@@ -54,7 +59,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         return $this->_limit;
     }
 
-    function getModelClass()
+    public function getModelClass()
     {
         return __NAMESPACE__ . '\Repository';
     }
@@ -83,10 +88,19 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function dataTable()
     {
+        $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
         return Capsule::table($this->tableName)
-            ->leftJoin('tblclients', "{$this->tableName}.user_id", '=', 'tblclients.id')
+            ->leftJoin('tblclients', "{$this->tableName()}.user_id", '=', 'tblclients.id')
+            ->leftJoin("{$companyRepository->tableName()}", "{$this->tableName()}.company_id", '=', "{$companyRepository->tableName()}.company_id")
             ->orderBy("{$this->tableName}.id", 'desc')
-            ->select("{$this->tableName}.*", 'tblclients.firstname', 'tblclients.lastname', 'tblclients.companyname')
+            ->select(
+                "{$this->tableName}.*",
+                'tblclients.firstname',
+                'tblclients.lastname',
+                'tblclients.companyname',
+                "{$companyRepository->tableName()}.company_name as emissor_name",
+                "{$companyRepository->tableName()}.tax_number as emissor_tax_number",
+            )
             ->get();
     }
 
@@ -119,6 +133,8 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->string('pdf');
                     $table->string('rpsSerialNumber');
                     $table->string('rpsNumber');
+                    // company_id para multi empresa #163
+                    $table->string('company_id')->nullable();
                     $table->timestamp('created_at')->nullable();
                     $table->timestamp('updated_at')->nullable();
                     $table->string('service_code', 30)->nullable(true);
@@ -129,7 +145,6 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
         // Adiciona a coluna updated_at com a configuração de auto update #156
 //        $db->statement(sprintf('ALTER TABLE %s CHANGE updated_at updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', $this->tableName));
-
     }
 
     /**
@@ -180,14 +195,15 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         }
         return $response;
     }
+
     /**
      * Atualiza as colunas necessarias para a versão 2.1.0
      *
-     * @author  Andre Bellafronte
-     * @version 2.1.0
      * @return  void
+     * @version 2.1.0
+     * @author  Andre Bellafronte
      */
-    public function upgrade_to_2_1_0()
+    public function upgrade201()
     {
         // verifica se a tabela existe antes de qualquer procedimento
         if (Capsule::schema()->hasTable($this->tableName)) {
@@ -229,7 +245,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * @since   2.2
      * @author  Andre Bellafronte
      */
-    public function update_servicecode_var_limit()
+    public function updateServicecodeVarLimit()
     {
         // verifica se a tabela existe
         if (Capsule::schema()->hasTable($this->tableName)) {
@@ -263,16 +279,18 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
 
         if ($flowStatus) {
             $data['flow_status'] = $flowStatus;
+        } else {
+            $data['flow_status'] = '';
         }
 
         // adiciona a data de atualização #156
         $data['updated_at'] = Timestamp::currentTimestamp();
 
         try {
-           Capsule::table($this->tableName)
+            Capsule::table($this->tableName)
                 ->where('nfe_external_id', $externalId)
                 ->update($data);
-           return true;
+            return true;
         } catch (\Exception $e) {
             logModuleCall(
                 'nfeio_serviceinvoices',
@@ -283,13 +301,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             );
             return false;
         }
-
     }
 
     /**
      * Atualiza o status e flow status de uma NF (Nota Fiscal) pelo seu id
      *
-     * @param $nfeId string ID da Nf
+     * @param $nfeId string ID da Nfe.io
      * @param $status string O novo status da Nf
      * @param $flowStatus string|null O novo flow status da Nf (opcional)
      * @return bool|int Retorna o número de linhas afetadas ou false em caso de erro
@@ -312,7 +329,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         $data['updated_at'] = Timestamp::currentTimestamp();
 
         try {
-           Capsule::table($this->tableName)
+            Capsule::table($this->tableName)
                 ->where('nfe_id', $nfeId)
                 ->update($data);
 
@@ -327,7 +344,76 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             );
             return false;
         }
+    }
 
+    /**
+     * Atualiza uma nota fiscal de serviço com base no ID externo.
+     *
+     * @param string $externalId ID externo da nota fiscal.
+     * @param object $nfData Objeto contendo os dados da nota fiscal a serem atualizados.
+     *                       - id: ID da nota fiscal.
+     *                       - status: Status da nota fiscal.
+     *                       - servicesAmount: Valor dos serviços.
+     *                       - environment: Ambiente da nota fiscal (ex.: produção ou homologação).
+     *                       - flowStatus: Status do fluxo da nota fiscal.
+     *                       - rpsSerialNumber: Número de série do RPS.
+     *                       - rpsNumber: Número do RPS.
+     *
+     * @return bool|int Retorna o número de linhas afetadas ou false em caso de erro.
+     */
+    public function updateServiceInvoice($externalId, $nfData)
+    {
+        $data = [
+            'nfe_id' => $nfData->id,
+            'status' => $nfData->status,
+            'services_amount' => $nfData->servicesAmount,
+            'environment' => $nfData->environment,
+            'flow_status' => $nfData->flowStatus,
+            'rpsSerialNumber' => $nfData->rpsSerialNumber,
+            'rpsNumber' => $nfData->rpsNumber,
+        ];
+
+        try {
+            return Capsule::table($this->tableName())
+                ->where('nfe_external_id', $externalId)
+                ->update($data);
+        } catch (\Exception $e) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'updateServiceInvoice_error',
+                $data,
+                $e->getMessage(),
+                $e->getTraceAsString()
+            );
+            return false;
+        }
+
+    }
+
+    /**
+     * Insere um novo registro na tabela de notas fiscais de serviço.
+     *
+     * @param array $invoiceData Dados da nota fiscal a serem inseridos.
+     *                           - As chaves do array devem corresponder às colunas da tabela.
+     * @return bool Retorna true se a inserção for bem-sucedida, ou false em caso de erro.
+     */
+    public function create($invoiceData)
+    {
+
+        try {
+
+            return Capsule::table($this->tableName())->insert($invoiceData);
+
+        } catch (\Exception $exception) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'createServiceInvoice_error',
+                $invoiceData,
+                $exception->getMessage(),
+                $exception->getTraceAsString()
+            );
+            return false;
+        }
     }
 
 }

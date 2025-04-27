@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit9d3328eb7139b63c91b644b63fb21216
+class ComposerStaticInita3ca861aaa7218216b529bfed0bc50e4
 {
     public static $files = array (
         '7b11c4dc42b3b3023073cb14e519683c' => __DIR__ . '/..' . '/ralouphie/getallheaders/src/getallheaders.php',
@@ -106,7 +106,9 @@ class ComposerStaticInit9d3328eb7139b63c91b644b63fb21216
         'NFEioServiceInvoices\\Legacy\\Hooks' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Legacy/Hooks.php',
         'NFEioServiceInvoices\\Migrations\\Migrations' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Migrations/Migrations.php',
         'NFEioServiceInvoices\\Models\\Aliquots\\Repository' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Models/Aliquots/Repository.php',
+        'NFEioServiceInvoices\\Models\\ClientCompany\\Repository' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Models/ClientCompany/Repository.php',
         'NFEioServiceInvoices\\Models\\ClientConfiguration\\Repository' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Models/ClientConfiguration/Repository.php',
+        'NFEioServiceInvoices\\Models\\Company\\Repository' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Models/Company/Repository.php',
         'NFEioServiceInvoices\\Models\\ModuleConfiguration\\Repository' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Models/ModuleConfiguration/Repository.php',
         'NFEioServiceInvoices\\Models\\ProductCode\\Repository' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Models/ProductCode/Repository.php',
         'NFEioServiceInvoices\\Models\\ServiceInvoices\\Repository' => __DIR__ . '/../../../../../..' . '/modules/addons/NFEioServiceInvoices/lib/Models/ServiceInvoices/Repository.php',
@@ -163,9 +165,9 @@ class ComposerStaticInit9d3328eb7139b63c91b644b63fb21216
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit9d3328eb7139b63c91b644b63fb21216::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit9d3328eb7139b63c91b644b63fb21216::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit9d3328eb7139b63c91b644b63fb21216::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInita3ca861aaa7218216b529bfed0bc50e4::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInita3ca861aaa7218216b529bfed0bc50e4::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInita3ca861aaa7218216b529bfed0bc50e4::$classMap;
 
         }, null, ClassLoader::class);
     }

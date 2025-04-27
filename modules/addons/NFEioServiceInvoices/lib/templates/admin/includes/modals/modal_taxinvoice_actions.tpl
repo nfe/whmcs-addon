@@ -36,6 +36,7 @@
                 var button = $(event.relatedTarget) // Botao que acionou o modal
                 var action = button.data('action') // a acao a ser executada
                 var nfeId = button.data('nfeid') // numero da nfe
+                var companyId = button.data('companyid') // id da empresa
                 var invoiceId = button.data('invoiceid') // id da fatura
                 var actionName = button.data('actionname') // nome da acao
                 var actionDesc = button.data('actiondesc') // descricao da acao
@@ -50,10 +51,10 @@
 
                 // Acao de confirmacao do modal
                 $('#confirmAction').off('click').click(function () {
-                    var link = moduleLink + '&action=' + action + '&invoice_id=' + invoiceId;
+                    var link = moduleLink + '&action=' + action + '&invoice_id=' + invoiceId + '&company_id=' + companyId;
                     // se action for emailNf, substitui invoiceId por nfeId
                     if (action === 'emailNf' || action === 'updateNfStatus') {
-                        link = moduleLink + '&action=' + action + '&nfe_id=' + nfeId;
+                        link = moduleLink + '&action=' + action + '&nfe_id=' + nfeId + '&company_id=' + companyId;
                     }
                     window.open(link, '_self');
                 });

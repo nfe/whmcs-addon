@@ -1,32 +1,5 @@
 <?php
 
-/**
- * WHMCS SDK Sample Addon Module
- *
- * An addon module allows you to add additional functionality to WHMCS. It
- * can provide both client and admin facing user interfaces, as well as
- * utilise hook functionality within WHMCS.
- *
- * This sample file demonstrates how an addon module for WHMCS should be
- * structured and exercises all supported functionality.
- *
- * Addon Modules are stored in the /modules/addons/ directory. The module
- * name you choose must be unique, and should be all lowercase, containing
- * only letters & numbers, always starting with a letter.
- *
- * Within the module itself, all functions must be prefixed with the module
- * filename, followed by an underscore, and then the function name. For this
- * example file, the filename is "addonmodule" and therefore all functions
- * begin "addonmodule_".
- *
- * For more information, please refer to the online documentation.
- *
- * @see https://developers.whmcs.com/addon-modules/
- *
- * @copyright Copyright (c) WHMCS Limited 2017
- * @license   http://www.whmcs.com/license/ WHMCS Eula
- */
-
 if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
 }
