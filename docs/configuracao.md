@@ -25,7 +25,7 @@ Para adicionar uma nova empresa, clique no botão `Cadastrar Emissor` e preencha
 
 ### Empresa
 
-Selecione a empresa que será configurada para emissão. Será exibida uma lista com todas as empresas cadastradas na sua conta NFE.io.
+Selecione a empresa que será configurada para emissão. Será exibida uma lista com todas as empresas cadastradas na sua conta NFE.io. É possível cadastrar mais de uma empresa para emissão de notas fiscais, cada uma com suas próprias definições.
 
 ### Código de Serviço Principal
 

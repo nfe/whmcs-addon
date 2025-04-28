@@ -7,6 +7,7 @@ header_pages:
   - docs/configuracao.md
   - docs/codigos-servicos.md
   - docs/retencoes.md
+  - docs/associar-emissor.md
   - faq.md
 author:
   name: NFE.io
