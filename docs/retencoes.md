@@ -1,7 +1,7 @@
 ---
 slug: retencoes
 permalink: /docs/retencoes/
-title: Alíquotas & Retenções
+title: Retenções
 layout: page
 ---
 

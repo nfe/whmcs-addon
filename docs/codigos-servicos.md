@@ -1,7 +1,7 @@
 ---
 slug: codigos-servicos
 permalink: /docs/codigos-servicos/
-title: Códigos Personalizados
+title: Código de Serviço
 layout: page
 ---
 
