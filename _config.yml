@@ -9,6 +9,3 @@ header_pages:
   - docs/retencoes.md
   - docs/associar-emissor.md
   - faq.md
-author:
-  name: NFE.io
-  url: https://github.com/nfe/whmcs-addon
