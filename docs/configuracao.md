@@ -81,9 +81,9 @@ Selecione o campo personalizado criado anteriormente que será responsável pelo
 
 Selecione a informação que será exibida no campo de descrição da nota fiscal.
 
-1. Número da fatura: Exibe apenas o número da fatura vinculada a NFSe.
-2. Nome dos serviços: Exibe o nome de todos os serviços vinculados a fatura.
-3. Número da fatura + Nome dos Serviços: Exibe o número da fatura em uma linha e o nome de todos os serviços vinculados a fatura em outra linha.
+1. **Número da fatura**: Exibe apenas o número da fatura vinculada a NFSe.
+2. **Nome dos serviços**: Exibe o nome de todos os serviços vinculados a fatura.
+3. **Número da fatura + Nome dos Serviços**: Exibe o número da fatura em uma linha e o nome de todos os serviços vinculados a fatura em outra linha.
 
 ### Link da Fatura na NFSe
 
@@ -93,7 +93,7 @@ Inclui o link da fatura juntamente com a descrição da NFSe na mensagem da nota
 
 Habilita a opção de envio da nota fiscal por e-mail ao cliente.
 
-> O e-mail será enviado para o endereço principal cadastrado no perfil do cliente pela plataforma da NFE.io.
+> O e-mail será enviado para o endereço principal cadastrado no perfil do cliente e a mensagem será disparada pela plataforma da NFE.io.
 
 ### Descrição Adicional
 
