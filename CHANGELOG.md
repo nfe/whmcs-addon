@@ -24,13 +24,13 @@ Agora, é possível configurar múltiplos emissores com suporte a multiempresas.
 ### Detalhes da Nota
 Uma nova opção "Detalhes" foi adicionada junto às ações da nota. Agora é possível visualizar mais detalhes da nota, como códigos ou mensagens retornadas da API de emissão.
 
-![Detalhes da Nota](https://s3.mimirtech.net/hedgedoc/uploads/b7ec7e81-b11a-43c5-b011-17d6ed468fd1.png)
+![Detalhes da Nota](https://nfe.github.io/whmcs-addon/assets/changelogs/b7ec7e81-b11a-43c5-b011-17d6ed468fd1.png)
 
 ## Melhorias
 ### Visualização de Notas
 A tabela de visualização de notas emitidas pelo módulo recebeu uma reorganização das colunas e ações, visando adequar as informações e melhorar o layout das ações disponíveis. Os diferentes botões de ações foram agrupados em um sub-menu para uma melhor exibição.
 
-![Visualização de Notas](https://s3.mimirtech.net/hedgedoc/uploads/617177f2-3830-4915-8d3c-e4e6d9755fe5.png)
+![Visualização de Notas](https://nfe.github.io/whmcs-addon/assets/changelogs/617177f2-3830-4915-8d3c-e4e6d9755fe5.png)
 
 ### Códigos Personalizados
 Foram introduzidas melhorias na gestão dos códigos personalizados dos produtos, incluindo novas janelas de cadastramento e confirmações na exclusão de registros.
