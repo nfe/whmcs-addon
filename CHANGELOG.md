@@ -1,3 +1,54 @@
+## v3.0.0
+A versão 3.0.0 traz melhorias significativas, incluindo suporte a multiempresas, novas funcionalidades e aprimoramentos na usabilidade.
+
+## Novos Recursos
+### Multiempresas
+Agora, é possível configurar múltiplos emissores com suporte a multiempresas. Contas da NFe.io com mais de uma empresa cadastrada podem utilizar este recurso para definir diferentes emissores na configuração do módulo. Isso permite associar um cliente do WHMCS a um emissor específico, que será utilizado como emitente para as notas fiscais, independentemente da empresa padrão configurada para emissão.
+
+![Configuração Multiempresas](https://nfe.github.io/whmcs-addon/assets/img/nfeio-whmcs-docs-configuracao-06.png)
+
+- **Emissor Padrão**: Configurações que utilizarem mais de um emissor cadastrado precisarão definir um como padrão. Este emissor será utilizado para todos os clientes que não possuírem uma associação personalizada.
+  
+- **Associar Clientes**: A nova tela "Associar Clientes" em Configurações permite a associação de um cliente a um emissor específico, garantindo que todos os produtos ou serviços faturados neste cliente tenham como emitente a empresa associada.
+
+![Associar Clientes](https://nfe.github.io/whmcs-addon/assets/img/nfeio-whmcs-docs-configuracao-13.png)
+
+- **Códigos Personalizados**: Com o recurso multiempresa, os códigos personalizados agora podem ser associados a um emissor específico. Isso possibilita definir diferentes códigos de serviços personalizados para diferentes produtos e emissores. Ao cadastrar um novo código de serviço, será necessário selecionar a qual dos emissores cadastrados ele se destina.
+
+![Códigos Personalizados](https://nfe.github.io/whmcs-addon/assets/img/nfeio-whmcs-docs-configuracao-03.png)
+
+- **Alíquotas**: As alíquotas dos códigos personalizados agora estão associadas a um emissor. Ao cadastrar uma nova alíquota, o emissor vinculado ao código de serviço selecionado será exibido.
+
+![Alíquotas](https://nfe.github.io/whmcs-addon/assets/img/nfeio-whmcs-docs-configuracao-10.png)
+
+### Detalhes da Nota
+Uma nova opção "Detalhes" foi adicionada junto às ações da nota. Agora é possível visualizar mais detalhes da nota, como códigos ou mensagens retornadas da API de emissão.
+
+![Detalhes da Nota](https://s3.mimirtech.net/hedgedoc/uploads/b7ec7e81-b11a-43c5-b011-17d6ed468fd1.png)
+
+## Melhorias
+### Visualização de Notas
+A tabela de visualização de notas emitidas pelo módulo recebeu uma reorganização das colunas e ações, visando adequar as informações e melhorar o layout das ações disponíveis. Os diferentes botões de ações foram agrupados em um sub-menu para uma melhor exibição.
+
+![Visualização de Notas](https://s3.mimirtech.net/hedgedoc/uploads/617177f2-3830-4915-8d3c-e4e6d9755fe5.png)
+
+### Códigos Personalizados
+Foram introduzidas melhorias na gestão dos códigos personalizados dos produtos, incluindo novas janelas de cadastramento e confirmações na exclusão de registros.
+
+### Alíquotas
+Melhorias na gestão de alíquotas foram implementadas. Agora, além de novas janelas para cadastramento e exclusão, a tabela exibirá apenas as alíquotas cadastradas, ao contrário da versão anterior que mostrava todos os códigos de serviços personalizados, mesmo sem uma alíquota cadastrada.
+
+### Demais Melhorias
+- Alguns métodos que dependiam de código legado foram reescritos para melhor manutenção.
+- Melhorias no código de tratamento do callback para maior legibilidade e performance.
+- Registro do número da RPS retornado na emissão da NF no banco de dados do módulo.
+- Os processos de download do PDF e XML foram atualizados, agora retornando os arquivos pelo SDK da NFe.io.
+
+## Notas sobre Atualização e Migração
+- Algumas reestruturações removeram a dependência de arquivos de versões legadas. É recomendado a exclusão do diretório `NFEioServiceInvoices` existente no WHMCS antes de realizar o upload novamente do diretório.
+- Esta versão implementa novas colunas nas tabelas existentes, além de novas que serão responsáveis pelos dados das empresas emissoras cadastradas e pela associação de clientes.
+- **Importante**: Sempre realize um backup antes de qualquer atualização.
+
 ## 2.2.0 - 2024-06-13
 
 ### Novos Recursos
