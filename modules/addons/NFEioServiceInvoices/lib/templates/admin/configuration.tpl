@@ -11,10 +11,10 @@
 {include file="includes/modals/modal_configuration_removecompany.tpl"}
 <!-- Modal excluir empresa -->
 <div class="row">
-    <div class="col-md-8 col-md-offset-2">
+    <div class="col-md-10 col-md-offset-1">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title text-left">Definicoes de Emissão</h3>
+                <h3 class="panel-title text-left">Definições de Emissores</h3>
             </div>
             <div class="panel-body">
 
@@ -62,6 +62,9 @@
                                     <th>CNPJ</th>
                                     <th>Nome</th>
                                     <th>Cód. Serv. Principal</th>
+                                    <th>Cód. NBS</th>
+                                    <th>Indicador da Operação</th>
+                                    <th>Classificação Tributária</th>
                                     <th>ISS Retido (%)</th>
                                     <th>Emissor Padrão</th>
                                     <th>Ações</th>
@@ -74,6 +77,9 @@
                                         <td>{$company->tax_number}</td>
                                         <td>{$company->company_name}</td>
                                         <td>{$company->service_code}</td>
+                                        <td>{$company->nbs_code}</td>
+                                        <td>{$company->operation_indicator}</td>
+                                        <td>{$company->class_code}</td>
                                         <td>{$company->iss_held}</td>
                                         <td>{if $company->default == 1}Sim{else}Não{/if}</td>
                                         <td>
@@ -378,6 +384,9 @@
             document.getElementById('editCompanyCompanyId').value = company.company_id;
             document.getElementById('editCompanyCompanyName').value = company.company_name;
             document.getElementById('editCompanyServiceCode').value = company.service_code;
+            document.getElementById('editCompanyCompanyNbsCode').value = company.nbs_code;
+            document.getElementById('editCompanyOperationIndicator').value = company.operation_indicator;
+            document.getElementById('editCompanyClassCode').value = company.class_code;
             document.getElementById('editCompanyIssHeld').value = company.iss_held;
             document.getElementById('editCompanyDefault').value = company.default;
         }

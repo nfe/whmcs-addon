@@ -30,7 +30,7 @@
     <div class="col-md-12">
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title text-center">Código de Serviço</h3>
+                <h3 class="panel-title text-left">Código de Serviço</h3>
             </div>
             <div class="panel-body">
                 <p>Gerencie os códigos de serviço individualmente por produto existente no WHMCS.</p>
@@ -41,6 +41,7 @@
                         <li>O mesmo código de serviço pode ser utilizado por mais de um emissor.</li>
                         <li>Diferentes produtos podem ter o mesmo código de serviço.</li>
                         <li>Diferentes emissores poderão ter diferentes códigos de serviço para o mesmo produto.</li>
+                        <li>Para atualizar o código de serviço de um produto, adicione o mesmo produto para o mesmo emissor com os novos dados desejados.</li>
                     </ul>
 
                 </div>
@@ -61,6 +62,9 @@
 
                                 <th>Produto</th>
                                 <th>Código do Serviço</th>
+                                <th>Cód. NBS</th>
+                                <th>Indicador da Operação</th>
+                                <th>Classificação Tributária</th>
                                 <th>Emissor</th>
                                 <th>Ação</th>
                             </tr>
@@ -72,6 +76,9 @@
 
                                     <td>{$produto->product_id} - {$produto->product_name}</td>
                                     <td>{$produto->code_service}</td>
+                                    <td>{$produto->nbs_code}</td>
+                                    <td>{$produto->operation_indicator}</td>
+                                    <td>{$produto->class_code}</td>
                                     <td>{$companyTaxNumber}</td>
                                     <td>
                                         <form action="{$modulelink}&action=serviceCodeRemove" method="post"
