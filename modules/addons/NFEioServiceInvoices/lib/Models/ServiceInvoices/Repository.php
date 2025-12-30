@@ -34,6 +34,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'created_at',
         'updated_at',
         'service_code',
+        'nbs_code',
+        'operation_indicator',
+        'class_code',
         'tics',
         'company_id',
     );
@@ -139,6 +142,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->timestamp('updated_at')->nullable();
                     $table->string('service_code', 30)->nullable(true);
                     $table->string('tics')->nullable(true);
+                    $table->string('nbs_code')->nullable();
+                    $table->string('operation_indicator')->nullable();
+                    $table->string('class_code')->nullable();
                 }
             );
         }
