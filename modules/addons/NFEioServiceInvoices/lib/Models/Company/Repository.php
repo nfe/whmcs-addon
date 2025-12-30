@@ -23,6 +23,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'company_name',
         'service_code',
         'iss_held',
+        'nbs_code',
+        'operation_indicator',
+        'class_code',
+        'tax_number',
         'default',
         'created_at',
         'updated_at'
@@ -58,6 +62,33 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             ->value('service_code');
 
         return $serviceCode;
+    }
+
+    public function getDefaultNbsCodeByCompanyId($companyId)
+    {
+        $nbsCode = \WHMCS\Database\Capsule::table($this->tableName())
+            ->where('company_id', '=', $companyId)
+            ->value('nbs_code');
+
+        return $nbsCode;
+    }
+
+    public function getDefaultOperationCodeByCompanyId($companyId)
+    {
+        $operationCode = \WHMCS\Database\Capsule::table($this->tableName())
+            ->where('company_id', '=', $companyId)
+            ->value('operation_indicator');
+
+        return $operationCode;
+    }
+
+    public function getDefaultClassCodeByCompanyId($companyId)
+    {
+        $classCode = \WHMCS\Database\Capsule::table($this->tableName())
+            ->where('company_id', '=', $companyId)
+            ->value('class_code');
+
+        return $classCode;
     }
 
     /**
@@ -126,6 +157,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 $table->boolean('default')->default(0);
                 // timestamp de criacao e edicao
                 $table->timestamps();
+                $table->string('nbs_code', 30)->nullable();
+                $table->string('operation_indicator', 30)->nullable();
+                $table->string('class_code', 30)->nullable();
             });
         }
     }
@@ -138,11 +172,14 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * @param string $companyName O nome da empresa.
      * @param string $serviceCode O código de serviço padrão da empresa.
      * @param float $issHeld A retenção de ISS padrão da empresa.
+     * @param string $nbs_code Código NBS do serviço.
+     * @param string $operation_indicator Código de operação do serviço.
+     * @param string $class_code Código de Classificação Tributária do serviço.
      * @param bool $default Define se a empresa será a padrão (true para sim, false para não).
      *
      * @return array Retorna um array com o status da operação e o resultado ou erro.
      */
-    public function save($companyId, $taxNumber, $companyName, $serviceCode, $issHeld, $default = false)
+    public function save($companyId, $taxNumber, $companyName, $serviceCode, $issHeld, $nbs_code, $operation_indicator, $class_code, $default = false)
     {
         try {
             $data = [
@@ -152,7 +189,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 'service_code' => $serviceCode,
                 'iss_held' => $issHeld,
                 'default' => $default,
-                'updated_at' => \WHMCS\Database\Capsule::raw('NOW()')
+                'updated_at' => \WHMCS\Database\Capsule::raw('NOW()'),
+                'nbs_code' => $nbs_code,
+                'operation_indicator' => $operation_indicator,
+                'class_code' => $class_code
             ];
 
             $defaultExists = \WHMCS\Database\Capsule::table($this->tableName())->where('default', 1)->exists();
@@ -181,7 +221,17 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             logModuleCall(
                 'nfeio_serviceinvoices',
                 'save_company_error',
-                ['company_id' => $companyId, 'service_code' => $serviceCode],
+                [
+                    'company_id' => $companyId,
+                    'service_code' => $serviceCode,
+                    'iss_held' => $issHeld,
+                    'default' => $default,
+                    'company_name' => $companyName,
+                    'tax_number' => $taxNumber,
+                    'nbs_code' => $nbs_code,
+                    'operation_indicator' => $operation_indicator,
+                    'class_code' => $class_code
+                ],
                 ['error' => $exception->getMessage()]
             );
             return ['status' => false, 'error' => $exception->getMessage()];
@@ -195,11 +245,14 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * @param string $companyName Nome da empresa.
      * @param string $serviceCode Código de serviço da empresa.
      * @param float $issHeld Retenção de ISS da empresa.
+     * @param string $nbs_code Código NBS do serviço.
+     * @param string $operation_indicator Código de operação do serviço.
+     * @param string $class_code Código de Classificação Tributária do serviço.
      * @param bool $default Define se a empresa será a padrão (1 para sim, 0 para não).
      *
      * @return array Retorna um array com o status da operação e uma mensagem ou erro.
      */
-    public function edit($recordId, $companyName, $serviceCode, $issHeld, $default)
+    public function edit($recordId, $companyName, $serviceCode, $issHeld, $nbs_code, $operation_indicator, $class_code, $default)
     {
         // atualiza o registro da empresa
         try {
@@ -208,7 +261,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 'service_code' => $serviceCode,
                 'iss_held' => $issHeld,
                 'default' => $default,
-                'updated_at' => \WHMCS\Database\Capsule::raw('NOW()')
+                'updated_at' => \WHMCS\Database\Capsule::raw('NOW()'),
+                'nbs_code' => $nbs_code,
+                'operation_indicator' => $operation_indicator,
+                'class_code' => $class_code
             ];
 
             if ($default == 1) {
@@ -230,7 +286,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             );
             return array(
                 'status' => true,
-                'message' => 'Empresa editada com sucesso.'
+                'message' => 'Empresa atualizada com sucesso.'
             );
         } catch (\Exception $exception) {
             logModuleCall(
@@ -309,7 +365,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     {
         return \WHMCS\Database\Capsule::table($this->tableName)
             ->orderBy('default', 'desc')
-            ->select('id', 'company_id', 'tax_number', 'company_name', 'service_code', 'iss_held', 'default')
+            ->select('id', 'company_id', 'tax_number', 'company_name', 'service_code', 'iss_held', 'nbs_code', 'operation_indicator', 'class_code', 'default')
             ->get();
     }
 }

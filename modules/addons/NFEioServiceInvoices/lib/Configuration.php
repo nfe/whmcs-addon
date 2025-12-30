@@ -22,7 +22,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
 
     private $encryptHash = '';
 
-    public $version = '3.0.0';
+    public $version = '3.1.0';
 
     public $tablePrefix = 'mod_nfeio_si_';
 
@@ -336,6 +336,9 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
                 $company_name,
                 $companyData->service_code,
                 $companyData->iss_held,
+                null,
+                null,
+                null,
                 true
             );
 
@@ -358,6 +361,17 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
             \NFEioServiceInvoices\Migrations\Migrations::addCompanyIdRecord($company_id, 'mod_nfeio_si_aliquots');
             // mod_nfeio_si_serviceinvoices
             \NFEioServiceInvoices\Migrations\Migrations::addCompanyIdRecord($company_id, 'mod_nfeio_si_serviceinvoices');
+        }
+
+        // v3.1.0
+        if (version_compare($currentlyInstalledVersion,'3.1.0', 'lt')) {
+
+            // adiciona os campos de RCT na tabela de notas fiscais de serviço
+            \NFEioServiceInvoices\Migrations\Migrations::addRtcFieldsV310('mod_nfeio_si_serviceinvoices');
+            // adiciona os campos de RCT na tabela de códigos de serviço
+            \NFEioServiceInvoices\Migrations\Migrations::addRtcFieldsV310('mod_nfeio_si_productcode');
+            // adiciona os campos de RCT na tabela de companies
+            \NFEioServiceInvoices\Migrations\Migrations::addRtcFieldsV310('mod_nfeio_si_companies');
         }
     }
 }

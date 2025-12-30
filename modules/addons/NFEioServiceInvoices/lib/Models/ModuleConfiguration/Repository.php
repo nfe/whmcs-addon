@@ -285,6 +285,33 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'disabled' => false,
             'description' => 'Deduzir descontos/abatimentos existentes na fatura do valor total da nota a ser emitida.',
         ],
+        'nbs_code' => [
+            'type' => 'text',
+            'label' => 'Código NBS Padrão',
+            'name' => 'nbs_code',
+            'id' => 'nbsCode_Field',
+            'required' => false,
+            'disabled' => false,
+            'description' => 'Informe o código NBS padrão a ser utilizado na emissão das notas fiscais.',
+        ],
+        'operation_indicator' => [
+            'type' => 'text',
+            'label' => 'Código de Natureza da Operação Padrão',
+            'name' => 'operation_indicator',
+            'id' => 'operationCode_Field',
+            'required' => false,
+            'disabled' => false,
+            'description' => 'Informe o código de natureza da operação (operationIndicator) padrão a ser utilizado na emissão das notas fiscais.',
+        ],
+        'class_code' => [
+            'type' => 'text',
+            'label' => 'Código de Classificação Padrão',
+            'name' => 'class_code',
+            'id' => 'classCode_Field',
+            'required' => false,
+            'disabled' => false,
+            'description' => 'Informe o Código de Classificação Tributária para o IBS/CBS (classCode) padrão a ser utilizado na emissão das notas fiscais.',
+        ],
     );
 
     /**

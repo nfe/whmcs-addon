@@ -1,3 +1,40 @@
+## v3.1.0
+A versão 3.1.0 implementa o suporte à Reforma Tributária Brasileira, com a inclusão de novos campos obrigatórios para a emissão de notas fiscais de serviço.
+
+### Novos Recursos
+#### Reforma Tributária Brasileira
+A versão implementa os requisitos da Reforma Tributária Brasileira, adicionando novos campos obrigatórios para a emissão de notas fiscais de serviço. Estes campos são necessários para empresas optantes do Lucro Real ou Lucro Presumido e devem ser preenchidos tanto na configuração global quanto no cadastro individual de serviços.
+
+**Novos Campos Adicionados:**
+
+- **NBS (Nomenclatura Brasileira de Serviços)**: Classificação obrigatória que identifica o tipo de serviço prestado. Consulte a [tabela de correlação NBS/LC116](https://nfe.io/docs/documentacao/reforma-tributaria/conceitos-funcionais/tabelas-de-referencia/tabela-correlacao-nbs-lc116/) para encontrar o código apropriado para seu serviço.
+
+- **Classificação Tributária (CBS/IBS)**: Define a alíquota aplicável ao serviço conforme a Contribuição Social (CBS) e Imposto sobre Bens e Serviços (IBS). Consulte a [tabela de referência CST](https://nfe.io/docs/documentacao/reforma-tributaria/conceitos-funcionais/tabelas-de-referencia/tabela-referencia-cst-classificacao-tributaria-ibs-cbs/) para determinar a classificação correta.
+
+- **Indicador de Operação (indOp)**: Especifica o tipo de operação de fornecimento do serviço. Consulte a [tabela de referência do Indicador de Operação](https://nfe.io/docs/documentacao/reforma-tributaria/conceitos-funcionais/tabelas-de-referencia/tabela-referencia-indicador-operacao/) para selecionar a operação adequada.
+
+Para detalhes completos sobre a Reforma Tributária e seus requisitos, consulte a [documentação oficial da NFe.io](https://nfe.io/docs/documentacao/reforma-tributaria/).
+
+**Configuração Global (Empresa):**
+
+Os campos podem ser configurados globalmente na seção de configuração da empresa, estabelecendo valores padrão para todos os serviços daquele emissor.
+
+![Configuração Emissor - NBS e Classificação Tributária](/.github/assets/v310/01_configuracao-emissor-campos-cbs-nbs-it.jpg)
+
+![Modal de Configuração do Emissor](/.github/assets/v310/02_configuracao-emissor-campos-modal.jpg)
+
+**Configuração por Serviço:**
+
+Além da configuração global, cada serviço pode ter seus próprios valores para NBS, Classificação Tributária e Indicador de Operação, permitindo maior flexibilidade e precisão na classificação de diferentes tipos de serviços.
+
+![Configuração de Serviço - NBS e Classificação Tributária](/.github/assets/v310/03_configuracao-servico-campos-cbs-nbs-it.jpg)
+
+**Aplicabilidade:**
+
+Estes campos são obrigatórios apenas para empresas com regime tributário de Lucro Real ou Lucro Presumido. Empresas com outros regimes não serão impedidas de configurar estes campos, mas não será necessário preenchê-los.
+
+Referência: [#169](https://github.com/nfe/whmcs-addon/issues/169)
+
 ## v3.0.0
 A versão 3.0.0 traz melhorias significativas, incluindo suporte a multiempresas, novas funcionalidades e aprimoramentos na usabilidade.
 

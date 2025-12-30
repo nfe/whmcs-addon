@@ -247,6 +247,9 @@ class Controller
         $serviceCode = $data['service_code'] ?? null;
         $issHeld = $data['iss_held'] ?? null;
         $companyDefault = $data['default'];
+        $nbsCode = $data['nbs_code'] ?? null;
+        $operationCode = $data['operation_indicator'] ?? null;
+        $classCode = $data['class_code'] ?? null;
 
         // verifica se os campos obrigatórios foram preenchidos
         if (is_null($recordId) || is_null($companyName) || is_null($serviceCode)) {
@@ -263,6 +266,9 @@ class Controller
                 $companyName,
                 $serviceCode,
                 $issHeld,
+                $nbsCode,
+                $operationCode,
+                $classCode,
                 $companyDefault
             );
 
@@ -326,6 +332,9 @@ class Controller
         $service_code = $data['service_code'] ?? null;
         $iss_held = $data['iss_held'] ?? null;
         $company_default = $data['company_default'] ?? false;
+        $nbs_code = $data['nbs_code'] ?? null;
+        $operation_indicator = $data['operation_indicator'] ?? null;
+        $class_code = $data['class_code'] ?? null;
 
         // converte o valor de company_default para booleano
         if ($company_default == 'on') {
@@ -352,7 +361,10 @@ class Controller
                 $company_name,
                 $service_code,
                 $iss_held,
-                $company_default
+                $nbs_code,
+                $operation_indicator,
+                $class_code,
+                $company_default,
             );
 
             // verifica se houve erro na associação
@@ -373,6 +385,9 @@ class Controller
                     'company_id' => $company_id,
                     'service_code' => $service_code,
                     'iss_held' => $iss_held,
+                    'nbs_code' => $nbs_code,
+                    'operation_indicator' => $operation_indicator,
+                    'class_code' => $class_code,
                     'default_company' => $company_default
                 ],
                 [
@@ -600,6 +615,8 @@ class Controller
             $config = new \NFEioServiceInvoices\Configuration();
             $servicesCodeRepo = new \NFEioServiceInvoices\Models\ProductCode\Repository();
             $companyRepository = new \NFEioServiceInvoices\Models\Company\Repository();
+            $moduleConfigurationRepo = new \NFEioServiceInvoices\Models\ModuleConfiguration\Repository();
+            $moduleFields = $moduleConfigurationRepo->getFields();
             // metodo para verificar se existe algum campo obrigatório não preenchido.
             $config->verifyMandatoryFields($vars);
             // URL absoluta dos assets
@@ -613,6 +630,7 @@ class Controller
             // #163 Gera as URL para as requisicoes em json
             $vars['jsonUrl'] = Addon::I()->genJSONUrl('servicesCode');
             $vars['availableCompanies'] = $availableCompanies;
+            $vars['moduleFields'] = $moduleFields;
 
             if ($msg->hasMessages()) {
                 $msg->display();
@@ -690,6 +708,9 @@ class Controller
         $product_name = $post['product_name'] ?? null;
         $company_id = $post['company'] ?? null;
         $company_default = $post['company_default'] ?? null;
+        $nbs_code = $post['nbs_code'] ?? null;
+        $operation_indicator = $post['operation_indicator'] ?? null;
+        $class_code = $post['class_code'] ?? null;
 
         // caso requisição não for POST ou não houver dados, retorna erro
         if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
@@ -702,7 +723,7 @@ class Controller
         }
 
         // salva os dados do código de serviço
-        $response = $productCodeRepo->save($product_id, $service_code, $company_id);
+        $response = $productCodeRepo->save($product_id, $service_code, $company_id, $nbs_code, $operation_indicator, $class_code);
 
         // verifica se houve erro na associação
         if ($response) {

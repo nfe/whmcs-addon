@@ -416,4 +416,60 @@ class Migrations
             );
         }
     }
+
+    /**
+     * Adiciona os campos da RCT na tabela especificada.
+     *
+     * colunas: nbs_code, operation_indicator, class_code
+     * @param string $tableName Nome da tabela a ser alterada.
+     * @return void
+     * @version 3.1.0
+     * @since 3.1.0
+     * @author Andre Kutianski <andre@nfe.io>
+     */
+    public static function addRtcFieldsV310($tableName) {
+        if (!Capsule::schema()->hasTable($tableName)) {
+            return;
+        }
+
+        $pdo = Capsule::connection()->getPdo();
+        try {
+            $pdo->beginTransaction();
+
+            // Adiciona as colunas nbs_code, operation_indicator, class_code
+            $statement = $pdo->prepare(
+                sprintf(
+                    'ALTER TABLE %s 
+                    ADD COLUMN nbs_code VARCHAR(30) NULL,
+                    ADD COLUMN operation_indicator VARCHAR(30) NULL,
+                    ADD COLUMN class_code VARCHAR(30) NULL',
+                    $tableName
+                )
+            );
+            $statement->execute();
+
+            if ($pdo->inTransaction()) {
+                $pdo->commit();
+
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'addRtcFieldsv310',
+                    $tableName,
+                    'success'
+                );
+            }
+        } catch (\Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'addRtcFieldsv310',
+                $e->getMessage(),
+                $e->getTraceAsString()
+            );
+        }
+
+    }
 }

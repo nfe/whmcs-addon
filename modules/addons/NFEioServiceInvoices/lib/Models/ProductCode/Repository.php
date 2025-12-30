@@ -25,6 +25,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'created_at',
         'updated_at',
         'ID_user',
+        'nbs_code',
+        'operation_indicator',
+        'class_code',
     );
 
     public function getModelClass()
@@ -57,7 +60,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 'tblproducts.name as product_name',
                 "{$this->tableName()}.code_service",
                 "{$this->tableName()}.id as record_id",
-                "{$this->tableName()}.company_id as company_id"
+                "{$this->tableName()}.company_id as company_id",
+                "{$this->tableName()}.nbs_code as nbs_code",
+                "{$this->tableName()}.operation_indicator as operation_indicator",
+                "{$this->tableName()}.class_code as class_code"
             )
             ->get();
     }
@@ -88,14 +94,17 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             ->get();
     }
 
-    public function save($productId, $serviceCode, $companyId)
+    public function save($productId, $serviceCode, $companyId, $nbsCode = null, $operationCode = null, $classCode = null)
     {
         $data = [
             'product_id' => $productId,
             'code_service' => $serviceCode,
             'company_id' => $companyId,
             'ID_user' => 1,
-            'updated_at' => Timestamp::currentTimestamp(),  // campo updated_at sempre atualizado
+            'updated_at' => Timestamp::currentTimestamp(),
+            'nbs_code' => $nbsCode,
+            'operation_indicator' => $operationCode,
+            'class_code' => $classCode,
         ];
 
         // Se o registro não existir, adiciona o campo 'created_at'
@@ -175,6 +184,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->timestamp('created_at')->nullable();
                     $table->timestamp('updated_at')->nullable();
                     $table->integer('ID_user');
+                    $table->string('nbs_code', 30)->nullable();
+                    $table->string('operation_indicator', 30)->nullable();
+                    $table->string('class_code', 30)->nullable();
                 }
             );
 
@@ -203,6 +215,68 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             ->value('code_service');
 
         return $serviceCode;
+    }
+
+    /**
+     * Retorna o código NBS para um produto conforme o relid de um serviço e a empresa.
+     *
+     * @param $relId
+     * @param $companyId
+     */
+    public function getNbsCodeByRelId($relId, $companyId)
+    {
+        $productId = Capsule::table('tblhosting')
+            ->where('id', '=', $relId)
+            ->value('packageid');
+
+        $nbsCode = Capsule::table($this->tableName)
+            ->where('product_id', '=', $productId)
+            ->where('company_id', '=', $companyId)
+            ->value('nbs_code');
+
+        return $nbsCode;
+    }
+
+    /**
+     * Retorna o código de operação para um produto conforme o relid de um serviço e a empresa.
+     *
+     * @param $relId
+     * @param $companyId
+     * @return mixed
+     */
+    public function getOperationCodeByRelId($relId, $companyId)
+    {
+        $productId = Capsule::table('tblhosting')
+            ->where('id', '=', $relId)
+            ->value('packageid');
+
+        $operationCode = Capsule::table($this->tableName)
+            ->where('product_id', '=', $productId)
+            ->where('company_id', '=', $companyId)
+            ->value('operation_indicator');
+
+        return $operationCode;
+    }
+
+    /**
+     * Retorna o código de classe para um produto conforme o relid de um serviço e a empresa.
+     *
+     * @param $relId
+     * @param $companyId
+     * @return mixed
+     */
+    public function getClassCodeByRelId($relId, $companyId)
+    {
+        $productId = Capsule::table('tblhosting')
+            ->where('id', '=', $relId)
+            ->value('packageid');
+
+        $classCode = Capsule::table($this->tableName)
+            ->where('product_id', '=', $productId)
+            ->where('company_id', '=', $companyId)
+            ->value('class_code');
+
+        return $classCode;
     }
 
     /**
