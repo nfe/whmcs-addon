@@ -213,10 +213,13 @@ class Nfe
      * @param  $userId      int ID do cliente
      * @param  $invoiceId   int ID da fatura
      * @param  $serviceCode string Código do serviço
+     * @param  $nbsCode string Código NBS
+     * @param  $operationCode string Código da operação
+     * @param  $classCode string Código da classificação tributária
      * @param  $item        object Item da fatura
      * @return array item preparado para transmissão
      */
-    private function prepareItemsToTransmit($userId, $invoiceId, $serviceCode, $item)
+    private function prepareItemsToTransmit($userId, $invoiceId, $serviceCode, $nbsCode, $operationCode, $classCode, $item)
     {
 
         // se descontos em itens estiver desabilitado e valor do item for igual ou menor a zero, retorna nada
@@ -233,6 +236,9 @@ class Nfe
             'itemDescription' => $item->description,
             'itemAmount' => floatval($item->amount),
             'itemServiceCode' => $serviceCode,
+            'itemNbsCode' => $nbsCode,
+            'itemOperationCode' => $operationCode,
+            'itemClassCode' => $classCode,
         );
     }
 
@@ -271,10 +277,23 @@ class Nfe
      * @param int|string $userId ID do usuário associado.
      * @param int|string $companyId ID da empresa emissora.
      * @param float $issHeldDefault Valor padrão de retenção de ISS.
+     * @param string $nbsCode Código NBS padrão.
+     * @param string $operationIndicator Indicador de operação padrão.
+     * @param string $classCode Código de classificação tributária padrão.
      * @param bool $reissue Indica se é uma reemissão de nota fiscal.
      * @return array Retorna uma lista de itens preparados para transmissão.
      */
-    private function buildItemsToTransmit($items, $invoiceId, $userId, $companyId, $issHeldDefault, $reissue = false)
+    private function buildItemsToTransmit(
+        $items,
+        $invoiceId,
+        $userId,
+        $companyId,
+        $issHeldDefault,
+        $nbsCode,
+        $operationIndicator,
+        $classCode,
+        $reissue = false
+    )
     {
         // ISS padrão
         $issHeld = $issHeldDefault;
@@ -298,6 +317,9 @@ class Nfe
                 'rpsSerialNumber' => 'waiting',
                 'company_id' => $companyId,
                 'service_code' => $serviceCode,
+                'nbs_code' => $nbsCode,
+                'operation_indicator' => $operationIndicator,
+                'class_code' => $classCode,
             ];
 
 
@@ -409,12 +431,18 @@ class Nfe
             $companyId = $clientCompanyId;
             // recupera o codigo de servico padrao da empresa associada ao cliente
             $defaultServiceCode = $companyRepository->getDefaultServiceCodeByCompanyId($clientCompanyId);
+            $defaultNbsCode = $companyRepository->getDefaultNbsCodeByCompanyId($clientCompanyId);
+            $defaultOperationIndicator = $companyRepository->getDefaultOperationCodeByCompanyId($clientCompanyId);
+            $defaultClassCode = $companyRepository->getDefaultClassCodeByCompanyId($clientCompanyId);
             // recupera o iss retencao padrao da empresa associada ao cliente
             $issHeld = $companyRepository->getDefaultIssHeldByCompanyId($clientCompanyId);
         } else {
             // dados da empresa padrao
             $companyId = $defaultCompany->company_id;
             $defaultServiceCode = $defaultCompany->service_code;
+            $defaultNbsCode = $defaultCompany->nbs_code;
+            $defaultOperationIndicator = $defaultCompany->operation_indicator;
+            $defaultClassCode = $defaultCompany->class_code;
             $issHeld = $defaultCompany->iss_held;
         }
 
@@ -426,6 +454,9 @@ class Nfe
             // essencial que código do serviço receba o valor padrão
             // para cada passada do laco
             $serviceCode = $defaultServiceCode;
+            $nbsCode = $defaultNbsCode;
+            $operationIndicator = $defaultOperationIndicator;
+            $classCode = $defaultClassCode;
 
             // se o item for juros/mora automática do WHMCS, não considera para fins de cálculo de nota
             if ($item->type === 'LateFee') {
@@ -437,16 +468,37 @@ class Nfe
                 $customServiceCode = $this->productCodeRepo->getServiceCodeByRelId($item->relid, $companyId);
                 if ($customServiceCode) {
                     $serviceCode = $customServiceCode;
+                    $nbsCode = $this->productCodeRepo->getNbsCodeByRelId($item->relid, $companyId);
+                    $operationIndicator = $this->productCodeRepo->getOperationCodeByRelId($item->relid, $companyId);
+                    $classCode = $this->productCodeRepo->getClassCodeByRelId($item->relid, $companyId);
                 }
             }
 
             // prepara o item e o adiciona em um array associativo com o código do serviço
             // phpcs:ignore Generic.Files.LineLength.TooLong
-            $itemsByServiceCode[$serviceCode][] = $this->prepareItemsToTransmit($clientId, $invoiceId, $serviceCode, $item);
+            $itemsByServiceCode[$serviceCode][] = $this->prepareItemsToTransmit(
+                $clientId,
+                $invoiceId,
+                $serviceCode,
+                $nbsCode,
+                $operationIndicator,
+                $classCode,
+                $item
+            );
         }
 
         // phpcs:ignore Generic.Files.LineLength.TooLong
-        $nfToEmit = $this->buildItemsToTransmit($itemsByServiceCode, $invoiceId, $clientId, $companyId, $issHeld, $reissue);
+        $nfToEmit = $this->buildItemsToTransmit(
+            $itemsByServiceCode,
+            $invoiceId,
+            $clientId,
+            $companyId,
+            $issHeld,
+            $nbsCode,
+            $operationIndicator,
+            $classCode,
+            $reissue
+        );
 
         if (count($nfToEmit) > 0) {
             foreach ($nfToEmit as $nf) {
@@ -511,6 +563,9 @@ class Nfe
         $externalId = $data->nfe_external_id;
         $amount = $data->services_amount;
         $serviceCode = $data->service_code;
+        $nbsCode = $data->nbs_code;
+        $operationCode = $data->operation_indicator;
+        $classCode = $data->class_code;
         $issAmountWithheld = $data->iss_held;
         $companyId = $data->company_id;
         $description = $data->nfe_description;
@@ -570,6 +625,7 @@ class Nfe
             'description' => $description,
             'servicesAmount' => $amount,
             'externalId' => $externalId,
+            'nbsCode' => $nbsCode,
             'borrower' => [
                 'federalTaxNumber' => $customer['document'],
                 'municipalTaxNumber' => $customer['insc_municipal'],
@@ -588,6 +644,10 @@ class Nfe
                     ],
                     'state' => $clientData->state
                 ]
+            ],
+            'IbsCbs' => [
+                'operationIndicator' => $operationCode,
+                'classCode' => $classCode,
             ]
         ];
 
