@@ -4,7 +4,7 @@
 
 > **Automatize a emissão de notas fiscais de serviço (NFS-e) no seu WHMCS com a NFE.io!**
 
-O **Módulo NFE.io para WHMCS** é a solução definitiva para automatizar a conformidade fiscal do seu negócio de hospedagem e serviços digitais. Elimine tarefas manuais, reduza erros e garanta que seus clientes recebam suas notas fiscais pontualmente.
+O [**Módulo NFE.io para WHMCS**](https://nfe.io/docs/integracoes/plugins/whmcs/) é a solução definitiva para automatizar a conformidade fiscal do seu negócio de hospedagem e serviços digitais. Elimine tarefas manuais, reduza erros e garanta que seus clientes recebam suas notas fiscais pontualmente.
 
 ## 🚀 Por que usar este módulo?
 
