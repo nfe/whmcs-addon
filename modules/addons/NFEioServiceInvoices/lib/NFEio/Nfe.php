@@ -808,29 +808,27 @@ class Nfe
     }
 
     /**
-     * Verifica se a fatura informada possui todas as notas vinculadas com mesmo status 'Cancelled'.
-     * Isso previne que notas sejam reemitidas se anterior não estiver cancelada.
+     * Verifica se a fatura informada possui todas as notas vinculadas com status que permite reemissão.
+     * Isso previne que notas sejam reemitidas se anterior não estiver cancelada ou com falha no cancelamento.
      *
      * @param   $invoiceId integer ID da fatura a ser verificado
-     * @return  bool retorna `true` somente quando todas as notas existentes para a fatura possuírem status 'Cancelled'.
-     * @version 2.1
+     * @return  bool retorna `true` quando todas as notas existentes para a fatura possuírem status 'Cancelled' ou 'CancelFailed'.
+     * @version 3.2
      * @author  Andre Bellafronte <andre@eunarede.com>
      */
     public function hasAllNfCancelled($invoiceId)
     {
-        $status = [];
+        $allowedStatuses = ['Cancelled', 'CancelFailed'];
         $query = Capsule::table($this->serviceInvoicesTable)->where('invoice_id', $invoiceId)
             ->distinct()->pluck('status');
 
-        foreach ($query as $value) {
-            $status[] = $value;
+        foreach ($query as $status) {
+            if (!in_array($status, $allowedStatuses)) {
+                return false;
+            }
         }
 
-        if (count($status) == 1 and in_array('Cancelled', $status)) {
-            return true;
-        } else {
-            return false;
-        }
+        return count($query) > 0;
     }
 
     /**
@@ -849,15 +847,68 @@ class Nfe
 
             $this->apiAuth();
 
+            $successCount = 0;
+            $failures = [];
+
             foreach ($existingNf as $nf) {
-                $invoice = \NFe_ServiceInvoice::fetch($nf->company_id, $nf->nfe_id);
-                $invoice->cancel();
-                $this->updateLocalNfeStatus($nf->nfe_id, 'Cancelled', 'ApiNoResponse');
+                try {
+                    $invoice = \NFe_ServiceInvoice::fetch($nf->company_id, $nf->nfe_id);
+                    $invoice->cancel();
+                    $this->updateLocalNfeStatus($nf->nfe_id, 'Cancelled', 'ApiNoResponse');
+                    $successCount++;
 
-                logModuleCall('nfeio_serviceinvoices', 'nf_cancel_series_by_invoice', $nf, $invoice);
+                    logModuleCall('nfeio_serviceinvoices', 'nf_cancel_series_by_invoice', $nf, $invoice);
+                } catch (\Exception $e) {
+                    // Check if it's a NFeObjectNotFound error (invoice not found in API)
+                    $isNotFound = strpos($e->getMessage(), 'NFeObjectNotFound') !== false
+                        || strpos($e->getMessage(), 'não encontrado') !== false;
 
+                    // Determine the appropriate flow_status message
+                    $flowStatusMsg = $isNotFound
+                        ? 'Nota não encontrada na API.'
+                        : $e->getMessage();
+
+                    $failures[] = [
+                        'nfe_id' => $nf->nfe_id,
+                        'company_id' => $nf->company_id,
+                        'invoice_id' => $invoiceId,
+                        'error' => $e->getMessage(),
+                        'is_not_found' => $isNotFound,
+                    ];
+
+                    // Update local status to 'CancelFailed' to indicate cancellation failure visually
+                    $this->updateLocalNfeStatus($nf->nfe_id, 'CancelFailed', $flowStatusMsg);
+
+                    logModuleCall(
+                        'nfeio_serviceinvoices',
+                        'nf_cancel_error',
+                        [
+                            'invoice_id' => $invoiceId,
+                            'nfe_id' => $nf->nfe_id,
+                            'company_id' => $nf->company_id,
+                        ],
+                        ['error' => $e->getMessage()]
+                    );
+                }
             }
-            return ['status' => 'success'];
+
+            // Determine response status based on results
+            $totalNfs = count($existingNf);
+            if ($successCount === $totalNfs) {
+                return ['status' => 'success'];
+            } elseif ($successCount > 0) {
+                return [
+                    'status' => 'partial',
+                    'message' => "Cancelamento parcial: {$successCount} de {$totalNfs} nota(s) cancelada(s).",
+                    'failures' => $failures,
+                ];
+            } else {
+                return [
+                    'status' => 'error',
+                    'message' => "Não foi possível cancelar as notas fiscais.",
+                    'failures' => $failures,
+                ];
+            }
         } else {
             logModuleCall(
                 'nfeio_serviceinvoices',

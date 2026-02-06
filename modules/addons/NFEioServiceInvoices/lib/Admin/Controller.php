@@ -984,6 +984,29 @@ class Controller
 
         if ($response['status'] == 'success') {
             $msg->success("Nota(s) fiscal(is) para fatura #{$invoiceId} canceladas. Sincronização do status pode demorar alguns minutos, por favor aguarde.", $redirectUrl);
+        } elseif ($response['status'] == 'partial') {
+            // Partial success - some NFs cancelled, some failed
+            $failedIds = array_map(function ($f) {
+                return $f['nfe_id'];
+            }, $response['failures']);
+            $failedList = implode(', ', $failedIds);
+            $msg->warning("{$response['message']} Notas com falha: {$failedList}. Verifique se a empresa emissora foi alterada.", $redirectUrl);
+        } elseif ($response['status'] == 'error') {
+            // All NFs failed to cancel
+            $failures = $response['failures'] ?? [];
+            if (!empty($failures)) {
+                $hasNotFoundError = array_reduce($failures, function ($carry, $f) {
+                    return $carry || ($f['is_not_found'] ?? false);
+                }, false);
+
+                if ($hasNotFoundError) {
+                    $msg->warning("Nota fiscal não encontrada na API. Verifique se a empresa emissora foi alterada.", $redirectUrl);
+                } else {
+                    $msg->error("Erro ao cancelar nota(s) fiscal(is) para fatura #{$invoiceId}. Verifique os logs para mais detalhes.", $redirectUrl);
+                }
+            } else {
+                $msg->error($response['message'] ?? "Erro ao cancelar nota(s) fiscal(is).", $redirectUrl);
+            }
         } else {
             $msg->info($response['message'], $redirectUrl);
         }

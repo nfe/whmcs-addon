@@ -9,6 +9,8 @@
         <span class="label label-success">Emitida</span>
     {elseif $data == 'Cancelled'}
         <span class="label label-danger">Cancelada</span>
+    {elseif $data == 'CancelFailed'}
+        <span class="label label-warning">Falha no Cancelamento</span>
     {elseif $data == 'Error'}
         <span class="label label-danger">Erro</span>
     {elseif $data == 'Error_cep'}
@@ -59,12 +61,12 @@
     {/if}
 {/function}
 {function name=disableGenerateButtonAction}
-    {if $data != 'Cancelled'}
+    {if $data != 'Cancelled' AND $data != 'CancelFailed'}
         disabled="true"
     {/if}
 {/function}
 {function name=disableCancelButtonAction}
-    {if $data == 'Cancelled'}
+    {if $data == 'Cancelled' OR $data == 'CancelFailed'}
         disabled="true"
     {/if}
 {/function}
