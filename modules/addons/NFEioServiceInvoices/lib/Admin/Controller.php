@@ -15,6 +15,8 @@ use Plasticbrain\FlashMessages\FlashMessages;
 use WHMCS\Exception;
 use WHMCSExpert\Template\Template;
 use NFEioServiceInvoices\Addon;
+use WHMCSExpert\Addon\Storage;
+use NFEioServiceInvoices\Configuration;
 
 
 class Controller
@@ -356,14 +358,14 @@ class Controller
 
             // salva os dados da empresa
             $response = $companyRepository->save(
-                $company_id,
-                $company_taxnumber,
+                (string) $company_id,
+                (string) $company_taxnumber,
                 $company_name,
-                $service_code,
+                (string) $service_code,
                 $iss_held,
-                $nbs_code,
-                $operation_indicator,
-                $class_code,
+                (string) $nbs_code,
+                (string) $operation_indicator,
+                (string) $class_code,
                 $company_default,
             );
 
@@ -984,6 +986,29 @@ class Controller
 
         if ($response['status'] == 'success') {
             $msg->success("Nota(s) fiscal(is) para fatura #{$invoiceId} canceladas. Sincronização do status pode demorar alguns minutos, por favor aguarde.", $redirectUrl);
+        } elseif ($response['status'] == 'partial') {
+            // Partial success - some NFs cancelled, some failed
+            $failedIds = array_map(function ($f) {
+                return $f['nfe_id'];
+            }, $response['failures']);
+            $failedList = implode(', ', $failedIds);
+            $msg->warning("{$response['message']} Notas com falha: {$failedList}. Verifique se a empresa emissora foi alterada.", $redirectUrl);
+        } elseif ($response['status'] == 'error') {
+            // All NFs failed to cancel
+            $failures = $response['failures'] ?? [];
+            if (!empty($failures)) {
+                $hasNotFoundError = array_reduce($failures, function ($carry, $f) {
+                    return $carry || ($f['is_not_found'] ?? false);
+                }, false);
+
+                if ($hasNotFoundError) {
+                    $msg->warning("Nota fiscal não encontrada na API. Verifique se a empresa emissora foi alterada.", $redirectUrl);
+                } else {
+                    $msg->error("Erro ao cancelar nota(s) fiscal(is) para fatura #{$invoiceId}. Verifique os logs para mais detalhes.", $redirectUrl);
+                }
+            } else {
+                $msg->error($response['message'] ?? "Erro ao cancelar nota(s) fiscal(is).", $redirectUrl);
+            }
         } else {
             $msg->info($response['message'], $redirectUrl);
         }
@@ -1114,8 +1139,208 @@ class Controller
             $msg->display();
         }
 
+        // Recuperar dados do webhook do Storage
+        $config = new Configuration();
+        $storage = new Storage($config->getStorageKey());
+        $webhookId = $storage->get('webhook_id');
+        $webhookSecret = $storage->get('webhook_secret');
+        $lastVerified = $storage->get('webhook_last_verified_at');
+
+        // Gerar URL do callback
+        $callbackUrl = Addon::getCallBackPath();
+
+        // Mascarar secret (apenas primeiros 8 caracteres)
+        $secretMasked = null;
+        if ($webhookSecret && strlen($webhookSecret) > 0) {
+            $secretMasked = substr($webhookSecret, 0, 8) . '...';
+        }
+
+        // Formatar timestamp de última verificação
+        $lastVerifiedFormatted = null;
+        if ($lastVerified) {
+            try {
+                $dt = new \DateTime($lastVerified);
+                $lastVerifiedFormatted = $dt->format('d/m/Y H:i:s');
+            } catch (\Exception $e) {
+                $lastVerifiedFormatted = $lastVerified; // fallback para valor original
+            }
+        }
+
+        // Construir array de dados do webhook
+        $vars['webhook'] = [
+            'id' => $webhookId,
+            'secret_masked' => $secretMasked,
+            'url' => $callbackUrl,
+            'last_verified' => $lastVerifiedFormatted,
+            'configured' => !empty($webhookId)
+        ];
+
         $vars['assetsURL'] = $assetsURL;
 
         return $template->fetch('about', $vars);
+    }
+
+    /**
+     * Verifica o status do webhook na API NFE.io
+     *
+     * Este método realiza a verificação on-demand do webhook configurado,
+     * validando sua existência, consistência de URL e status ativo na API NFE.io.
+     * Registra logs detalhados e exibe mensagens de feedback via FlashMessages.
+     *
+     * @param array $vars Variáveis fornecidas pelo WHMCS
+     * @return void Redireciona para a página Sobre após verificação
+     * @throws \Exception Em caso de erros inesperados
+     * @since 3.1.1
+     * @version 3.1.1
+     */
+    public function verifyWebhook($vars)
+    {
+        // Verificar autenticação de administrador
+        Addon::I()->isAdmin(true);
+
+        $config = new Configuration();
+        $storage = new Storage($config->getStorageKey());
+        $msg = new FlashMessages();
+        $redirectUrl = $vars['modulelink'] . '&action=about';
+
+        // Recuperar webhook_id do Storage
+        $webhookId = $storage->get('webhook_id');
+
+        // Verificar se webhook está configurado
+        if (empty($webhookId)) {
+            $msg->info(
+                'Webhook não configurado. Será criado automaticamente na primeira emissão de nota fiscal.',
+                $redirectUrl
+            );
+            return;
+        }
+
+        try {
+            // Instanciar classe Nfe e buscar webhook na API
+            $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
+            $webhook = $nfe->getWebhook($webhookId);
+
+            // Verificar se webhook existe (não retornou erro)
+            if (is_array($webhook) && isset($webhook['error'])) {
+                // Webhook não encontrado na API
+                $errorMessage = isset($webhook['message']) ? $webhook['message'] : 'Erro desconhecido';
+                
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'webhook_verify_notfound',
+                    ['webhook_id' => $webhookId],
+                    $errorMessage
+                );
+
+                $msg->warning(
+                    'Webhook não encontrado na API. Será recriado automaticamente na próxima emissão de nota fiscal.',
+                    $redirectUrl
+                );
+                return;
+            }
+
+            // Webhook encontrado - validar configuração
+            $callbackUrl = Addon::getCallBackPath();
+            $apiWebhookUrl = isset($webhook->hooks->url) ? $webhook->hooks->url : null;
+
+            // Verificar consistência de URL
+            if ($apiWebhookUrl !== $callbackUrl) {
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'webhook_verify_url_mismatch',
+                    [
+                        'webhook_id' => $webhookId,
+                        'local_url' => $callbackUrl,
+                        'api_url' => $apiWebhookUrl
+                    ],
+                    $webhook
+                );
+
+                $msg->warning(
+                    "URL do webhook não corresponde ao esperado.<br>" .
+                    "API: <code>{$apiWebhookUrl}</code><br>" .
+                    "Local: <code>{$callbackUrl}</code><br>" .
+                    "Considere emitir uma nova NF para recriar o webhook.",
+                    $redirectUrl
+                );
+                return;
+            }
+
+            // Verificar status do webhook (ativo/inativo/deleted)
+            $webhookStatus = isset($webhook->hooks->status) ? $webhook->hooks->status : 'unknown';
+            if (in_array(strtolower($webhookStatus), ['deleted', 'disabled', 'inactive'])) {
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'webhook_verify_error',
+                    ['webhook_id' => $webhookId, 'status' => $webhookStatus],
+                    $webhook
+                );
+
+                $msg->error(
+                    "Webhook marcado como inativo na API. Status: {$webhookStatus}<br>" .
+                    "Emita uma nova nota fiscal para recriar o webhook.",
+                    $redirectUrl
+                );
+                return;
+            }
+
+            // Verificação bem-sucedida - atualizar timestamp
+            $now = new \DateTime('now', new \DateTimeZone('America/Sao_Paulo'));
+            $storage->set('webhook_last_verified_at', $now->format('c')); // ISO8601 com timezone
+
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'webhook_verify_success',
+                [
+                    'webhook_id' => $webhookId,
+                    'expected_url' => $callbackUrl
+                ],
+                $webhook
+            );
+
+            $msg->success(
+                'Webhook verificado com sucesso! Configuração está correta na API NFE.io.',
+                $redirectUrl
+            );
+
+        } catch (\Exception $e) {
+            // Tratar erros de comunicação com API ou exceções inesperadas
+            $errorMessage = $e->getMessage();
+            $errorCode = $e->getCode();
+
+            // Verificar se é erro de autenticação
+            if ($errorCode == 401 || $errorCode == 403) {
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'webhook_verify_error',
+                    ['webhook_id' => $webhookId, 'error_code' => $errorCode],
+                    ['error' => $errorMessage]
+                );
+
+                $msg->error(
+                    'Erro de autenticação. Verifique se a API Key está correta na configuração do módulo.',
+                    $redirectUrl
+                );
+                return;
+            }
+
+            // Erro genérico (timeout, connection, etc)
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'webhook_verify_error',
+                [
+                    'webhook_id' => $webhookId,
+                    'error_code' => $errorCode,
+                    'error_message' => $errorMessage
+                ],
+                $e->getTraceAsString()
+            );
+
+            $msg->error(
+                'Erro ao conectar com API NFE.io. Verifique sua conexão ou tente novamente mais tarde.<br>' .
+                'Consulte os logs do módulo para mais detalhes.',
+                $redirectUrl
+            );
+        }
     }
 }

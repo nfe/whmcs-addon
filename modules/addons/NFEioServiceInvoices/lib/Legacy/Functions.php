@@ -164,8 +164,8 @@ class Functions
             if (!$newHook) {
                 return (object)['message' => 'Erro ao criar novo webhook'];
             }
-            $storage->set('webhook_id', $newHook->hooks->id);
-            $storage->set('webhook_secret', $newHook->hooks->secret);
+            $storage->set('webhook_id', (string) $newHook->hooks->id);
+            $storage->set('webhook_secret', (string) $newHook->hooks->secret);
         }
 
 

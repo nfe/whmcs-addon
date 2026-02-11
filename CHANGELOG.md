@@ -1,3 +1,39 @@
+## v3.1.1 (Em desenvolvimento)
+Esta versão adiciona melhorias na interface administrativa, aprimora o fluxo de cancelamento de notas fiscais e inclui ferramentas de diagnóstico para a configuração de webhooks.
+
+### Novos Recursos
+#### Visualização de Informações do Webhook na Página Sobre
+Administradores agora podem visualizar informações detalhadas sobre o webhook configurado diretamente na página "Sobre" do módulo, facilitando o diagnóstico de problemas de integração.
+
+**Informações Exibidas:**
+- **URL do Webhook**: Endpoint local para recebimento de callbacks da NFE.io
+- **ID do Webhook**: Identificador único do webhook registrado na API
+- **Secret (mascarado)**: Primeiros 8 caracteres do secret para verificação de segurança
+- **Última Verificação**: Timestamp da última validação manual realizada
+
+**Verificação Manual do Webhook:**
+
+Um novo botão "Verificar Status na API" permite que administradores validem sob demanda se o webhook está corretamente configurado na API NFE.io, incluindo:
+- Verificação de existência do webhook na API
+- Validação de consistência da URL entre configuração local e API
+- Verificação de status ativo do webhook
+- Logs detalhados de todas as operações de verificação
+
+Esta funcionalidade auxilia no diagnóstico de problemas relacionados ao recebimento de callbacks, reduzindo o tempo de troubleshooting e melhorando a transparência da configuração do sistema.
+
+### Melhorias
+#### Tratamento de cancelamento de notas fiscais
+O fluxo de cancelamento de notas fiscais foi aprimorado para lidar melhor com cenários de falha parcial ou inconsistências entre o módulo e a API:
+
+- Identificação de cancelamentos parciais: quando apenas parte da série de NFs é cancelada com sucesso, o módulo exibe uma mensagem de aviso listando as notas que falharam e orientando a verificação da empresa emissora configurada.
+- Novo status "Falha no Cancelamento" na listagem de notas, permitindo que administradores identifiquem visualmente notas cuja tentativa de cancelamento não foi concluída com sucesso (referência: #180).
+- Ajuste na regra de reemissão para considerar notas com status "Cancelled" e "CancelFailed" como elegíveis, evitando que o fluxo fique travado quando a nota já não existe mais na API, mas permanece registrada localmente.
+- Mensagens mais claras quando a API informa que a nota não foi encontrada, sugerindo a verificação de possíveis alterações na empresa emissora configurada para a fatura.
+
+### Correções
+- Conversão explícita para string ao salvar o ID e o secret do webhook no armazenamento legado, evitando inconsistências de tipo em ambientes mais recentes. Referência: #182.
+- Conversão explícita para string dos campos de configuração de empresa (ID da empresa, CNPJ, código de serviço, código NBS, indicador de operação e classificação tributária) antes da persistência, garantindo maior consistência dos dados e compatibilidade com os novos campos adicionados para a Reforma Tributária.
+
 ## v3.1.0
 A versão 3.1.0 implementa o suporte à Reforma Tributária Brasileira, com a inclusão de novos campos obrigatórios para a emissão de notas fiscais de serviço.
 

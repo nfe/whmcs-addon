@@ -20,5 +20,32 @@
       </div>
     </div>
   </div>
+
+  <div class="panel panel-info">
+    <div class="panel-heading">
+      <h3 class="panel-title">Webhook de Callbacks</h3>
+    </div>
+    <div class="panel-body">
+      <dl class="dl-horizontal">
+        <dt>URL:</dt>
+        <dd><code>{$webhook.url}</code></dd>
+        
+        <dt>ID:</dt>
+        <dd><code>{$webhook.id|default:"Não configurado"}</code></dd>
+        
+        <dt>Secret:</dt>
+        <dd><code>{$webhook.secret_masked|default:"N/A"}</code></dd>
+        
+        <dt>Última verificação:</dt>
+        <dd>{$webhook.last_verified|default:"Nunca verificado"}</dd>
+      </dl>
+      
+      <form method="post" action="{$modulelink}&action=verifyWebhook" style="margin-top: 15px;">
+        <button type="submit" class="btn btn-primary">
+          <i class="fa fa-refresh"></i> Verificar Status na API
+        </button>
+      </form>
+    </div>
+  </div>
 </div>
 </div>
