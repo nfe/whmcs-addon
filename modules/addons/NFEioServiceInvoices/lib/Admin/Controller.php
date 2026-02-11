@@ -358,14 +358,14 @@ class Controller
 
             // salva os dados da empresa
             $response = $companyRepository->save(
-                $company_id,
-                $company_taxnumber,
+                (string) $company_id,
+                (string) $company_taxnumber,
                 $company_name,
-                $service_code,
+                (string) $service_code,
                 $iss_held,
-                $nbs_code,
-                $operation_indicator,
-                $class_code,
+                (string) $nbs_code,
+                (string) $operation_indicator,
+                (string) $class_code,
                 $company_default,
             );
 
