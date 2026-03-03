@@ -941,15 +941,53 @@ class Nfe
     }
 
     /**
+     * Executa uma requisição cURL para a API de Webhooks da NFE.io (api.nfse.io/v2).
+     *
+     * @param string $uri O endpoint URI (ex: 'webhooks' ou 'webhooks/{id}').
+     * @param string $method O método HTTP (padrão: 'GET').
+     * @param array|null $data Dados para o corpo da requisição (POST/PUT).
+     * @param int $timeout Tempo limite em segundos (padrão: 5).
+     * @return array Array com 'response', 'error' e 'info'.
+     */
+    private function executeWebhookCurl($uri, $method = 'GET', $data = null, $timeout = 5)
+    {
+        $headers = [
+            'Content-Type: application/json',
+            'Accept: application/json',
+            'Authorization: ' . $this->storage->get('api_key'),
+        ];
+        $curl = curl_init();
+        curl_setopt($curl, CURLOPT_URL, 'https://api.nfse.io/v2/' . $uri);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+
+        if ($method === 'POST' || $method === 'PUT') {
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+        }
+
+        $response = curl_exec($curl);
+        $error = curl_error($curl);
+        $info = curl_getinfo($curl);
+        curl_close($curl);
+
+        return [
+            'response' => $response,
+            'error' => $error,
+            'info' => $info,
+        ];
+    }
+
+    /**
      * Cria um webhook na NFE.io para receber eventos específicos.
+     * Utiliza a API v2 em api.nfse.io/v2/webhooks (sem company scope).
      *
      * @param string $url URL que receberá as notificações do webhook.
-     * @return \NFe_Webhook|array Retorna a instância do webhook criado ou um array com chave 'error' em caso de falha.
-     * @throws \Exception
+     * @return object|array Retorna o objeto do webhook criado ou um array com chave 'error' em caso de falha.
      */
     public function createWebhook($url)
     {
-        $this->apiAuth();
         $data = [
             'url' => $url,
             'contentType' => 'application/json',
@@ -958,35 +996,49 @@ class Nfe
             'status' => 'active',
         ];
 
-        try {
-            $hook = \NFe_Webhook::create($data);
-            logModuleCall('nfeio_serviceinvoices', 'create_webhook', $data, $hook);
-            return $hook;
-        } catch (\Exception $exception) {
-            logModuleCall('nfeio_serviceinvoices', 'create_webhook_error', $data, $exception->getMessage());
-            return ['error' => $exception->getMessage()];
+        $result = $this->executeWebhookCurl('webhooks', 'POST', $data);
+
+        if ($result['error']) {
+            logModuleCall('nfeio_serviceinvoices', 'create_webhook_error', $data, $result);
+            return ['error' => $result['error']];
         }
+
+        $decoded = json_decode($result['response']);
+
+        if ($result['info']['http_code'] >= 400 || !$decoded) {
+            logModuleCall('nfeio_serviceinvoices', 'create_webhook_error', $data, $result);
+            return ['error' => 'HTTP ' . $result['info']['http_code'] . ': ' . $result['response']];
+        }
+
+        logModuleCall('nfeio_serviceinvoices', 'create_webhook', $data, $decoded);
+        return $decoded;
     }
 
     /**
      * Recupera um webhook existente na NFE.io.
+     * Utiliza a API v2 em api.nfse.io/v2/webhooks/{id} (sem company scope).
      *
      * @param string $webhookId ID do webhook a ser buscado.
-     * @return \NFe_Webhook|array Retorna a instância do webhook ou um array com chave 'error' em caso de falha.
+     * @return object|array Retorna o objeto do webhook ou um array com chave 'error' em caso de falha.
      */
     public function getWebhook(string $webhookId)
     {
-        $this->apiAuth();
+        $result = $this->executeWebhookCurl('webhooks/' . $webhookId);
 
-        try {
-            $webhook = \NFe_Webhook::fetch($webhookId);
-            logModuleCall('nfeio_serviceinvoices', 'get_webhook', $webhookId, $webhook);
-            return $webhook;
-        } catch (\Exception $e) {
-            $error = $e->getMessage();
-            logModuleCall('nfeio_serviceinvoices', 'get_webhook_error', $webhookId, $error);
-            return ['error' => $error];
+        if ($result['error']) {
+            logModuleCall('nfeio_serviceinvoices', 'get_webhook_error', ['webhook_id' => $webhookId], $result);
+            return ['error' => $result['error']];
         }
+
+        $decoded = json_decode($result['response']);
+
+        if ($result['info']['http_code'] >= 400 || !$decoded) {
+            logModuleCall('nfeio_serviceinvoices', 'get_webhook_error', ['webhook_id' => $webhookId], $result);
+            return ['error' => 'HTTP ' . $result['info']['http_code'] . ': ' . $result['response']];
+        }
+
+        logModuleCall('nfeio_serviceinvoices', 'get_webhook', ['webhook_id' => $webhookId], $decoded);
+        return $decoded;
     }
 
     /**
