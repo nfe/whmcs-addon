@@ -65,10 +65,8 @@ class Validations
      */
     public static function webhookHashValid(string $secret, $payload, string $signature, string $algo = "sha1"): bool
     {
-        $instance = new self();
-        $hash = $instance->webhookComputeHash($algo, $secret, $payload);
-        $signature = base64_decode($signature);
-        return hash_equals($hash, $signature);
+        $computed_hex = hash_hmac($algo, $payload, utf8_encode($secret));
+        return hash_equals(strtolower($computed_hex), strtolower($signature));
     }
 
     /**
