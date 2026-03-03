@@ -151,21 +151,33 @@ class Functions
     function gnfe_issue_nfe($postfields, $companyId)
     {
         $webhook_url = Addon::getCallBackPath();
-        $webhook_id = $this->gnfe_config('webhook_id');
         $_storageKey = Addon::I()->configuration()->storageKey;
         $storage = new Storage($_storageKey);
         $nfeio = new \NFEioServiceInvoices\NFEio\Nfe();
 
+        // Recupera webhook_id de forma segura (pode não existir no banco)
+        $webhook_id = $storage->get('webhook_id');
 
         // Verifica se o webhook existe e é válido, senão cria
-        $webhook = $webhook_id ? $nfeio->getWebhook($webhook_id) : null;
-        if (!$webhook || $webhook->hooks->url !== $webhook_url) {
+        $webhook = !empty($webhook_id) ? $nfeio->getWebhook($webhook_id) : null;
+
+        // Se getWebhook retornou erro (array), trata como inexistente
+        if (is_array($webhook) && isset($webhook['error'])) {
+            $webhook = null;
+        }
+
+        $webhookUrlMatch = is_object($webhook) && isset($webhook->hooks->url) && $webhook->hooks->url === $webhook_url;
+
+        if (!$webhook || !$webhookUrlMatch) {
             $newHook = $nfeio->createWebhook($webhook_url);
-            if (!$newHook) {
-                return (object)['message' => 'Erro ao criar novo webhook'];
+
+            // Verifica se createWebhook retornou erro (array) ou falhou
+            if (!$newHook || (is_array($newHook) && isset($newHook['error']))) {
+                logModuleCall('nfeio_serviceinvoices', 'webhook_create_failed', $webhook_url, $newHook);
+            } elseif (is_object($newHook) && isset($newHook->hooks->id)) {
+                $storage->set('webhook_id', (string) $newHook->hooks->id);
+                $storage->set('webhook_secret', (string) $newHook->hooks->secret);
             }
-            $storage->set('webhook_id', (string) $newHook->hooks->id);
-            $storage->set('webhook_secret', (string) $newHook->hooks->secret);
         }
 
 
