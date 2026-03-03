@@ -625,7 +625,7 @@ class Nfe
             'description' => $description,
             'servicesAmount' => $amount,
             'externalId' => $externalId,
-            'nbsCode' => $nbsCode,
+            'nbsCode' => !empty($nbsCode) ? $nbsCode : null,
             'borrower' => [
                 'federalTaxNumber' => $customer['document'],
                 'municipalTaxNumber' => $customer['insc_municipal'],
@@ -646,8 +646,8 @@ class Nfe
                 ]
             ],
             'IbsCbs' => [
-                'operationIndicator' => $operationCode,
-                'classCode' => $classCode,
+                'operationIndicator' => !empty($operationCode) ? $operationCode : null,
+                'classCode' => !empty($classCode) ? $classCode : null,
             ]
         ];
 
