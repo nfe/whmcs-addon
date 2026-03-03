@@ -949,7 +949,7 @@ class Nfe
      * @param int $timeout Tempo limite em segundos (padrão: 5).
      * @return array Array com 'response', 'error' e 'info'.
      */
-    private function executeWebhookCurl($uri, $method = 'GET', $data = null, $timeout = 5)
+    private function executeWebhookCurl($uri, $method = 'GET', $data = null, $timeout = 30)
     {
         $headers = [
             'Content-Type: application/json',
