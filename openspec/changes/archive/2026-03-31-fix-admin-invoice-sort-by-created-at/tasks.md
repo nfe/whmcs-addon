@@ -10,5 +10,5 @@
 ## 3. Validação
 
 - [x] 3.1 Executar `php -l` nos arquivos PHP alterados para verificar sintaxe
-- [ ] 3.2 Verificar manualmente no painel admin que a listagem exibe a nota mais recente no topo por padrão
-- [ ] 3.3 Verificar que clicar no cabeçalho "Gerado em" ordena corretamente por data/hora
+- [x] 3.2 Verificar manualmente no painel admin que a listagem exibe a nota mais recente no topo por padrão
+- [x] 3.3 Verificar que clicar no cabeçalho "Gerado em" ordena corretamente por data/hora
