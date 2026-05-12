@@ -65,10 +65,11 @@ class Validations
      */
     public static function webhookHashValid(string $secret, $payload, string $signature, string $algo = "sha1"): bool
     {
-        $instance = new self();
-        $hash = $instance->webhookComputeHash($algo, $secret, $payload);
-        $signature = base64_decode($signature);
-        return hash_equals($hash, $signature);
+        // NFE.io envia X-Hub-Signature como HMAC em hexadecimal (ex: "sha1=AD0A...CDF").
+        // O callback já remove o prefixo "<algo>=" antes de passar pra cá, então $signature
+        // é hex puro. Comparamos hex contra hex em hash_equals com normalização de case.
+        $computed_hex = hash_hmac($algo, $payload, utf8_encode($secret));
+        return hash_equals(strtolower($computed_hex), strtolower($signature));
     }
 
     /**
