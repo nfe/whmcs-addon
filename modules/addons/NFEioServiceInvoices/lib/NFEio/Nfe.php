@@ -988,12 +988,17 @@ class Nfe
      */
     public function createWebhook($url)
     {
+        // Schema v2: payload envelopado em `webHook`, campo `uri` (não `url`),
+        // `contentType` aceita apenas "json" | "form-urlencoded".
+        // `filters` é omitido para receber todos os eventos da conta — o callback
+        // valida o payload e descarta o que não for NFS-e.
         $data = [
-            'url' => $url,
-            'contentType' => 'application/json',
-            'secret' => Validations::generateSecretKey(),
-            'events' => ['issue', 'cancel', 'WaitingCalculateTaxes'],
-            'status' => 'active',
+            'webHook' => [
+                'uri' => $url,
+                'contentType' => 'json',
+                'secret' => Validations::generateSecretKey(),
+                'status' => 'active',
+            ],
         ];
 
         $result = $this->executeWebhookCurl('webhooks', 'POST', $data);
