@@ -126,7 +126,7 @@
                                     </td>
                                     <td>R${$nota->services_amount}</td>
                                     <td class="text-center">{$nota->emissor_tax_number} - {$nota->emissor_name}</td>
-                                    <td class="text-center"><abbr
+                                    <td class="text-center" data-order="{$nota->created_at}"><abbr
                                                 title="{$nota->created_at}">{$nota->created_at|date_format:"%d/%m/%Y"}</abbr>
                                     </td>
                                     <td>
@@ -240,7 +240,7 @@
                 language: {
                     url: "https://cdn.datatables.net/plug-ins/1.11.3/i18n/pt_br.json"
                 },
-                order: [[0, "desc"]]
+                order: [[6, "desc"]] // column 6 = "Gerado em"; update if columns are reordered
             });
             // botao de confirmacao do cancelamento da nota
             $('#confirmCancel').click(function () {
