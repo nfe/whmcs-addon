@@ -1,4 +1,39 @@
-## v3.1.1 (Em desenvolvimento)
+## v3.2.0
+Esta versão migra a integração de webhooks para a API v2 da NFE.io, corrige a validação HMAC dos callbacks que estava bloqueando 100% das notificações, e inclui melhorias na ordenação da lista de notas fiscais no admin.
+
+### Melhorias
+#### Migração da integração de webhooks para API v2
+A integração de webhooks foi migrada do endpoint v1 descontinuado (`api.nfe.io/v1/hooks`, que passou a retornar 404) para a API v2 (`api.nfse.io/v2/webhooks`). A migração é automática: webhooks v1 antigos armazenados localmente são detectados como inválidos pela API v2 e o módulo cria um webhook v2 novo na próxima emissão de NF, sem ação manual necessária.
+
+Mudanças associadas:
+- Payload de criação alinhado ao schema v2 (envelope `webHook`, campo `uri`, `contentType: "json"`).
+- Filtros específicos do ciclo NFS-e aplicados ao webhook (`service_invoice.issued`, `service_invoice.cancelled` e seus estados `*_successfully`/`*_error`/`*_failed`) — reduz ruído de eventos não relacionados a notas de serviço.
+- Timeout das chamadas de webhook aumentado de 5s para 30s, alinhado ao comportamento da API v2.
+
+Referência: #196 (supersedes #190 e #191).
+
+#### Ordenação da lista de notas fiscais por data de criação
+A listagem de notas fiscais no admin agora ordena por `created_at` em vez do `id` da tabela local. Cenários onde IDs locais não refletem a ordem cronológica de emissão (reemissão, importação manual) passam a ser exibidos na ordem correta. O DataTables client-side também respeita a nova ordem via atributo `data-order` com o valor ISO bruto.
+
+Referência: #197.
+
+### Correções
+#### Validação HMAC de webhooks
+A comparação da assinatura HMAC do callback estava aplicando `base64_decode()` numa string hexadecimal, causando rejeição de 100% das notificações com HTTP 403 "Assinatura inválida". Corrigido para comparar a assinatura hex recebida diretamente contra `hash_hmac` em hex, alinhado ao formato documentado pela NFE.io e ao padrão `X-Hub-Signature` usado por outros provedores.
+
+Crédito original do diagnóstico: @ianchamba (#190, incorporada via #196).
+
+#### Parsing do envelope de notificação v2
+Webhooks v2 entregam o payload no formato `{"action": "<event>", "payload": {...}}`. O callback foi ajustado para desembrulhar esse envelope antes de validar os campos esperados (`id`, `status`, `flowStatus`, `environment`), evitando rejeição com HTTP 400 "Payload inválido".
+
+Referência: #196.
+
+#### Envio de campos IbsCbs vazios
+Os campos `operationIndicator`, `classCode` e `nbsCode` da Reforma Tributária estavam sendo enviados como string vazia quando não preenchidos, gerando erro `RNG6110` no provedor. Agora são enviados como `null` nessas condições.
+
+Referência: #188.
+
+## v3.1.1
 Esta versão adiciona melhorias na interface administrativa, aprimora o fluxo de cancelamento de notas fiscais e inclui ferramentas de diagnóstico para a configuração de webhooks.
 
 ### Novos Recursos
