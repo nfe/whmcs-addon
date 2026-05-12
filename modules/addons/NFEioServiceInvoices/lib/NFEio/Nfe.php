@@ -990,14 +990,24 @@ class Nfe
     {
         // Schema v2: payload envelopado em `webHook`, campo `uri` (não `url`),
         // `contentType` aceita apenas "json" | "form-urlencoded".
-        // `filters` é omitido para receber todos os eventos da conta — o callback
-        // valida o payload e descarta o que não for NFS-e.
+        // `filters` restringe a entrega ao ciclo de NFS-e (emissão + cancelamento);
+        // event types validados via GET /v2/webhooks/eventTypes.
         $data = [
             'webHook' => [
                 'uri' => $url,
                 'contentType' => 'json',
                 'secret' => Validations::generateSecretKey(),
                 'status' => 'active',
+                'filters' => [
+                    'service_invoice.issued',
+                    'service_invoice.issued_successfully',
+                    'service_invoice.issued_error',
+                    'service_invoice.issued_failed',
+                    'service_invoice.cancelled',
+                    'service_invoice.cancelled_successfully',
+                    'service_invoice.cancelled_error',
+                    'service_invoice.cancelled_failed',
+                ],
             ],
         ];
 
