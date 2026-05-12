@@ -97,16 +97,17 @@ class Functions
             $result['insc_municipal'] = $inscMunicipalCustomFieldValue;
         }
 
-        if ($cpfIsValid) {
-            $result['success'] = true;
-            $result['doc_type'] = 1;
-            $result['document'] = $cpf;
-            $result['name'] = $client->firstname . ' ' . $client->lastname;
-        } elseif ($cnpjIsValid) {
+        // INVERTEMOS A ORDEM AQUI: CNPJ PRIMEIRO!
+        if ($cnpjIsValid) { 
             $result['success'] = true;
             $result['doc_type'] = 2;
             $result['document'] = $cnpj;
             $result['name'] = $client->companyname ? $client->companyname : $client->firstname . ' ' . $client->lastname;
+        } elseif ($cpfIsValid) { 
+            $result['success'] = true;
+            $result['doc_type'] = 1;
+            $result['document'] = $cpf;
+            $result['name'] = $client->firstname . ' ' . $client->lastname;
         } else {
             $result['error'] = true;
             $result['message'] = 'Documento cadastrado não é um CPF ou CNPJ válido.';
@@ -159,13 +160,21 @@ class Functions
 
         // Verifica se o webhook existe e é válido, senão cria
         $webhook = $webhook_id ? $nfeio->getWebhook($webhook_id) : null;
-        if (!$webhook || $webhook->hooks->url !== $webhook_url) {
+        
+        $webhookValido = false;
+        // Confirma se o retorno é um objeto e tem a URL antes de tentar ler
+        if (is_object($webhook) && isset($webhook->hooks) && $webhook->hooks->url === $webhook_url) {
+            $webhookValido = true;
+        }
+
+        if (!$webhookValido) {
             $newHook = $nfeio->createWebhook($webhook_url);
-            if (!$newHook) {
-                return (object)['message' => 'Erro ao criar novo webhook'];
+            
+            // Só salva no banco se NÃO for um erro E se o objeto contiver os dados
+            if ($newHook && !is_array($newHook) && isset($newHook->hooks)) {
+                $storage->set('webhook_id', (string) $newHook->hooks->id);
+                $storage->set('webhook_secret', (string) $newHook->hooks->secret);
             }
-            $storage->set('webhook_id', (string) $newHook->hooks->id);
-            $storage->set('webhook_secret', (string) $newHook->hooks->secret);
         }
 
 

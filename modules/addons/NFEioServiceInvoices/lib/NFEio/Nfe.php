@@ -424,6 +424,28 @@ class Nfe
         $clientId = $clientData[0]['id'];
         $clientCompanyId = $clientCompanyRepository->getCompanyByClientId($clientId);
 
+        // Validação do país do cliente
+        $clientCountry = isset($clientData[0]['country']) ? $clientData[0]['country'] : null;
+        $allowedCountries = $this->storage->get('issue_note_countries');
+
+        // Decodifica a string JSON
+        if (is_string($allowedCountries)) {
+            $allowedCountries = json_decode($allowedCountries, true);
+        }
+
+        if ($allowedCountries && is_array($allowedCountries)) {
+            if ($clientCountry && !in_array($clientCountry, $allowedCountries)) {
+                // País não permitido, não emite nota
+                logModuleCall('nfeio_serviceinvoices', 'nf_queue_country_block', [
+                    'invoiceId' => $invoiceId,
+                    'clientId' => $clientId,
+                    'clientCountry' => $clientCountry,
+                    'allowedCountries' => $allowedCountries
+                ], 'Nota fiscal não emitida: país do cliente não está entre os permitidos.');
+                return ['success' => false, 'reason' => 'client_country_not_allowed'];
+            }
+        }
+
         // se cliente possuir empresa associada, utiliza a empresa associada, senao usa a empresa padrão
         // #163
         if ($clientCompanyId) {

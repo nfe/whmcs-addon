@@ -449,6 +449,58 @@ class Controller
             $vars['moduleCallBackUrl'] = $moduleCallBackUrl;
             $vars['companies'] = $registeredCompanies;
 
+            // Lista de países (nome e código)
+            $isoCountries = [
+                'BR' => 'Brasil', 'US' => 'Estados Unidos', 'AR' => 'Argentina', 'DE' => 'Alemanha', 'FR' => 'França',
+                'IT' => 'Itália', 'JP' => 'Japão', 'CN' => 'China', 'GB' => 'Reino Unido', 'CA' => 'Canadá',
+                'MX' => 'México', 'ES' => 'Espanha', 'PT' => 'Portugal', 'RU' => 'Rússia', 'IN' => 'Índia',
+                'AU' => 'Austrália', 'ZA' => 'África do Sul', 'NL' => 'Holanda', 'CH' => 'Suíça', 'SE' => 'Suécia',
+                'NO' => 'Noruega', 'FI' => 'Finlândia', 'DK' => 'Dinamarca', 'KR' => 'Coreia do Sul', 'CL' => 'Chile',
+                'CO' => 'Colômbia', 'PE' => 'Peru', 'PL' => 'Polônia', 'TR' => 'Turquia', 'NZ' => 'Nova Zelândia',
+                'IE' => 'Irlanda', 'BE' => 'Bélgica', 'AT' => 'Áustria', 'CZ' => 'República Tcheca', 'HU' => 'Hungria',
+                'GR' => 'Grécia', 'IL' => 'Israel', 'SG' => 'Singapura', 'TH' => 'Tailândia', 'UA' => 'Ucrânia',
+                'RO' => 'Romênia', 'BG' => 'Bulgária', 'HR' => 'Croácia', 'SK' => 'Eslováquia', 'SI' => 'Eslovênia',
+                'EE' => 'Estônia', 'LT' => 'Lituânia', 'LV' => 'Letônia', 'LU' => 'Luxemburgo', 'IS' => 'Islândia',
+                'MT' => 'Malta', 'CY' => 'Chipre', 'EG' => 'Egito', 'SA' => 'Arábia Saudita', 'AE' => 'Emirados Árabes',
+                'QA' => 'Catar', 'KW' => 'Kuwait', 'JO' => 'Jordânia', 'LB' => 'Líbano', 'IR' => 'Irã', 'PK' => 'Paquistão',
+                'ID' => 'Indonésia', 'MY' => 'Malásia', 'PH' => 'Filipinas', 'VN' => 'Vietnã', 'BD' => 'Bangladesh',
+                'NG' => 'Nigéria', 'KE' => 'Quênia', 'GH' => 'Gana', 'TZ' => 'Tanzânia', 'UG' => 'Uganda', 'MA' => 'Marrocos',
+                'DZ' => 'Argélia', 'TN' => 'Tunísia', 'SN' => 'Senegal', 'CI' => 'Costa do Marfim', 'CM' => 'Camarões',
+                'ET' => 'Etiópia', 'SD' => 'Sudão', 'AO' => 'Angola', 'MZ' => 'Moçambique', 'ZW' => 'Zimbábue',
+                'GH' => 'Gana', 'RW' => 'Ruanda', 'UG' => 'Uganda', 'ZM' => 'Zâmbia', 'MW' => 'Malawi', 'LS' => 'Lesoto',
+                'SZ' => 'Suazilândia', 'BW' => 'Botsuana', 'NA' => 'Namíbia', 'CD' => 'Congo', 'CG' => 'Congo',
+                'GA' => 'Gabão', 'GQ' => 'Guiné Equatorial', 'ST' => 'São Tomé e Príncipe', 'CV' => 'Cabo Verde',
+                'GM' => 'Gâmbia', 'SL' => 'Serra Leoa', 'LR' => 'Libéria', 'BF' => 'Burkina Faso', 'NE' => 'Níger',
+                'ML' => 'Mali', 'MR' => 'Mauritânia', 'BJ' => 'Benin', 'TG' => 'Togo', 'CI' => 'Costa do Marfim',
+                'GN' => 'Guiné', 'GW' => 'Guiné-Bissau', 'SR' => 'Suriname', 'GY' => 'Guiana', 'TT' => 'Trinidad e Tobago',
+                'JM' => 'Jamaica', 'HT' => 'Haiti', 'DO' => 'República Dominicana', 'CU' => 'Cuba', 'BS' => 'Bahamas',
+                'BB' => 'Barbados', 'AG' => 'Antígua e Barbuda', 'VC' => 'São Vicente e Granadinas', 'LC' => 'Santa Lúcia',
+                'GD' => 'Granada', 'KN' => 'São Cristóvão e Nevis', 'DM' => 'Dominica', 'FM' => 'Micronésia', 'PW' => 'Palau',
+                'MH' => 'Ilhas Marshall', 'SB' => 'Ilhas Salomão', 'VU' => 'Vanuatu', 'FJ' => 'Fiji', 'WS' => 'Samoa',
+                'TO' => 'Tonga', 'TV' => 'Tuvalu', 'KI' => 'Quiribati', 'NR' => 'Nauru', 'PG' => 'Papua Nova Guiné',
+                'NC' => 'Nova Caledônia', 'PF' => 'Polinésia Francesa', 'FR' => 'França', 'ES' => 'Espanha', 'PT' => 'Portugal',
+            ];
+            $vars['countries'] = [];
+            foreach ($isoCountries as $code => $name) {
+                $vars['countries'][] = ['code' => $code, 'name' => $name];
+            }
+
+            // Carregar países selecionados
+            $storage = new \WHMCSExpert\Addon\Storage($config->getStorageKey());
+            $selectedCountries = $storage->get('issue_note_countries');
+            
+            // Decodifica a string JSON vinda do banco de dados
+            if (is_string($selectedCountries)) {
+                $selectedCountries = json_decode($selectedCountries, true);
+            }
+
+            if ($selectedCountries && is_array($selectedCountries)) {
+                $vars['issue_note_countries'] = $selectedCountries;
+            } else {
+                // Seleciona todos por padrão apenas se não existe no banco
+                $vars['issue_note_countries'] = array_keys($isoCountries);
+            }
+
 
             if ($msg->hasMessages()) {
                 $msg->display();
@@ -476,6 +528,23 @@ class Controller
      */
     public function configurationSave($vars)
     {
+        $config = new \NFEioServiceInvoices\Configuration();
+        $storage = new \WHMCSExpert\Addon\Storage($config->getStorageKey());
+        $post = isset($_POST) ? $_POST : null;
+
+        // Salvar países selecionados
+        $issue_note_countries = isset($post['issue_note_countries']) ? $post['issue_note_countries'] : [];
+        if (empty($issue_note_countries)) {
+            // Se não vier nada, salva todos
+            $isoCountries = [
+                'BR','US','AR','DE','FR','IT','JP','CN','GB','CA','MX','ES','PT','RU','IN','AU','ZA','NL','CH','SE','NO','FI','DK','KR','CL','CO','PE','PL','TR','NZ','IE','BE','AT','CZ','HU','GR','IL','SG','TH','UA','RO','BG','HR','SK','SI','EE','LT','LV','LU','IS','MT','CY','EG','SA','AE','QA','KW','JO','LB','IR','PK','ID','MY','PH','VN','BD','NG','KE','GH','TZ','UG','MA','DZ','TN','SN','CI','CM','ET','SD','AO','MZ','ZW','GH','RW','UG','ZM','MW','LS','SZ','BW','NA','CD','CG','GA','GQ','ST','CV','GM','SL','LR','BF','NE','ML','MR','BJ','TG','CI','GN','GW','SR','GY','TT','JM','HT','DO','CU','BS','BB','AG','VC','LC','GD','KN','DM','FM','PW','MH','SB','VU','FJ','WS','TO','TV','KI','NR','PG','NC','PF','FR','ES','PT'
+            ];
+            $issue_note_countries = $isoCountries;
+        }
+        // Garante que o array seja salvo como uma string JSON no banco de dados
+        $storage->set('issue_note_countries', json_encode($issue_note_countries));
+            
+    
 
         $msg = new FlashMessages();
         $assetsURL = Addon::I()->getAssetsURL();

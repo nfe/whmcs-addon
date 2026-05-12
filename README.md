@@ -31,10 +31,20 @@ Para guias detalhados de instalação, configuração e uso, acesse nossa docume
 *   📖 **[Guia de Instalação](https://nfe.io/docs/plugins/whmcs/instalacao/)**
 *   ⚙️ **[Manual de Configuração](https://nfe.io/docs/plugins/whmcs/configuracao/)**
 
+## 📚 Atualização
+
+Para atualizar o módulo com segurança, siga os passos abaixo:
+
+1. **Faça um backup:** Antes de começar, faça um backup completo do seu banco de dados e dos arquivos do WHMCS.
+2. **Baixe a nova versão:** Faça o download do *release* mais recente e confira os arquivos.
+3. **Envie os arquivos:** Faça o upload dos arquivos baixados para a pasta do seu WHMCS, substituindo os antigos.
+
+⚠️ **Atenção:** Em hipótese alguma desative o módulo no painel do WHMCS, pois isso apagará suas configurações. Apenas substitua os arquivos pela nova versão.
+
 ## 🛠️ Requisitos do Sistema
 
-*   **WHMCS:** Versão 8.0 ou superior
-*   **PHP:** Versão 7.2 ou superior
+*   **WHMCS:** Versão 8+ ou superior
+*   **PHP:** Versão 8+ ou superior
 *   **Conta NFE.io:** Uma conta ativa na [NFE.io](https://nfe.io) com chave de API.
 
 ## 📦 Changelog

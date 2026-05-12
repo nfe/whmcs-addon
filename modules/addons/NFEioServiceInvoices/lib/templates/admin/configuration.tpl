@@ -189,6 +189,19 @@
                         </div>
                     </div>
                     {* /issue_note_after *}
+                                        {* issue_note_countries *}
+                                        <div class="form-group">
+                                            <label class="control-label col-sm-4" for="issue_note_countries">Países para emissão de nota:</label>
+                                            <div class="col-sm-8">
+                                                <select class="form-control" name="issue_note_countries[]" id="issue_note_countries" multiple>
+                                                    {foreach from=$countries item=country}
+                                                        <option value="{$country.code}" {if in_array($country.code, $issue_note_countries)}selected{/if}>{$country.name}</option>
+                                                    {/foreach}
+                                                </select>
+                                                <span class="help-block">Selecione os países para os quais a nota fiscal deve ser emitida. Por padrão, todos estão selecionados.</span>
+                                            </div>
+                                        </div>
+                                        {* /issue_note_countries *}
                     {* cancel_invoice_cancel_nfe *}
                     <div class="form-group">
                         <label class="control-label col-sm-4"
