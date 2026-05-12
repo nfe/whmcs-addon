@@ -44,6 +44,12 @@ if (!Validations::webhookHashValid($secret, $body, $signature)) {
 
 $payload = json_decode($body, true);
 
+// v2 envelopa o invoice em {"action": "<event>", "payload": {<invoice fields>}}.
+// Desembrulhamos pra manter a leitura por field name compatível com v1.
+if (is_array($payload) && isset($payload['payload']) && is_array($payload['payload'])) {
+    $payload = $payload['payload'];
+}
+
 if (!is_array($payload) || !isset($payload['id'], $payload['status'], $payload['flowStatus'], $payload['environment'])) {
     logModuleCall('nfeio_serviceinvoices', 'callback_error', 'Payload inválido', ['body' => $payload]);
     http_response_code(400);
