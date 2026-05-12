@@ -158,14 +158,26 @@ class Functions
 
 
         // Verifica se o webhook existe e é válido, senão cria
+        // API v2 retorna: {"webHook": {"id":..., "uri":..., "secret":..., "status":...}}
         $webhook = $webhook_id ? $nfeio->getWebhook($webhook_id) : null;
-        if (!$webhook || $webhook->hooks->url !== $webhook_url) {
+        $webhookData = null;
+        if ($webhook && !is_array($webhook)) {
+            $webhookData = isset($webhook->webHook) ? $webhook->webHook : (isset($webhook->hooks) ? $webhook->hooks : null);
+        }
+        $currentUri = $webhookData && isset($webhookData->uri) ? $webhookData->uri : ($webhookData && isset($webhookData->url) ? $webhookData->url : null);
+
+        if (!$webhook || is_array($webhook) && isset($webhook['error']) || ($currentUri && $currentUri !== $webhook_url)) {
             $newHook = $nfeio->createWebhook($webhook_url);
-            if (!$newHook) {
-                return (object)['message' => 'Erro ao criar novo webhook'];
+            $newHookData = null;
+            if ($newHook && !is_array($newHook)) {
+                $newHookData = isset($newHook->webHook) ? $newHook->webHook : (isset($newHook->hooks) ? $newHook->hooks : null);
             }
-            $storage->set('webhook_id', (string) $newHook->hooks->id);
-            $storage->set('webhook_secret', (string) $newHook->hooks->secret);
+            if (!$newHookData || !isset($newHookData->id)) {
+                logModuleCall('nfeio_serviceinvoices', 'create_webhook_skip', 'Falha ao criar webhook, mantendo configuração atual', $newHook);
+            } else {
+                $storage->set('webhook_id', (string) $newHookData->id);
+                $storage->set('webhook_secret', (string) $newHookData->secret);
+            }
         }
 
 

@@ -1216,7 +1216,7 @@ class Controller
         }
 
         try {
-            // Instanciar classe Nfe e buscar webhook na API
+            // Instanciar classe Nfe e buscar webhook na API (api.nfse.io/v2)
             $nfe = new \NFEioServiceInvoices\NFEio\Nfe();
             $webhook = $nfe->getWebhook($webhookId);
 
@@ -1239,9 +1239,11 @@ class Controller
                 return;
             }
 
-            // Webhook encontrado - validar configuração
+            // Webhook encontrado - extrair dados da resposta
+            // A API v2 retorna em ->webHook->{prop} (camelCase), URL fica em ->uri
             $callbackUrl = Addon::getCallBackPath();
-            $apiWebhookUrl = isset($webhook->hooks->url) ? $webhook->hooks->url : null;
+            $webhookData = isset($webhook->webHook) ? $webhook->webHook : (isset($webhook->hooks) ? $webhook->hooks : $webhook);
+            $apiWebhookUrl = isset($webhookData->uri) ? $webhookData->uri : (isset($webhookData->url) ? $webhookData->url : null);
 
             // Verificar consistência de URL
             if ($apiWebhookUrl !== $callbackUrl) {
@@ -1267,7 +1269,7 @@ class Controller
             }
 
             // Verificar status do webhook (ativo/inativo/deleted)
-            $webhookStatus = isset($webhook->hooks->status) ? $webhook->hooks->status : 'unknown';
+            $webhookStatus = isset($webhookData->status) ? strtolower($webhookData->status) : 'unknown';
             if (in_array(strtolower($webhookStatus), ['deleted', 'disabled', 'inactive'])) {
                 logModuleCall(
                     'nfeio_serviceinvoices',
