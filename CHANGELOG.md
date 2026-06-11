@@ -1,3 +1,14 @@
+## v3.2.1
+Esta versão corrige o agrupamento de itens na emissão de NFS-e, que gravava atributos fiscais incorretos e podia fundir itens em notas fiscalmente inválidas.
+
+### Correções
+#### Agrupamento de itens por tupla fiscal na emissão
+O agrupamento de itens da fatura usava apenas o `serviceCode` como chave, mas gravava `nbsCode`/`operationIndicator`/`classCode` a partir de uma variável de laço que retinha o valor do último item processado. As notas saíam com atributos fiscais incorretos (dependentes da ordem dos itens), e itens de mesmo `serviceCode` com atributos divergentes eram fundidos numa única nota — sendo que uma NFS-e comporta apenas um conjunto de atributos.
+
+Agora os itens são agrupados pela tupla fiscal completa (`serviceCode` + `nbsCode` + `operationIndicator` + `classCode`), cada nota lê os atributos do próprio grupo, e a tupla compõe o `external_id` (evitando colisão entre grupos de mesmo `serviceCode`). Itens com atributos fiscais divergentes passam a gerar notas separadas.
+
+Referência: #200.
+
 ## v3.2.0
 Esta versão migra a integração de webhooks para a API v2 da NFE.io, corrige a validação HMAC dos callbacks que estava bloqueando 100% das notificações, e inclui melhorias na ordenação da lista de notas fiscais no admin.
 

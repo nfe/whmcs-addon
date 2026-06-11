@@ -22,7 +22,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
 
     private $encryptHash = '';
 
-    public $version = '3.2.0';
+    public $version = '3.2.1';
 
     public $tablePrefix = 'mod_nfeio_si_';
 
