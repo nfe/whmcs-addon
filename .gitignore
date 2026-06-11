@@ -1,3 +1,6 @@
+
+openspec/
+.claude/
 composer.phar
 .idea
 .scripts

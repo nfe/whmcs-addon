@@ -213,13 +213,10 @@ class Nfe
      * @param  $userId      int ID do cliente
      * @param  $invoiceId   int ID da fatura
      * @param  $serviceCode string Código do serviço
-     * @param  $nbsCode string Código NBS
-     * @param  $operationCode string Código da operação
-     * @param  $classCode string Código da classificação tributária
      * @param  $item        object Item da fatura
      * @return array item preparado para transmissão
      */
-    private function prepareItemsToTransmit($userId, $invoiceId, $serviceCode, $nbsCode, $operationCode, $classCode, $item)
+    private function prepareItemsToTransmit($userId, $invoiceId, $serviceCode, $item)
     {
 
         // se descontos em itens estiver desabilitado e valor do item for igual ou menor a zero, retorna nada
@@ -227,6 +224,7 @@ class Nfe
             return array();
         }
 
+        // atributos fiscais não são mais carregados por item: a tupla fiscal vive no grupo (#200)
         return array(
             'userId' => $userId,
             'invoiceId' => $invoiceId,
@@ -236,9 +234,6 @@ class Nfe
             'itemDescription' => $item->description,
             'itemAmount' => floatval($item->amount),
             'itemServiceCode' => $serviceCode,
-            'itemNbsCode' => $nbsCode,
-            'itemOperationCode' => $operationCode,
-            'itemClassCode' => $classCode,
         );
     }
 
@@ -267,31 +262,46 @@ class Nfe
     }
 
     /**
+     * Gera a chave de agrupamento fiscal de um item.
+     *
+     * Itens só são agregados na mesma NFS-e quando compartilham a tupla fiscal
+     * completa, pois uma nota comporta apenas um conjunto de atributos. Projetada
+     * para receber novos componentes da tupla (ex.: taxationType) em um único ponto.
+     *
+     * @see https://github.com/nfe/whmcs-addon/issues/200
+     * @return string
+     */
+    private function fiscalGroupKey($serviceCode, $nbsCode, $operationIndicator, $classCode)
+    {
+        return implode('|', [
+            $serviceCode ?? '',
+            $nbsCode ?? '',
+            $operationIndicator ?? '',
+            $classCode ?? '',
+        ]);
+    }
+
+    /**
      * Constrói os itens a serem transmitidos para emissão de notas fiscais.
      *
      * Este método percorre os itens fornecidos, realiza agregações e somatórias,
      * e prepara os dados necessários para a transmissão das notas fiscais.
      *
-     * @param array $items Coleção de itens agrupados por código de serviço.
+     * @param array $groups Coleção de grupos fiscais (chave = tupla fiscal), cada um
+     *                      contendo seus próprios atributos fiscais e itens.
      * @param int|string $invoiceId ID da fatura associada.
      * @param int|string $userId ID do usuário associado.
      * @param int|string $companyId ID da empresa emissora.
      * @param float $issHeldDefault Valor padrão de retenção de ISS.
-     * @param string $nbsCode Código NBS padrão.
-     * @param string $operationIndicator Indicador de operação padrão.
-     * @param string $classCode Código de classificação tributária padrão.
      * @param bool $reissue Indica se é uma reemissão de nota fiscal.
      * @return array Retorna uma lista de itens preparados para transmissão.
      */
     private function buildItemsToTransmit(
-        $items,
+        $groups,
         $invoiceId,
         $userId,
         $companyId,
         $issHeldDefault,
-        $nbsCode,
-        $operationIndicator,
-        $classCode,
         $reissue = false
     )
     {
@@ -299,11 +309,13 @@ class Nfe
         $issHeld = $issHeldDefault;
         $result = [];
 
-        // percorre $items para construir os itens a serem emitidos
-        foreach ($items as $serviceCode => $item) {
-            // é possível que item tenha coleções vazias devido a remoção de itens de desconto
-            // então é necessário limpar a coleção dos elementos vazios
-            array_filter($item);
+        // percorre os grupos fiscais para construir as notas a serem emitidas (#200)
+        foreach ($groups as $group) {
+            // atributos fiscais vêm do próprio grupo, não de variáveis de laço vazadas (#200)
+            $attributes = $group['attributes'];
+            $serviceCode = $attributes['service_code'];
+            // remove entradas vazias (itens de desconto descartados) antes de agregar
+            $items = array_filter($group['items']);
             $itemsDescription = '';
             $itemsTotal = 0;
             $nfData = [
@@ -317,14 +329,14 @@ class Nfe
                 'rpsSerialNumber' => 'waiting',
                 'company_id' => $companyId,
                 'service_code' => $serviceCode,
-                'nbs_code' => $nbsCode,
-                'operation_indicator' => $operationIndicator,
-                'class_code' => $classCode,
+                'nbs_code' => $attributes['nbs_code'],
+                'operation_indicator' => $attributes['operation_indicator'],
+                'class_code' => $attributes['class_code'],
             ];
 
 
             // percorre cada item para realizar as agregações e somatórias
-            foreach ($item as $value) {
+            foreach ($items as $value) {
                 // concatena todas as descrições dos itens
                 $itemsDescription = $itemsDescription . $value['itemDescription'] . "\n";
                 // soma os valores de cada item para o total da nota
@@ -337,7 +349,7 @@ class Nfe
             $nfData['services_amount'] = $itemsTotal;
             // gera id unico externo
             // phpcs:ignore Generic.Files.LineLength.TooLong
-            $nfData['nfe_external_id'] = $this->generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $companyId, $serviceCode, $reissue);
+            $nfData['nfe_external_id'] = $this->generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $companyId, $attributes, $reissue);
 
             // verifica se há calculo de retenção de ISS personalizado
             $customIssHeld = $this->aliquotsRepo->getIssHeldByServiceCode($serviceCode, $companyId);
@@ -372,8 +384,9 @@ class Nfe
      * seguido do ID do usuário, ID da fatura, ID da empresa, Código do servico e total dos itens.
      * Nesta lógica cada conjunto de itens faturado possuirá um ID único evitando que seja inserido na fila
      * de emissão itens que porventura já tenham sido transmitidos ou gerados.
-     * Estrutura: WHMCS-[USER_ID]-[INVOICE_ID]-[COMPANY_ID]-[SERVICE_CODE]-[TOTAL]
-     * Exemplo: WHMCS-15-123-a15t...-0103-321
+     * Estrutura: WHMCS-[USER_ID]-[INVOICE_ID]-[COMPANY_ID]-[TUPLA_FISCAL]-[TOTAL]
+     * onde TUPLA_FISCAL = serviceCode|nbsCode|operationIndicator|classCode (#200)
+     * Exemplo: WHMCS-15-123-a15t...-0103|1.0501|2|000001-321
      * Resultado: número hexadecimal de 32 caracteres
      *
      * @param  $userId
@@ -381,10 +394,19 @@ class Nfe
      * @param  $itemsTotal
      * @return string
      */
-    private function generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $companyId, $serviceCode, $reissue = false)
+    private function generateUniqueExternalId($userId, $invoiceId, $itemsTotal, $companyId, $fiscalAttributes, $reissue = false)
     {
         $separator = '-';
         $prefix = 'WHMCS';
+
+        // a identidade fiscal completa (tupla) compõe o ID para que grupos distintos
+        // da mesma fatura nunca colidam no external_id (#200)
+        $fiscalIdentity = $this->fiscalGroupKey(
+            $fiscalAttributes['service_code'] ?? null,
+            $fiscalAttributes['nbs_code'] ?? null,
+            $fiscalAttributes['operation_indicator'] ?? null,
+            $fiscalAttributes['class_code'] ?? null
+        );
 
         // se o ID  a ser gerado for para uma reemissão da NF, retorna um padrão diferente
         // para não conflitar com qualquer ID já existente
@@ -392,9 +414,9 @@ class Nfe
             $suffix = 'REISSUE';
             // usa um timestamp para tornar cada reemissão unica para a criação do ID
             $dateTimeNow = date('Y-m-d H:i:s');
-            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $companyId . $separator . $serviceCode . $separator . $itemsTotal . $separator . $suffix . $separator . $dateTimeNow);
+            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $companyId . $separator . $fiscalIdentity . $separator . $itemsTotal . $separator . $suffix . $separator . $dateTimeNow);
         } else {
-            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $companyId . $separator . $serviceCode . $separator . $itemsTotal);
+            $result = md5($prefix . $separator . $userId . $separator . $invoiceId . $separator . $companyId . $separator . $fiscalIdentity . $separator . $itemsTotal);
         }
 
         return $result;
@@ -447,9 +469,10 @@ class Nfe
         }
 
         // $defaultServiceCode = $this->storage->get('service_code');
-        $itemsByServiceCode = [];
+        // agrupa os itens pela tupla fiscal completa; cada grupo é auto-contido (#200)
+        $fiscalGroups = [];
 
-        // percorre cada item da fatura para preparar as agregações de items por tipo de serviço
+        // percorre cada item da fatura para preparar as agregações por grupo fiscal
         foreach ($invoiceItems as $item) {
             // essencial que código do serviço receba o valor padrão
             // para cada passada do laco
@@ -474,29 +497,40 @@ class Nfe
                 }
             }
 
-            // prepara o item e o adiciona em um array associativo com o código do serviço
+            // chave de agrupamento = tupla fiscal completa: uma NFS-e comporta apenas
+            // um conjunto de atributos fiscais (#200)
+            $fiscalKey = $this->fiscalGroupKey($serviceCode, $nbsCode, $operationIndicator, $classCode);
+
+            // inicializa o grupo (atributos + itens) na primeira ocorrência da tupla
+            if (!isset($fiscalGroups[$fiscalKey])) {
+                $fiscalGroups[$fiscalKey] = [
+                    'attributes' => [
+                        'service_code' => $serviceCode,
+                        'nbs_code' => $nbsCode,
+                        'operation_indicator' => $operationIndicator,
+                        'class_code' => $classCode,
+                    ],
+                    'items' => [],
+                ];
+            }
+
+            // prepara o item e o adiciona ao grupo fiscal correspondente
             // phpcs:ignore Generic.Files.LineLength.TooLong
-            $itemsByServiceCode[$serviceCode][] = $this->prepareItemsToTransmit(
+            $fiscalGroups[$fiscalKey]['items'][] = $this->prepareItemsToTransmit(
                 $clientId,
                 $invoiceId,
                 $serviceCode,
-                $nbsCode,
-                $operationIndicator,
-                $classCode,
                 $item
             );
         }
 
         // phpcs:ignore Generic.Files.LineLength.TooLong
         $nfToEmit = $this->buildItemsToTransmit(
-            $itemsByServiceCode,
+            $fiscalGroups,
             $invoiceId,
             $clientId,
             $companyId,
             $issHeld,
-            $nbsCode,
-            $operationIndicator,
-            $classCode,
             $reissue
         );
 
@@ -740,7 +774,19 @@ class Nfe
         $dateNow = date('Y-m-d H:i:s');
         // gera um novo ID externo unico para a reemissão do item/NF
         // phpcs:ignore Generic.Files.LineLength.TooLong
-        $externalUniqueId = $this->generateUniqueExternalId($userId, $invoiceId, $amount, $companyId, $serviceCode, true);
+        $externalUniqueId = $this->generateUniqueExternalId(
+            $userId,
+            $invoiceId,
+            $amount,
+            $companyId,
+            [
+                'service_code' => $serviceCode,
+                'nbs_code' => $nfData->nbs_code ?? null,
+                'operation_indicator' => $nfData->operation_indicator ?? null,
+                'class_code' => $nfData->class_code ?? null,
+            ],
+            true
+        );
 
         $reissueNfData = [
             'invoice_id' => $invoiceId,
