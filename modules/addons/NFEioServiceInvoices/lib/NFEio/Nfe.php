@@ -293,6 +293,9 @@ class Nfe
      * @param int|string $userId ID do usuário associado.
      * @param int|string $companyId ID da empresa emissora.
      * @param float $issHeldDefault Valor padrão de retenção de ISS.
+     * @param float|null $pisRateDefault Alíquota de PIS padrão da empresa.
+     * @param float|null $cofinsRateDefault Alíquota de COFINS padrão da empresa.
+     * @param string|null $taxationTypeDefault Tipo de tributação padrão da empresa.
      * @param bool $reissue Indica se é uma reemissão de nota fiscal.
      * @return array Retorna uma lista de itens preparados para transmissão.
      */
@@ -302,6 +305,9 @@ class Nfe
         $userId,
         $companyId,
         $issHeldDefault,
+        $pisRateDefault = null,
+        $cofinsRateDefault = null,
+        $taxationTypeDefault = null,
         $reissue = false
     )
     {
@@ -370,6 +376,35 @@ class Nfe
                 // phpcs:ignore Generic.Files.LineLength.TooLong
                 $nfData['iss_held'] = \NFEioServiceInvoices\Helpers\Invoices::getIssHeldAmount($itemsTotal, $customIssHeld);
             }
+            // resolve PIS/COFINS e taxationType por código de serviço (override Aliquots → default empresa) (#203)
+            $pisRate = $this->aliquotsRepo->getPisRateByServiceCode($serviceCode, $companyId);
+            if (is_null($pisRate)) {
+                $pisRate = $pisRateDefault;
+            }
+            $pisRate = !empty($pisRate) ? $pisRate : null;
+
+            $cofinsRate = $this->aliquotsRepo->getCofinsRateByServiceCode($serviceCode, $companyId);
+            if (is_null($cofinsRate)) {
+                $cofinsRate = $cofinsRateDefault;
+            }
+            $cofinsRate = !empty($cofinsRate) ? $cofinsRate : null;
+
+            $taxationType = $this->aliquotsRepo->getTaxationTypeByServiceCode($serviceCode, $companyId);
+            if (is_null($taxationType) || $taxationType === '') {
+                $taxationType = $taxationTypeDefault;
+            }
+
+            // persiste alíquotas, valores não-retidos calculados e tipo de tributação na linha (#203)
+            $nfData['pis_rate'] = $pisRate;
+            $nfData['cofins_rate'] = $cofinsRate;
+            $nfData['taxation_type'] = !empty($taxationType) ? $taxationType : null;
+            $nfData['pis_amount'] = !is_null($pisRate)
+                ? \NFEioServiceInvoices\Helpers\Invoices::getTaxAmountByRate($itemsTotal, $pisRate)
+                : null;
+            $nfData['cofins_amount'] = !is_null($cofinsRate)
+                ? \NFEioServiceInvoices\Helpers\Invoices::getTaxAmountByRate($itemsTotal, $cofinsRate)
+                : null;
+
             // se valor total dos itens for maior que zero adiciona as informações para retorno
             if ($itemsTotal > 0) {
                 $result[] = $nfData;
@@ -458,6 +493,10 @@ class Nfe
             $defaultClassCode = $companyRepository->getDefaultClassCodeByCompanyId($clientCompanyId);
             // recupera o iss retencao padrao da empresa associada ao cliente
             $issHeld = $companyRepository->getDefaultIssHeldByCompanyId($clientCompanyId);
+            // defaults de PIS/COFINS e tipo de tributação RTC (#203)
+            $defaultPisRate = $companyRepository->getDefaultPisRateByCompanyId($clientCompanyId);
+            $defaultCofinsRate = $companyRepository->getDefaultCofinsRateByCompanyId($clientCompanyId);
+            $defaultTaxationType = $companyRepository->getDefaultTaxationTypeByCompanyId($clientCompanyId);
         } else {
             // dados da empresa padrao
             $companyId = $defaultCompany->company_id;
@@ -466,6 +505,10 @@ class Nfe
             $defaultOperationIndicator = $defaultCompany->operation_indicator;
             $defaultClassCode = $defaultCompany->class_code;
             $issHeld = $defaultCompany->iss_held;
+            // defaults de PIS/COFINS e tipo de tributação RTC (#203)
+            $defaultPisRate = $defaultCompany->pis_rate ?? null;
+            $defaultCofinsRate = $defaultCompany->cofins_rate ?? null;
+            $defaultTaxationType = $defaultCompany->taxation_type ?? null;
         }
 
         // $defaultServiceCode = $this->storage->get('service_code');
@@ -531,6 +574,9 @@ class Nfe
             $clientId,
             $companyId,
             $issHeld,
+            $defaultPisRate,
+            $defaultCofinsRate,
+            $defaultTaxationType,
             $reissue
         );
 
@@ -601,6 +647,11 @@ class Nfe
         $operationCode = $data->operation_indicator;
         $classCode = $data->class_code;
         $issAmountWithheld = $data->iss_held;
+        $pisRate = $data->pis_rate ?? null;
+        $cofinsRate = $data->cofins_rate ?? null;
+        $pisAmount = $data->pis_amount ?? null;
+        $cofinsAmount = $data->cofins_amount ?? null;
+        $taxationType = $data->taxation_type ?? null;
         $companyId = $data->company_id;
         $description = $data->nfe_description;
         $environment = $data->environment;
@@ -688,6 +739,24 @@ class Nfe
         // adiciona o campo issAmountWithheld caso exista valor
         if (!empty($issAmountWithheld)) {
             $postData['issAmountWithheld'] = $issAmountWithheld;
+        }
+
+        // PIS/COFINS e tipo de tributação (RTC) — top-level, omitindo quando vazios (#203)
+        if (!empty($taxationType)) {
+            $postData['taxationType'] = $taxationType;
+        }
+        // alíquotas vão como fração decimal (ex.: 0.65% → 0.0065); a API exibe rate × 100 (#203)
+        if (!empty($pisRate)) {
+            $postData['pisRate'] = (float) $pisRate / 100;
+        }
+        if (!empty($cofinsRate)) {
+            $postData['cofinsRate'] = (float) $cofinsRate / 100;
+        }
+        if (!empty($pisAmount)) {
+            $postData['pisAmount'] = (float) $pisAmount;
+        }
+        if (!empty($cofinsAmount)) {
+            $postData['cofinsAmount'] = (float) $cofinsAmount;
         }
 
         $nfeResponse = $this->legacyFunctions->gnfe_issue_nfe($postData, $companyId);
@@ -805,6 +874,15 @@ class Nfe
             'created_at' => $dateNow,
             'updated_at' => 'waiting',
             'service_code' => $serviceCode,
+            // preserva todos os atributos fiscais da nota original na reemissão (#203)
+            'nbs_code' => $nfData->nbs_code ?? null,
+            'operation_indicator' => $nfData->operation_indicator ?? null,
+            'class_code' => $nfData->class_code ?? null,
+            'pis_rate' => $nfData->pis_rate ?? null,
+            'cofins_rate' => $nfData->cofins_rate ?? null,
+            'pis_amount' => $nfData->pis_amount ?? null,
+            'cofins_amount' => $nfData->cofins_amount ?? null,
+            'taxation_type' => $nfData->taxation_type ?? null,
             'company_id' => $companyId,
             'tics' => ' ',
         ];

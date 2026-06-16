@@ -29,6 +29,27 @@
                         <label for="issHeld">Retenção de ISS (%)</label>
                         <input type="text" class="form-control" name="iss_held" id="issHeld" placeholder="Ex.: 3.5" required>
                     </div>
+                    <!-- PIS/COFINS e tipo de tributação - RTC (#203) -->
+                    <div class="alert alert-info" role="alert">
+                        <strong>Opcional:</strong> preencha apenas se precisar definir o cálculo de PIS/COFINS e o tipo de tributação (ISSQN) para este código de serviço.
+                    </div>
+                    <div class="form-group">
+                        <label for="pisRate">Alíquota de PIS (%)</label>
+                        <input type="number" step="0.01" class="form-control" name="pis_rate" id="pisRate" placeholder="Ex.: 0.65">
+                    </div>
+                    <div class="form-group">
+                        <label for="cofinsRate">Alíquota de COFINS (%)</label>
+                        <input type="number" step="0.01" class="form-control" name="cofins_rate" id="cofinsRate" placeholder="Ex.: 3.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="taxationType">Tipo de Tributação (ISSQN)</label>
+                        <select class="form-control" name="taxation_type" id="taxationType">
+                            <option value="">— Não informar (usa padrão da empresa) —</option>
+                            {foreach from=$taxationTypes item=tt}
+                                <option value="{$tt.value}">{$tt.label}</option>
+                            {/foreach}
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>

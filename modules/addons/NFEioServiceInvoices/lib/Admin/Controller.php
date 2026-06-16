@@ -252,6 +252,12 @@ class Controller
         $nbsCode = $data['nbs_code'] ?? null;
         $operationCode = $data['operation_indicator'] ?? null;
         $classCode = $data['class_code'] ?? null;
+        $pisRate = ($data['pis_rate'] ?? '') !== '' ? $data['pis_rate'] : null;
+        $cofinsRate = ($data['cofins_rate'] ?? '') !== '' ? $data['cofins_rate'] : null;
+        $taxationType = $data['taxation_type'] ?? null;
+        if ($taxationType === '' || ($taxationType !== null && !\NFEioServiceInvoices\Helpers\TaxationType::isValid($taxationType))) {
+            $taxationType = null;
+        }
 
         // verifica se os campos obrigatórios foram preenchidos
         if (is_null($recordId) || is_null($companyName) || is_null($serviceCode)) {
@@ -271,7 +277,10 @@ class Controller
                 $nbsCode,
                 $operationCode,
                 $classCode,
-                $companyDefault
+                $companyDefault,
+                $pisRate,
+                $cofinsRate,
+                $taxationType
             );
 
             // verifica se houve erro na edição
@@ -337,6 +346,12 @@ class Controller
         $nbs_code = $data['nbs_code'] ?? null;
         $operation_indicator = $data['operation_indicator'] ?? null;
         $class_code = $data['class_code'] ?? null;
+        $pis_rate = ($data['pis_rate'] ?? '') !== '' ? $data['pis_rate'] : null;
+        $cofins_rate = ($data['cofins_rate'] ?? '') !== '' ? $data['cofins_rate'] : null;
+        $taxation_type = $data['taxation_type'] ?? null;
+        if ($taxation_type === '' || ($taxation_type !== null && !\NFEioServiceInvoices\Helpers\TaxationType::isValid($taxation_type))) {
+            $taxation_type = null;
+        }
 
         // converte o valor de company_default para booleano
         if ($company_default == 'on') {
@@ -367,6 +382,9 @@ class Controller
                 (string) $operation_indicator,
                 (string) $class_code,
                 $company_default,
+                $pis_rate,
+                $cofins_rate,
+                $taxation_type
             );
 
             // verifica se houve erro na associação
@@ -448,6 +466,7 @@ class Controller
             $vars['assetsURL'] = $assetsURL;
             $vars['moduleCallBackUrl'] = $moduleCallBackUrl;
             $vars['companies'] = $registeredCompanies;
+            $vars['taxationTypes'] = \NFEioServiceInvoices\Helpers\TaxationType::options();
 
 
             if ($msg->hasMessages()) {
@@ -788,6 +807,7 @@ class Controller
             $vars['assetsURL'] = $assetsURL;
             $vars['dtData'] = $aliquots;
             $vars['dropdownServiceCodesAliquots'] = $filteredServiceCodes;
+            $vars['taxationTypes'] = \NFEioServiceInvoices\Helpers\TaxationType::options();
 
             if ($msg->hasMessages()) {
                 $msg->display();
@@ -863,6 +883,12 @@ class Controller
         $code_service = $post['service_code'] ?? null;
 //        $record_id = $post['id'] ?? null;
         $company_id = $post['company_id'] ?? null;
+        $pis_rate = ($post['pis_rate'] ?? '') !== '' ? $post['pis_rate'] : null;
+        $cofins_rate = ($post['cofins_rate'] ?? '') !== '' ? $post['cofins_rate'] : null;
+        $taxation_type = $post['taxation_type'] ?? null;
+        if ($taxation_type === '' || ($taxation_type !== null && !\NFEioServiceInvoices\Helpers\TaxationType::isValid($taxation_type))) {
+            $taxation_type = null;
+        }
 
         // caso requisição não for POST ou não houver dados, retorna erro
         if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
@@ -875,7 +901,7 @@ class Controller
         }
 
         // salva aliquota no banco de dados
-        $response = $aliquotsRepo->new($code_service, $iss_held, $company_id);
+        $response = $aliquotsRepo->new($code_service, $iss_held, $company_id, $pis_rate, $cofins_rate, $taxation_type);
 
         // verifica retorno da operacao
         if ($response) {
@@ -907,6 +933,12 @@ class Controller
         $service_code = $post['service_code'] ?? null;
         $record_id = $post['record_id'] ?? null;
         $company_name = $post['company_name'] ?? null;
+        $pis_rate = ($post['pis_rate'] ?? '') !== '' ? $post['pis_rate'] : null;
+        $cofins_rate = ($post['cofins_rate'] ?? '') !== '' ? $post['cofins_rate'] : null;
+        $taxation_type = $post['taxation_type'] ?? null;
+        if ($taxation_type === '' || ($taxation_type !== null && !\NFEioServiceInvoices\Helpers\TaxationType::isValid($taxation_type))) {
+            $taxation_type = null;
+        }
 
         // caso requisição não for POST ou não houver dados, retorna erro
         if ($_SERVER['REQUEST_METHOD'] != 'POST' || empty($post)) {
@@ -919,7 +951,7 @@ class Controller
         }
 
         // salva aliquota no banco de dados
-        $response = $aliquotsRepo->edit($record_id, $iss_held);
+        $response = $aliquotsRepo->edit($record_id, $iss_held, $pis_rate, $cofins_rate, $taxation_type);
 
         // verifica retorno da operacao
         if ($response) {

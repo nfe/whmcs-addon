@@ -37,6 +37,11 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'nbs_code',
         'operation_indicator',
         'class_code',
+        'pis_rate',
+        'cofins_rate',
+        'pis_amount',
+        'cofins_amount',
+        'taxation_type',
         'tics',
         'company_id',
     );
@@ -145,6 +150,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->string('nbs_code')->nullable();
                     $table->string('operation_indicator')->nullable();
                     $table->string('class_code')->nullable();
+                    // PIS/COFINS e regime de tributação RTC (#203)
+                    $table->float('pis_rate', 5, 2)->nullable();
+                    $table->float('cofins_rate', 5, 2)->nullable();
+                    $table->decimal('pis_amount', 16, 2)->nullable();
+                    $table->decimal('cofins_amount', 16, 2)->nullable();
+                    $table->string('taxation_type', 50)->nullable();
                 }
             );
         }

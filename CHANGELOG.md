@@ -1,3 +1,15 @@
+## v3.3.0
+Esta versão adiciona à emissão de NFS-e os campos da Reforma Tributária para PIS/COFINS e o tipo de tributação do ISSQN (`taxationType`).
+
+### Novos Recursos
+#### PIS/COFINS e tipo de tributação (taxationType) na emissão
+Passa a ser possível configurar `pisRate`, `cofinsRate` e `taxationType` de forma global (na empresa emissora padrão) e por código de serviço (tela "Alíquotas & Retenções"). Na emissão, o módulo calcula `pisAmount`/`cofinsAmount` (valores sem retenção) a partir das alíquotas — `round(servicesAmount × alíquota / 100, 2)` — e envia `taxationType`, `pisRate`, `cofinsRate`, `pisAmount` e `cofinsAmount` no payload, omitindo os campos não preenchidos. O `taxationType` é validado contra os valores do enum do contrato RTC.
+
+#### Preservação de atributos fiscais na reemissão
+A reemissão de notas passa a preservar todos os atributos fiscais da nota original (NBS, indicador de operação, classificação tributária, PIS/COFINS e tipo de tributação), que antes eram perdidos.
+
+Referência: #203 (depende de #200).
+
 ## v3.2.1
 Esta versão corrige o agrupamento de itens na emissão de NFS-e, que gravava atributos fiscais incorretos e podia fundir itens em notas fiscalmente inválidas.
 

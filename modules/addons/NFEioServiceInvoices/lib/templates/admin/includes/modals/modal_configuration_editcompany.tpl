@@ -91,6 +91,31 @@
                         </span>
                         {*Código de Classificação Tributária para o IBS/CBS*}
 
+                        {* PIS/COFINS e tipo de tributação - RTC (#203) *}
+                        <div class="alert alert-info" role="alert">
+                            <strong>Opcional:</strong> preencha os campos abaixo apenas se precisar definir o cálculo de PIS/COFINS e o tipo de tributação (ISSQN) na emissão.
+                        </div>
+                        <label for="editCompanyPisRate">Alíquota de PIS (%)</label>
+                        <input type="number" step="0.01" class="form-control" name="pis_rate" id="editCompanyPisRate"
+                               aria-describedby="pis_rateHelpBlock">
+                        <span class="help-block" id="pis_rateHelpBlock">{$moduleFields.pis_rate.description}</span>
+
+                        <label for="editCompanyCofinsRate">Alíquota de COFINS (%)</label>
+                        <input type="number" step="0.01" class="form-control" name="cofins_rate" id="editCompanyCofinsRate"
+                               aria-describedby="cofins_rateHelpBlock">
+                        <span class="help-block" id="cofins_rateHelpBlock">{$moduleFields.cofins_rate.description}</span>
+
+                        <label for="editCompanyTaxationType">Tipo de Tributação (ISSQN)</label>
+                        <select class="form-control" name="taxation_type" id="editCompanyTaxationType"
+                                aria-describedby="taxation_typeHelpBlock">
+                            <option value="">— Não informar (usa padrão WithinCity) —</option>
+                            {foreach from=$taxationTypes item=tt}
+                                <option value="{$tt.value}">{$tt.label}</option>
+                            {/foreach}
+                        </select>
+                        <span class="help-block" id="taxation_typeHelpBlock">{$moduleFields.taxation_type.description}</span>
+                        {* /PIS/COFINS e tipo de tributação - RTC *}
+
                     </div>
                 </div>
                 <div class="modal-footer">

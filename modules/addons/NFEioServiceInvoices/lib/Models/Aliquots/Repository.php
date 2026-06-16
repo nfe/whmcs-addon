@@ -21,6 +21,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'id',
         'code_service',
         'iss_held',
+        'pis_rate',
+        'cofins_rate',
+        'taxation_type',
         'company_id',
         'created_at',
         'updated_at',
@@ -66,6 +69,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             ->select(
                 "{$this->tableName()}.id as record_id",
                 "{$this->tableName()}.iss_held",
+                "{$this->tableName()}.pis_rate",
+                "{$this->tableName()}.cofins_rate",
+                "{$this->tableName()}.taxation_type",
                 "{$this->tableName()}.code_service",
                 "{$this->tableName()}.company_id",
                 "{$companyRepo->tableName()}.company_name",
@@ -84,11 +90,14 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * @version 3.0
      * @since 2.1
      */
-    public function new($serviceCode, $issHeld, $companyId)
+    public function new($serviceCode, $issHeld, $companyId, $pisRate = null, $cofinsRate = null, $taxationType = null)
     {
         $data = [
             'code_service' => $serviceCode,
             'iss_held' => $issHeld,
+            'pis_rate' => $pisRate,
+            'cofins_rate' => $cofinsRate,
+            'taxation_type' => $taxationType,
             'company_id' => $companyId,
             'created_at' => Timestamp::currentTimestamp(),
             'updated_at' => Timestamp::currentTimestamp()
@@ -111,10 +120,13 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * @version 3.0
      * @since 3.0
      */
-    public function edit($id, $issHeld)
+    public function edit($id, $issHeld, $pisRate = null, $cofinsRate = null, $taxationType = null)
     {
         $data = [
             'iss_held' => $issHeld,
+            'pis_rate' => $pisRate,
+            'cofins_rate' => $cofinsRate,
+            'taxation_type' => $taxationType,
             'updated_at' => Timestamp::currentTimestamp(), // campo updated_at sempre atualizado
         ];
         try {
@@ -167,6 +179,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                     $table->string('code_service', 30);
                     // retenção de ISS
                     $table->float('iss_held', 5, 2)->nullable();
+                    // alíquotas federais e regime de tributação RTC (#203)
+                    $table->float('pis_rate', 5, 2)->nullable();
+                    $table->float('cofins_rate', 5, 2)->nullable();
+                    $table->string('taxation_type', 50)->nullable();
                     // company_id para multi empresa #163
                     $table->string('company_id')->nullable();
                     $table->timestamp('created_at')->nullable();
@@ -197,6 +213,45 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         } else {
             return floatval($issHeld);
         }
+    }
+
+    /**
+     * Retorna a alíquota de PIS por código de serviço (ou null se não houver override).
+     */
+    public function getPisRateByServiceCode($serviceCode, $companyId)
+    {
+        $value = Capsule::table($this->tableName())
+            ->where('code_service', '=', $serviceCode)
+            ->where('company_id', '=', $companyId)
+            ->value('pis_rate');
+
+        return is_null($value) ? null : floatval($value);
+    }
+
+    /**
+     * Retorna a alíquota de COFINS por código de serviço (ou null se não houver override).
+     */
+    public function getCofinsRateByServiceCode($serviceCode, $companyId)
+    {
+        $value = Capsule::table($this->tableName())
+            ->where('code_service', '=', $serviceCode)
+            ->where('company_id', '=', $companyId)
+            ->value('cofins_rate');
+
+        return is_null($value) ? null : floatval($value);
+    }
+
+    /**
+     * Retorna o tipo de tributação (taxationType) por código de serviço (ou null).
+     */
+    public function getTaxationTypeByServiceCode($serviceCode, $companyId)
+    {
+        $value = Capsule::table($this->tableName())
+            ->where('code_service', '=', $serviceCode)
+            ->where('company_id', '=', $companyId)
+            ->value('taxation_type');
+
+        return (is_null($value) || $value === '') ? null : $value;
     }
 
     /**

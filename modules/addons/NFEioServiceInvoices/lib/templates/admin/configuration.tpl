@@ -387,6 +387,9 @@
             document.getElementById('editCompanyCompanyNbsCode').value = company.nbs_code;
             document.getElementById('editCompanyOperationIndicator').value = company.operation_indicator;
             document.getElementById('editCompanyClassCode').value = company.class_code;
+            document.getElementById('editCompanyPisRate').value = company.pis_rate || '';
+            document.getElementById('editCompanyCofinsRate').value = company.cofins_rate || '';
+            document.getElementById('editCompanyTaxationType').value = company.taxation_type || '';
             document.getElementById('editCompanyIssHeld').value = company.iss_held;
             document.getElementById('editCompanyDefault').value = company.default;
         }

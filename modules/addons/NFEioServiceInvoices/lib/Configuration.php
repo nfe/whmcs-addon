@@ -22,7 +22,7 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
 
     private $encryptHash = '';
 
-    public $version = '3.2.1';
+    public $version = '3.3.0';
 
     public $tablePrefix = 'mod_nfeio_si_';
 
@@ -372,6 +372,31 @@ final class Configuration extends \WHMCSExpert\mtLibs\process\AbstractConfigurat
             \NFEioServiceInvoices\Migrations\Migrations::addRtcFieldsV310('mod_nfeio_si_productcode');
             // adiciona os campos de RCT na tabela de companies
             \NFEioServiceInvoices\Migrations\Migrations::addRtcFieldsV310('mod_nfeio_si_companies');
+        }
+
+        // v3.3.0 — PIS/COFINS + taxationType (RTC), conjuntos de colunas por tabela (#203)
+        if (version_compare($currentlyInstalledVersion, '3.3.0', 'lt')) {
+            $rateCol = 'FLOAT(5,2) NULL';
+            $amountCol = 'DECIMAL(16,2) NULL';
+            $taxationCol = 'VARCHAR(50) NULL';
+
+            \NFEioServiceInvoices\Migrations\Migrations::addPisCofinsTaxationFieldsV330('mod_nfeio_si_companies', [
+                'pis_rate' => $rateCol,
+                'cofins_rate' => $rateCol,
+                'taxation_type' => $taxationCol,
+            ]);
+            \NFEioServiceInvoices\Migrations\Migrations::addPisCofinsTaxationFieldsV330('mod_nfeio_si_aliquots', [
+                'pis_rate' => $rateCol,
+                'cofins_rate' => $rateCol,
+                'taxation_type' => $taxationCol,
+            ]);
+            \NFEioServiceInvoices\Migrations\Migrations::addPisCofinsTaxationFieldsV330('mod_nfeio_si_serviceinvoices', [
+                'pis_rate' => $rateCol,
+                'cofins_rate' => $rateCol,
+                'pis_amount' => $amountCol,
+                'cofins_amount' => $amountCol,
+                'taxation_type' => $taxationCol,
+            ]);
         }
     }
 }

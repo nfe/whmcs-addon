@@ -69,6 +69,9 @@
                                                 data-id="{$produto->record_id}"
                                                 data-code-service="{$produto->code_service}"
                                                 data-iss-held="{$produto->iss_held}"
+                                                data-pis-rate="{$produto->pis_rate}"
+                                                data-cofins-rate="{$produto->cofins_rate}"
+                                                data-taxation-type="{$produto->taxation_type}"
                                                 data-company-name="{$produto->company_name}"
                                                 data-company-tax-number="{$produto->company_tax_number}"
                                         >

@@ -312,6 +312,34 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'disabled' => false,
             'description' => 'Informe o Código de Classificação Tributária para o IBS/CBS (classCode) padrão a ser utilizado na emissão das notas fiscais.',
         ],
+        'pis_rate' => [
+            'type' => 'text',
+            'label' => 'Alíquota de PIS (%)',
+            'name' => 'pis_rate',
+            'id' => 'pisRate_Field',
+            'required' => false,
+            'disabled' => false,
+            'description' => 'Alíquota (%) padrão de PIS usada para calcular o valor (sem retenção) na emissão.',
+        ],
+        'cofins_rate' => [
+            'type' => 'text',
+            'label' => 'Alíquota de COFINS (%)',
+            'name' => 'cofins_rate',
+            'id' => 'cofinsRate_Field',
+            'required' => false,
+            'disabled' => false,
+            'description' => 'Alíquota (%) padrão de COFINS usada para calcular o valor (sem retenção) na emissão.',
+        ],
+        'taxation_type' => [
+            'type' => 'dropdown',
+            'label' => 'Tipo de Tributação (ISSQN)',
+            'name' => 'taxation_type',
+            'id' => 'taxationType_Field',
+            'required' => false,
+            'disabled' => false,
+            'description' => 'Regime de tributação do ISSQN (taxationType). Se não informado, a NFE.io assume WithinCity.',
+            'options' => [],
+        ],
     );
 
     /**
@@ -414,7 +442,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function getFields()
     {
-        return $this->fields;
+        $fields = $this->fields;
+        // injeta as opções do enum taxationType a partir da fonte única (#203)
+        if (isset($fields['taxation_type'])) {
+            $fields['taxation_type']['options'] = \NFEioServiceInvoices\Helpers\TaxationType::options();
+        }
+        return $fields;
     }
 
     /**

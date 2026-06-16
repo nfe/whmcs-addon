@@ -26,6 +26,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'nbs_code',
         'operation_indicator',
         'class_code',
+        'pis_rate',
+        'cofins_rate',
+        'taxation_type',
         'tax_number',
         'default',
         'created_at',
@@ -89,6 +92,27 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             ->value('class_code');
 
         return $classCode;
+    }
+
+    public function getDefaultPisRateByCompanyId($companyId)
+    {
+        return \WHMCS\Database\Capsule::table($this->tableName())
+            ->where('company_id', '=', $companyId)
+            ->value('pis_rate');
+    }
+
+    public function getDefaultCofinsRateByCompanyId($companyId)
+    {
+        return \WHMCS\Database\Capsule::table($this->tableName())
+            ->where('company_id', '=', $companyId)
+            ->value('cofins_rate');
+    }
+
+    public function getDefaultTaxationTypeByCompanyId($companyId)
+    {
+        return \WHMCS\Database\Capsule::table($this->tableName())
+            ->where('company_id', '=', $companyId)
+            ->value('taxation_type');
     }
 
     /**
@@ -160,6 +184,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 $table->string('nbs_code', 30)->nullable();
                 $table->string('operation_indicator', 30)->nullable();
                 $table->string('class_code', 30)->nullable();
+                $table->float('pis_rate', 5, 2)->nullable();
+                $table->float('cofins_rate', 5, 2)->nullable();
+                $table->string('taxation_type', 50)->nullable();
             });
         }
     }
@@ -179,7 +206,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      *
      * @return array Retorna um array com o status da operação e o resultado ou erro.
      */
-    public function save($companyId, $taxNumber, $companyName, $serviceCode, $issHeld, $nbs_code, $operation_indicator, $class_code, $default = false)
+    public function save($companyId, $taxNumber, $companyName, $serviceCode, $issHeld, $nbs_code, $operation_indicator, $class_code, $default = false, $pis_rate = null, $cofins_rate = null, $taxation_type = null)
     {
         try {
             $data = [
@@ -192,7 +219,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 'updated_at' => \WHMCS\Database\Capsule::raw('NOW()'),
                 'nbs_code' => $nbs_code,
                 'operation_indicator' => $operation_indicator,
-                'class_code' => $class_code
+                'class_code' => $class_code,
+                'pis_rate' => $pis_rate,
+                'cofins_rate' => $cofins_rate,
+                'taxation_type' => $taxation_type
             ];
 
             $defaultExists = \WHMCS\Database\Capsule::table($this->tableName())->where('default', 1)->exists();
@@ -252,7 +282,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      *
      * @return array Retorna um array com o status da operação e uma mensagem ou erro.
      */
-    public function edit($recordId, $companyName, $serviceCode, $issHeld, $nbs_code, $operation_indicator, $class_code, $default)
+    public function edit($recordId, $companyName, $serviceCode, $issHeld, $nbs_code, $operation_indicator, $class_code, $default, $pis_rate = null, $cofins_rate = null, $taxation_type = null)
     {
         // atualiza o registro da empresa
         try {
@@ -264,7 +294,10 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 'updated_at' => \WHMCS\Database\Capsule::raw('NOW()'),
                 'nbs_code' => $nbs_code,
                 'operation_indicator' => $operation_indicator,
-                'class_code' => $class_code
+                'class_code' => $class_code,
+                'pis_rate' => $pis_rate,
+                'cofins_rate' => $cofins_rate,
+                'taxation_type' => $taxation_type
             ];
 
             if ($default == 1) {
@@ -365,7 +398,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     {
         return \WHMCS\Database\Capsule::table($this->tableName)
             ->orderBy('default', 'desc')
-            ->select('id', 'company_id', 'tax_number', 'company_name', 'service_code', 'iss_held', 'nbs_code', 'operation_indicator', 'class_code', 'default')
+            ->select('id', 'company_id', 'tax_number', 'company_name', 'service_code', 'iss_held', 'nbs_code', 'operation_indicator', 'class_code', 'pis_rate', 'cofins_rate', 'taxation_type', 'default')
             ->get();
     }
 }

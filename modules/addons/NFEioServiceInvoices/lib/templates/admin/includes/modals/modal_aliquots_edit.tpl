@@ -26,6 +26,27 @@
                         <label for="editIssHeld">Retenção de ISS (%)</label>
                         <input type="text" class="form-control" name="iss_held" id="editIssHeld" placeholder="Ex.: 3.5" required>
                     </div>
+                    <!-- PIS/COFINS e tipo de tributação - RTC (#203) -->
+                    <div class="alert alert-info" role="alert">
+                        <strong>Opcional:</strong> preencha apenas se precisar definir o cálculo de PIS/COFINS e o tipo de tributação (ISSQN) para este código de serviço.
+                    </div>
+                    <div class="form-group">
+                        <label for="editPisRate">Alíquota de PIS (%)</label>
+                        <input type="number" step="0.01" class="form-control" name="pis_rate" id="editPisRate" placeholder="Ex.: 0.65">
+                    </div>
+                    <div class="form-group">
+                        <label for="editCofinsRate">Alíquota de COFINS (%)</label>
+                        <input type="number" step="0.01" class="form-control" name="cofins_rate" id="editCofinsRate" placeholder="Ex.: 3.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="editTaxationType">Tipo de Tributação (ISSQN)</label>
+                        <select class="form-control" name="taxation_type" id="editTaxationType">
+                            <option value="">— Não informar (usa padrão da empresa) —</option>
+                            {foreach from=$taxationTypes item=tt}
+                                <option value="{$tt.value}">{$tt.label}</option>
+                            {/foreach}
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
@@ -46,10 +67,16 @@
             const companyTaxNumber = $(this).data('company-tax-number');
             const emitior = companyName + ' - ' + companyTaxNumber
             const issHeld = $(this).data('iss-held');
+            const pisRate = $(this).data('pis-rate');
+            const cofinsRate = $(this).data('cofins-rate');
+            const taxationType = $(this).data('taxation-type');
 
             $('#editRecordId').val(recordId);
             $('#editServiceCode').val(serviceCode);
             $('#editIssHeld').val(issHeld);
+            $('#editPisRate').val(pisRate);
+            $('#editCofinsRate').val(cofinsRate);
+            $('#editTaxationType').val(taxationType || '');
             $('#companyName').val(emitior);
 
             $('#editAliquotModal').modal('show');

@@ -472,4 +472,48 @@ class Migrations
         }
 
     }
+
+    /**
+     * Adiciona colunas de PIS/COFINS e taxationType (RTC) a uma tabela, com guarda
+     * `hasColumn` por coluna (idempotente em reinstalações/instalações parciais).
+     *
+     * @param  string $tableName nome da tabela
+     * @param  array  $columns   mapa coluna => definição SQL (ex.: ['pis_rate' => 'FLOAT(5,2) NULL'])
+     * @return void
+     * @version 3.3.0
+     * @since 3.3.0
+     * @see https://github.com/nfe/whmcs-addon/issues/203
+     */
+    public static function addPisCofinsTaxationFieldsV330($tableName, array $columns)
+    {
+        $schema = Capsule::schema();
+        if (!$schema->hasTable($tableName)) {
+            return;
+        }
+
+        $pdo = Capsule::connection()->getPdo();
+
+        foreach ($columns as $columnName => $definition) {
+            // guarda por coluna: pula as que já existem
+            if ($schema->hasColumn($tableName, $columnName)) {
+                continue;
+            }
+            try {
+                $pdo->exec(sprintf('ALTER TABLE %s ADD COLUMN %s %s', $tableName, $columnName, $definition));
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'addPisCofinsTaxationFieldsV330',
+                    "{$tableName}.{$columnName}",
+                    'success'
+                );
+            } catch (\Exception $e) {
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'addPisCofinsTaxationFieldsV330',
+                    "{$tableName}.{$columnName} :: {$e->getMessage()}",
+                    $e->getTraceAsString()
+                );
+            }
+        }
+    }
 }

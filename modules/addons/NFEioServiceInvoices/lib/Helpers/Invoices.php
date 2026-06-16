@@ -71,6 +71,18 @@ class Invoices
     }
 
     /**
+     * Calcula o valor de um tributo a partir de uma alíquota percentual.
+     *
+     * @param  float $amount valor base (ex.: total dos serviços)
+     * @param  float $rate   alíquota em percentual (ex.: 0.65, 3.0)
+     * @return float valor calculado, arredondado a 2 casas
+     */
+    public static function getTaxAmountByRate($amount, $rate)
+    {
+        return round(($amount * $rate) / 100, 2);
+    }
+
+    /**
      * Calcula o valor de retenção para o ISS
      *
      * @param  $amount
@@ -79,9 +91,7 @@ class Invoices
      */
     public static function getIssHeldAmount($amount, $issHeld)
     {
-        $heldAmount = ($amount * $issHeld) / 100;
-
-        return round($heldAmount, 2);
+        return self::getTaxAmountByRate($amount, $issHeld);
     }
 
     /**
