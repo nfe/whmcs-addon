@@ -71,7 +71,7 @@ class Nfe
     private function executeCurl($uri, $method = 'GET', $data = null, $timeout = 3)
     {
         $headers = [
-            'Content-Type: text/json',
+            'Content-Type: application/json',
             'Accept: application/json',
             'Authorization: ' . $this->storage->get('api_key'),
         ];

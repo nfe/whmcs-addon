@@ -1,3 +1,21 @@
+## v3.3.1
+Esta versão corrige a emissão de NFS-e, que passou a falhar com `415 Unsupported Media Type` a partir de 24/07/2026.
+
+### Correções
+#### `Content-Type` da emissão alinhado a `application/json`
+A requisição de emissão (`POST api.nfe.io/v1/companies/{id}/serviceinvoices`) enviava o cabeçalho `Content-Type: text/json` — um media type não registrado, herdado do módulo `gofasnfeio` original (2021). A API aceitava esse valor historicamente, mas passou a rejeitá-lo, respondendo `415 Unsupported Media Type` com corpo vazio antes mesmo da autenticação. Nenhuma alteração no módulo desencadeou a falha: a mudança foi no lado da API.
+
+Comportamento observado na API em 27/07/2026, mesmo endpoint e payload:
+
+| `Content-Type` enviado | Resposta |
+| --- | --- |
+| `text/json` | `415` (corpo vazio, sem `WWW-Authenticate`) |
+| `application/json` | `401` — passa da negociação de conteúdo e chega à autenticação |
+
+Requisições sem corpo (`GET`, `PUT` sem payload) não são afetadas, o que restringiu o impacto ao fluxo de emissão.
+
+O cabeçalho passa a ser `application/json` na emissão (`Legacy\Functions::gnfe_nf_issue`) e no cliente cURL genérico da v1 (`NFEio\Nfe::executeCurl`), que já era usado por `PUT .../sendemail` e falharia da mesma forma ao ganhar corpo. O `executeWebhookCurl` (API v2) já usava `application/json` e não foi alterado.
+
 ## v3.3.0
 Esta versão adiciona à emissão de NFS-e os campos da Reforma Tributária para PIS/COFINS e o tipo de tributação do ISSQN (`taxationType`).
 

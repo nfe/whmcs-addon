@@ -183,7 +183,7 @@ class Functions
 
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, 'https://api.nfe.io/v1/companies/' . $companyId . '/serviceinvoices');
-        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: text/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: application/json', 'Authorization: ' . $this->gnfe_config('api_key')]);
         curl_setopt($curl, CURLOPT_TIMEOUT, 30);
         curl_setopt($curl, CURLOPT_POST, 1);
         curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($postfields));
