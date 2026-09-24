@@ -521,6 +521,8 @@ class Controller
         //$footer = isset($post['footer']) ? $post['footer'] : ' ';
         $iss_held = isset($post['iss_held']) ? $post['iss_held'] : 0;
         $discount_items = isset($post['discount_items']) ? $post['discount_items'] : '';
+        $check_nf_status = isset($post['check_nf_status']) ? $post['check_nf_status'] : '';
+        $check_nf_status_limit = isset($post['check_nf_status_limit']) ? $post['check_nf_status_limit'] : '';
 
         // verifica cada campo e realiza a inserção das configurações no banco
         try {
@@ -550,6 +552,8 @@ class Controller
             $storage->set('iss_held', $iss_held);
             // discount_items
             $storage->set('discount_items', $discount_items);
+            $storage->set('check_nf_status', $check_nf_status);
+            $storage->set('check_nf_status_limit', $check_nf_status_limit);
 
             if ($rps_number) {
                 $storage->set('rps_number', $rps_number);

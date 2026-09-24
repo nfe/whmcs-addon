@@ -45,6 +45,12 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'tics',
         'company_id',
     );
+    public $terminalStatuses = array(
+        'Issued',
+        'Cancelled',
+        'Error',
+    );
+
     protected $_limit = 10;
 
     /**
@@ -360,6 +366,34 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
                 $e->getTraceAsString()
             );
             return false;
+        }
+    }
+
+    public function getNotesPendingStatusCheck($minAgeMinutes, $limit)
+    {
+        $minAgeMinutes = (int)$minAgeMinutes;
+        $limit = (int)$limit;
+        $threshold = date('Y-m-d H:i:s', strtotime("-{$minAgeMinutes} minutes"));
+
+        try {
+            return Capsule::table($this->tableName)
+                ->whereNotNull('nfe_id')
+                ->where('nfe_id', '!=', '')
+                ->where('status', '!=', 'Waiting')
+                ->whereNotIn('status', $this->terminalStatuses)
+                ->whereRaw('COALESCE(updated_at, created_at) <= ?', [$threshold])
+                ->orderByRaw('COALESCE(updated_at, created_at) asc')
+                ->limit($limit)
+                ->get();
+        } catch (\Exception $e) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'getNotesPendingStatusCheck_error',
+                ['min_age_minutes' => $minAgeMinutes, 'limit' => $limit, 'threshold' => $threshold],
+                $e->getMessage(),
+                $e->getTraceAsString()
+            );
+            return new \Illuminate\Support\Collection([]);
         }
     }
 

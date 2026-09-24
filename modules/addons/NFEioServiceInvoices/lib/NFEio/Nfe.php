@@ -794,6 +794,58 @@ class Nfe
         return $result;
     }
 
+    public function syncPendingStatuses($limit, $minAgeMinutes)
+    {
+        $companyRepo = new \NFEioServiceInvoices\Models\Company\Repository();
+        $defaultCompany = $companyRepo->getDefaultCompany();
+        $fallbackCompanyId = $defaultCompany ? $defaultCompany->company_id : null;
+        $pendingNotes = $this->serviceInvoicesRepo->getNotesPendingStatusCheck($minAgeMinutes, $limit);
+        $result = ['pending' => count($pendingNotes), 'updated' => 0, 'unchanged' => 0, 'failed' => 0];
+
+        foreach ($pendingNotes as $note) {
+            $companyId = !empty($note->company_id) ? $note->company_id : $fallbackCompanyId;
+
+            if (empty($companyId)) {
+                $result['failed']++;
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'sync_pending_statuses_error',
+                    ['nfe_id' => $note->nfe_id],
+                    'Empresa emissora não identificada para a nota.'
+                );
+                continue;
+            }
+
+            $remoteNote = $this->fetchNf($note->nfe_id, $companyId);
+
+            if (!is_object($remoteNote) || !isset($remoteNote->status)) {
+                $result['failed']++;
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'sync_pending_statuses_error',
+                    ['nfe_id' => $note->nfe_id, 'company_id' => $companyId],
+                    $remoteNote
+                );
+                continue;
+            }
+
+            $remoteFlowStatus = isset($remoteNote->flowStatus) ? $remoteNote->flowStatus : null;
+
+            if ($remoteNote->status === $note->status && (string)$remoteFlowStatus === (string)$note->flow_status) {
+                $result['unchanged']++;
+                continue;
+            }
+
+            if ($this->updateLocalNfeStatus($note->nfe_id, $remoteNote->status, $remoteFlowStatus)) {
+                $result['updated']++;
+            } else {
+                $result['failed']++;
+            }
+        }
+
+        return $result;
+    }
+
     /**
      * Atualiza o status de uma NF no banco local pelo externalId
      *

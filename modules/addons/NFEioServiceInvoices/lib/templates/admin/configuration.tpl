@@ -215,6 +215,52 @@
                         </div>
                     </div>
                     {* cancel_invoice_cancel_nfe *}
+                    {* check_nf_status *}
+                    <div class="form-group">
+                        <label class="control-label col-sm-4"
+                               for="{$moduleFields.check_nf_status.id}">{$moduleFields.check_nf_status.label}
+                            :</label>
+                        <div class="col-sm-8">
+                            <div class="checkbox">
+                                <label>
+                                    <input
+                                            type="{$moduleFields.check_nf_status.type}"
+                                            name="{$moduleFields.check_nf_status.name}"
+                                            id="{$moduleFields.check_nf_status.id}"
+                                            aria-describedby="{$moduleFields.check_nf_status.id}HelpBlock"
+                                            {if $moduleFields.check_nf_status.required}required{/if}
+                                            {if $moduleFields.check_nf_status.disabled}disabled{/if}
+                                            {if $check_nf_status == 'on'}checked{/if}
+                                    >
+                                    {$moduleFields.check_nf_status.label}
+                                </label>
+                                <span class="help-block"
+                                      id="{$moduleFields.check_nf_status.id}HelpBlock">{$moduleFields.check_nf_status.description}</span>
+                            </div>
+
+                        </div>
+                    </div>
+                    {* /check_nf_status *}
+                    {* check_nf_status_limit *}
+                    <div class="form-group">
+                        <label class="control-label col-sm-4"
+                               for="{$moduleFields.check_nf_status_limit.id}">{$moduleFields.check_nf_status_limit.label}:</label>
+                        <div class="col-sm-8">
+                            <input
+                                    class="form-control"
+                                    type="{$moduleFields.check_nf_status_limit.type}"
+                                    name="{$moduleFields.check_nf_status_limit.name}"
+                                    id="{$moduleFields.check_nf_status_limit.id}"
+                                    aria-describedby="{$moduleFields.check_nf_status_limit.id}HelpBlock"
+                                    {if $moduleFields.check_nf_status_limit.required}required{/if}
+                                    {if $moduleFields.check_nf_status_limit.disabled}disabled{/if}
+                                    value="{$check_nf_status_limit}"
+                            >
+                            <span class="help-block"
+                                  id="{$moduleFields.check_nf_status_limit.id}HelpBlock">{$moduleFields.check_nf_status_limit.description}</span>
+                        </div>
+                    </div>
+                    {* /check_nf_status_limit *}
                     {* insc_municipal *}
                     <div class="form-group">
                         <label class="control-label col-sm-4"

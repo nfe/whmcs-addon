@@ -1,0 +1,34 @@
+name: Solicitar um Recurso
+description: Sugira uma ideia para este projeto
+title: "[SUGESTÃO]"
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Sua solicitação de recurso está relacionada a um problema? Por favor descreva.
+      description: Uma descrição clara e concisa do que é o problema. Ex. Eu sempre fico frustrado quando [...]
+    validations:
+      required: false
+  - type: textarea
+    id: solucao-desejada
+    attributes:
+      label: Descreva a solução que você deseja
+      description: Uma descrição clara e concisa do que você quer que aconteça.
+    validations:
+      required: false
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Descreva as alternativas que você considerou
+      description: Uma descrição clara e concisa de quaisquer soluções ou recursos alternativos que você considerou.
+    validations:
+      required: false
+  - type: textarea
+    id: contexto-adicional
+    attributes:
+      label: Contexto adicional
+      description: Adicione qualquer outro contexto ou capturas de tela sobre a solicitação de recurso aqui.
+    validations:
+      required: false

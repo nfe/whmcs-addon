@@ -39,7 +39,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'descCustom',
         'footer',
         'iss_held',
-        'discount_items'
+        'discount_items',
+        'check_nf_status',
+        'check_nf_status_limit'
     );
 
     /**
@@ -68,7 +70,9 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
         'descCustom',
         'footer',
         'iss_held',
-        'discount_items'
+        'discount_items',
+        'check_nf_status',
+        'check_nf_status_limit'
     );
 
     /**
@@ -284,6 +288,24 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'required' => false,
             'disabled' => false,
             'description' => 'Deduzir descontos/abatimentos existentes na fatura do valor total da nota a ser emitida.',
+        ],
+        'check_nf_status' => [
+            'type' => 'checkbox',
+            'label' => 'Verificar Status das Notas',
+            'name' => 'check_nf_status',
+            'id' => 'checkNfStatus_Field',
+            'required' => false,
+            'disabled' => false,
+            'description' => 'Consultar na NFE.io, a cada execução do cron, o status das notas que ainda não chegaram a um status final. Recomendado como reserva caso alguma notificação de webhook não seja recebida.',
+        ],
+        'check_nf_status_limit' => [
+            'type' => 'text',
+            'label' => 'Limite de Notas por Verificação',
+            'name' => 'check_nf_status_limit',
+            'id' => 'checkNfStatusLimit_Field',
+            'required' => false,
+            'disabled' => false,
+            'description' => 'Quantidade máxima de notas consultadas por execução do cron. Se vazio, o padrão é 50.',
         ],
         'nbs_code' => [
             'type' => 'text',

@@ -14,6 +14,10 @@ use WHMCS\Database\Capsule;
  */
 class AfterCronJob
 {
+    const STATUS_CHECK_MIN_AGE_MINUTES = 15;
+
+    const STATUS_CHECK_DEFAULT_LIMIT = 50;
+
     /**
      * @var \NFEioServiceInvoices\Configuration
      */
@@ -77,5 +81,29 @@ class AfterCronJob
             }
 
         }
+
+        $this->checkPendingNfStatus($storage);
+    }
+
+    private function checkPendingNfStatus($storage)
+    {
+        if ($storage->get('check_nf_status') !== 'on') {
+            return;
+        }
+
+        $limit = (int)$storage->get('check_nf_status_limit');
+
+        if ($limit <= 0) {
+            $limit = self::STATUS_CHECK_DEFAULT_LIMIT;
+        }
+
+        $result = $this->nf->syncPendingStatuses($limit, self::STATUS_CHECK_MIN_AGE_MINUTES);
+
+        logModuleCall(
+            'nfeio_serviceinvoices',
+            'hook_aftercronjob_status_check',
+            ['limite' => $limit, 'idade minima em minutos' => self::STATUS_CHECK_MIN_AGE_MINUTES],
+            $result
+        );
     }
 }

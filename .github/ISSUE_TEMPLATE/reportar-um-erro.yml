@@ -1,0 +1,54 @@
+name: Reportar um Erro
+description: Crie uma issue para reportar um erro/bug encontrado
+title: "[BUG]"
+body:
+  - type: textarea
+    id: descricao-erro
+    attributes:
+      label: Descreva o erro
+      description: Uma descrição clara e concisa do erro.
+    validations:
+      required: false
+  - type: textarea
+    id: como-reproduzir
+    attributes:
+      label: Como reproduzir
+      description: |-
+        Etapas para reproduzir o comportamento:
+        1. Vá para '...'
+        2. Clique em '....'
+        3. Navegue até '....'
+        4. See error
+    validations:
+      required: false
+  - type: textarea
+    id: comportamento-esperado
+    attributes:
+      label: Comportamento esperado
+      description: Uma descrição clara e concisa do que você esperava que acontecesse.
+    validations:
+      required: false
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Se aplicável, adicione capturas de tela para ajudar a explicar seu problema.
+    validations:
+      required: false
+  - type: textarea
+    id: ambiente-versoes
+    attributes:
+      label: "Ambiente e versões:"
+      description: |-
+        - Versão do módulo: [ex. 2.0.0]
+        - Versão do WHMCS: [ex. 8.4]
+        - Versão do PHP: [ex. 7.4]
+    validations:
+      required: false
+  - type: textarea
+    id: contexto-adicional
+    attributes:
+      label: Contexto adicional
+      description: Adicione qualquer outro contexto sobre o problema aqui.
+    validations:
+      required: false
