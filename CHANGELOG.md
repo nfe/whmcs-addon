@@ -1,3 +1,20 @@
+## v3.3.2
+Esta versão corrige uma falha de segurança no download de NFS-e (PDF/XML) pela área do cliente. Atualização recomendada para todas as instalações.
+
+### Segurança
+#### Verificação de dono da nota no download de PDF/XML ([GHSA-3pwc-wpfp-qmmj](https://github.com/nfe/whmcs-addon/security/advisories/GHSA-3pwc-wpfp-qmmj))
+As ações `downloadNfPdf` e `downloadNfXml` da área do cliente verificavam apenas se havia um cliente autenticado, sem confirmar que a nota solicitada pertencia a ele (CWE-639). Um cliente que obtivesse o ID de uma nota de outro cliente conseguia baixá-la.
+
+O download passa a:
+- validar o formato do `nfid` (ObjectId de 24 caracteres hexadecimais), respondendo `400` se inválido;
+- localizar a nota pelo `nfe_id` **e** pelo cliente logado, respondendo `404` se ela não pertencer a ele, sem consultar a API da NFE.io;
+- usar a empresa emissora gravada no registro local; o parâmetro `c` da URL passa a ser ignorado e permanece apenas por compatibilidade;
+- usar o ID do registro local no nome do arquivo XML.
+
+Como camada adicional, o painel de NFS-e na visualização da fatura só é exibido quando a fatura pertence ao cliente logado.
+
+Agradecimento a [kta1kri](https://github.com/kta1kri) pelo reporte responsável.
+
 ## v3.3.1
 Esta versão corrige a emissão de NFS-e, que passou a falhar com `415 Unsupported Media Type` a partir de 24/07/2026.
 

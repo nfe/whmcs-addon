@@ -202,6 +202,26 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             ->count();
     }
 
+    /**
+     * Retorna a nota local pelo ID da NFE.io, desde que pertença ao cliente informado.
+     *
+     * Usado na área do cliente para garantir que o cliente logado só acesse
+     * as próprias notas fiscais (GHSA-3pwc-wpfp-qmmj).
+     *
+     * @param  $nfeId string ID da nota fiscal na NFE.io
+     * @param  $clientId int ID do cliente WHMCS dono da nota
+     * @return object|null dados da nota local ou null se não encontrada para o cliente
+     */
+    public function findByNfeIdForClient($nfeId, $clientId)
+    {
+        return Capsule::table($this->tableName)
+            ->where('nfe_id', '=', $nfeId)
+            // user_id é varchar; comparar como string evita conversão numérica implícita no MySQL
+            ->where('user_id', '=', (string) $clientId)
+            ->orderBy('id', 'desc')
+            ->first();
+    }
+
     public function hasInvoices($id)
     {
         $response = false;

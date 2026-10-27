@@ -34,6 +34,12 @@ class ClientAreaPageViewInvoice
         $vars = [];
         $taxBills = [];
 
+        // só lista as notas se a fatura pertencer ao cliente logado (GHSA-3pwc-wpfp-qmmj)
+        if (!$this->isInvoiceOwnedByCurrentClient()) {
+            $vars['nfeIoTaxBills'] = $taxBills;
+            return $vars;
+        }
+
         $localServiceInvoices = $this->serviceInvoicesRepo->getServiceInvoicesById($this->invoiceId);
 
         foreach ($localServiceInvoices as $nf) {
@@ -51,5 +57,27 @@ class ClientAreaPageViewInvoice
 
 
         return $vars;
+    }
+
+    /**
+     * Verifica se a fatura exibida pertence ao cliente logado.
+     *
+     * Evita expor IDs de notas e empresas emissoras de outros clientes
+     * caso o hook seja disparado para uma fatura de terceiros.
+     *
+     * @return bool true se a fatura pertencer ao cliente logado
+     */
+    private function isInvoiceOwnedByCurrentClient()
+    {
+        $currentUser = new \WHMCS\Authentication\CurrentUser();
+        $client = $currentUser->client();
+
+        if (!$client || empty($this->invoiceId)) {
+            return false;
+        }
+
+        $invoiceUserId = Capsule::table('tblinvoices')->where('id', '=', $this->invoiceId)->value('userid');
+
+        return $invoiceUserId !== null && (int) $invoiceUserId === (int) $client->id;
     }
 }
