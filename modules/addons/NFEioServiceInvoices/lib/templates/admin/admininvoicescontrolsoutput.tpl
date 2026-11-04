@@ -70,6 +70,11 @@
                 <strong>Nota Fiscal cancelada com sucesso!</strong>
             </div>
         {/if}
+        {if $smarty.get.nfeionoeligible ==  true}
+            <div class="alert alert-warning" role="alert">
+                <strong>Fatura #{$invoiceId|escape:'html'} sem item elegível para NFS-e</strong> (por exemplo, Mass Pay ou Adicionar Fundos). Nenhuma nota foi criada.
+            </div>
+        {/if}
     </div>
         {if $totalServiceInvoices > 0}
             <div class="col-sm-12">

@@ -987,6 +987,8 @@ class Controller
 
         if ($response['status'] != 'success') {
             $msg->error($response['message'], $redirectUrl);
+        } elseif (($response['reason'] ?? null) === 'no_eligible_items') {
+            $msg->warning("Fatura #" . (int) $invoiceId . " sem item elegível para NFS-e (por exemplo, Mass Pay ou Adicionar Fundos).", $redirectUrl);
         } else {
             $msg->info("Nota fiscal enviada para processamento.", $redirectUrl);
         }

@@ -51,13 +51,14 @@ class DailyCronJob
             date_sub($invoicesPaidOnDay, new \DateInterval("P{$issueNoteAfterDays}D"));
 
             // seleciona todas as faturas que tenham sido pagas no dia calculado em $invoicesPaidOnDay
-            $invoicesToGenerateData = Capsule::table('tblinvoices')->whereDate('datepaid', $invoicesPaidOnDay->format('Y-m-d'))->select(['id as invoice_id', 'total'])->get();
+            // usa o subtotal (itens antes do crédito): fatura paga com crédito também gera nota
+            $invoicesToGenerateData = Capsule::table('tblinvoices')->whereDate('datepaid', $invoicesPaidOnDay->format('Y-m-d'))->select(['id as invoice_id', 'subtotal'])->get();
             // coleção com os IDs das faturas encontradas
             $invoicesToGenerateID = [];
             // alimenta a coleção com os dados
             if (count($invoicesToGenerateData) > 0) {
                 foreach ($invoicesToGenerateData as $invoice) {
-                    if ($invoice->total > 0) {
+                    if ($invoice->subtotal > 0) {
                         $invoicesToGenerateID[] = $invoice->invoice_id;
                     }
                 }
