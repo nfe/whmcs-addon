@@ -19,7 +19,9 @@ class InvoicePaid
         $storage = new \WHMCSExpert\Addon\Storage($this->config->getStorageKey());
         $invoiceData = \WHMCS\Billing\Invoice::find($this->invoiceId);
         $invoiceStatus = $invoiceData->status;
-        $invoiceTotal = $invoiceData->total;
+        // o critério usa o subtotal (itens antes do crédito): crédito é forma de pagamento,
+        // e no WHMCS <= 8 o total é zerado quando a fatura é paga com crédito
+        $invoiceSubtotal = $invoiceData->subtotal;
         $userId = $invoiceData->userid;
         $clientRepository = new \NFEioServiceInvoices\Models\ClientConfiguration\Repository();
         $clientIssueCondition = $clientRepository->getClientIssueCondition($userId);
@@ -28,13 +30,14 @@ class InvoicePaid
         $generateTaxBill = false;
         $generateTaxBillWhen = 'quando a fatura é paga';
 
-        if ($invoiceTotal > 0.00 and (!$issueNoteAfter or $issueNoteAfter == 0) and $invoiceStatus == 'Paid') {
+        if ($invoiceSubtotal > 0.00 and (!$issueNoteAfter or $issueNoteAfter == 0) and $invoiceStatus == 'Paid') {
             $generateTaxBill = true;
         }
 
         $data = [
             'invoiceID' => $this->invoiceId,
             'invoiceStatus' => $invoiceStatus,
+            'invoiceSubtotal' => $invoiceSubtotal,
             'userID' => $userId,
             'clientIssueCondition' => $clientIssueCondition,
             'moduleIssueCondition' => $moduleIssueCondition,

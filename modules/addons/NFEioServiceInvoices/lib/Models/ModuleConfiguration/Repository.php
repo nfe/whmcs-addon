@@ -283,7 +283,7 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             'id' => 'discountItems_Field',
             'required' => false,
             'disabled' => false,
-            'description' => 'Deduzir descontos/abatimentos existentes na fatura do valor total da nota a ser emitida.',
+            'description' => 'Deduz do valor da nota os itens de desconto da fatura (itens com valor negativo, como cupons promocionais), no grupo de código de serviço de cada item. Crédito aplicado à fatura é forma de pagamento e não é deduzido.',
         ],
         'nbs_code' => [
             'type' => 'text',

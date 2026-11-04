@@ -37,7 +37,9 @@ class InvoiceCreation
         $generateTaxBill = false;
         $generateTaxBillWhen = 'quando a fatura é gerada';
 
-        if ($invoiceData->total > 0.00 and (!$issueNoteAfter or $issueNoteAfter == 0) and $this->invoiceStatus != 'Draft') {
+        // o critério usa o subtotal (itens antes do crédito), pois crédito aplicado na geração
+        // da fatura é forma de pagamento e no WHMCS <= 8 reduz o total
+        if ($invoiceData->subtotal > 0.00 and (!$issueNoteAfter or $issueNoteAfter == 0) and $this->invoiceStatus != 'Draft') {
             $generateTaxBill = true;
         }
 

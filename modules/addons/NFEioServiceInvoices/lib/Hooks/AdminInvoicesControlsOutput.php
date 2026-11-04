@@ -43,7 +43,9 @@ class AdminInvoicesControlsOutput
 
         if ($request === 'create' && $totalServiceInvoices == 0) {
             $queue = $nfe->queue($this->invoiceId);
-            if ($queue['success']) {
+            if ($queue['success'] && ($queue['reason'] ?? null) === 'no_eligible_items') {
+                $msg->warning('Fatura #' . (int) $this->invoiceId . ' sem item elegível para NFS-e (por exemplo, Mass Pay ou Adicionar Fundos).');
+            } elseif ($queue['success']) {
                 $msg->success('Nota adicionada a fila de emissão.');
             } else {
                 $msg->error("Problemas ao tentar criar a nota: {$queue['message']}");
@@ -52,7 +54,12 @@ class AdminInvoicesControlsOutput
 
         if ($request === 'reissue') {
             $result = $nfe->queue($this->invoiceId, true);
-            if ($result['success']) {
+            if ($result['success'] && ($result['reason'] ?? null) === 'no_eligible_items') {
+                // a mensagem de sessão se perde no redirecionamento desta tela; o aviso vai por
+                // parâmetro na URL, como os de cancelamento e reemissão (ver template)
+                header('Location: ' . $urn . '&nfeionoeligible=true');
+                exit;
+            } elseif ($result['success']) {
                 $msg->success('Nota adicionada a fila para reemissão.', $urn . '&nfeioreissue=true');
             } else {
                 $msg->error("Problemas ao tentar reemitir a nota: {$result['message']}", $urn . '&nfeioreissue=true');

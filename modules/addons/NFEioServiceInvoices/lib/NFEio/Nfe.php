@@ -16,6 +16,12 @@ use WHMCS\Database\Capsule;
 class Nfe
 {
     /**
+     * Tipos de item da fatura que não representam prestação de serviço e não geram NFS-e:
+     * juros/mora automática (LateFee), pagamento em massa (Invoice) e adição de fundos (AddFunds).
+     */
+    const NON_BILLABLE_ITEM_TYPES = ['LateFee', 'Invoice', 'AddFunds'];
+
+    /**
      * @var \NFEioServiceInvoices\Models\ServiceInvoices\Repository
      */
     private $serviceInvoicesRepo;
@@ -464,7 +470,9 @@ class Nfe
      * @param   $invoiceId int|string ID da fatura do WHMCS
      * @param   $reissue   boolean informe 'true' quando for
      *                     reemissão
-     * @return  array|bool[] status da inserção na fila
+     * @return  array status da inserção na fila: `success`, `queued` (quantidade de notas
+     *                inseridas) e `reason` = `no_eligible_items` quando a fatura não tem item
+     *                elegível com valor positivo
      * @author  Andre Bellafronte
      * @version 2.1.0
      */
@@ -514,6 +522,8 @@ class Nfe
         // $defaultServiceCode = $this->storage->get('service_code');
         // agrupa os itens pela tupla fiscal completa; cada grupo é auto-contido (#200)
         $fiscalGroups = [];
+        // tipos de item descartados por não gerarem NFS-e, registrados no log ao final
+        $skippedItemTypes = [];
 
         // percorre cada item da fatura para preparar as agregações por grupo fiscal
         foreach ($invoiceItems as $item) {
@@ -524,8 +534,10 @@ class Nfe
             $operationIndicator = $defaultOperationIndicator;
             $classCode = $defaultClassCode;
 
-            // se o item for juros/mora automática do WHMCS, não considera para fins de cálculo de nota
-            if ($item->type === 'LateFee') {
+            // juros/mora, pagamento em massa e adição de fundos não são serviço e não entram na nota:
+            // as faturas quitadas pelo Mass Pay e as pagas com crédito geram as próprias notas
+            if (in_array($item->type, self::NON_BILLABLE_ITEM_TYPES, true)) {
+                $skippedItemTypes[] = $item->type;
                 continue;
             }
 
@@ -580,6 +592,9 @@ class Nfe
             $reissue
         );
 
+        // quantidade de notas efetivamente inseridas na fila
+        $queued = 0;
+
         if (count($nfToEmit) > 0) {
             foreach ($nfToEmit as $nf) {
                 /**
@@ -608,10 +623,31 @@ class Nfe
 //                $result = Capsule::table($this->serviceInvoicesTable)->insert($nf);
                 $result = $this->serviceInvoicesRepo->create($nf);
                 logModuleCall('nfeio_serviceinvoices', 'nf_queue', $nf, $result);
+                if ($result) {
+                    $queued++;
+                }
             }
         }
 
-        return ['success' => true];
+        // registra uma única vez os itens descartados por tipo, para o suporte entender
+        // por que a fatura não gerou nota (ex.: fatura de Mass Pay ou de adição de fundos)
+        if (count($skippedItemTypes) > 0) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'nf_queue_skipped_items',
+                ['invoice_id' => $invoiceId, 'skipped_item_types' => array_count_values($skippedItemTypes)],
+                ['queued' => $queued]
+            );
+        }
+
+        $response = ['success' => true, 'queued' => $queued];
+
+        // nenhum grupo fiscal com valor positivo: a fatura não tem item elegível para NFS-e
+        if (count($nfToEmit) === 0) {
+            $response['reason'] = 'no_eligible_items';
+        }
+
+        return $response;
     }
 
     /**
@@ -901,7 +937,7 @@ class Nfe
      * Realiza a reemissão da(s) nota(s) com base no ID da fatura.
      *
      * @param   $invoiceId integer ID da fatura
-     * @return  string[] status do resultado
+     * @return  array status do resultado; em sucesso, inclui `queued` e, quando houver, `reason`
      * @version 2.1
      * @author  Andre Bellafronte <andre@eunarede.com>
      */
@@ -928,7 +964,13 @@ class Nfe
 
         logModuleCall('nfeio_serviceinvoices', 'nf_reissue_series_by_invoice', $invoiceId, $result);
 
-        return ['status' => 'success'];
+        // repassa a quantidade enfileirada e o motivo (ex.: fatura sem item elegível) ao chamador
+        $response = ['status' => 'success', 'queued' => $result['queued']];
+        if (isset($result['reason'])) {
+            $response['reason'] = $result['reason'];
+        }
+
+        return $response;
     }
 
     /**

@@ -1,3 +1,27 @@
+## v3.4.0
+Esta versão deixa de emitir NFS-e para as faturas de Mass Pay (pagamento em massa) e de Adicionar Fundos, que geravam nota em duplicidade com as faturas de serviço. É uma mudança de comportamento fiscal: leia as notas de atualização antes de atualizar.
+
+### Correções
+#### Mass Pay e Adicionar Fundos não geram mais NFS-e
+A emissão tratava como serviço os itens de pagamento em massa (`Invoice`) e de adição de fundos (`AddFunds`). A fatura de Mass Pay gerava nota, e cada fatura quitada por ela gerava outra nota com os mesmos serviços. A fatura de Adicionar Fundos gerava nota, e a fatura paga com esse crédito gerava outra.
+
+Agora esses itens ficam fora da nota, como já acontecia com os juros (`LateFee`). A nota sai na fatura do serviço: cada fatura quitada pelo Mass Pay gera a própria nota, e a fatura paga com crédito gera nota com o valor cheio dos itens. A regra vale para a emissão automática, a agendada, a manual e a reemissão.
+
+#### Crédito aplicado é forma de pagamento
+O critério de emissão passa a usar o subtotal da fatura (valor dos itens antes do crédito) em vez do total. No WHMCS 8 ou anterior, aplicar crédito reduz o total, e uma fatura paga só com crédito ficava sem nota. No WHMCS 9, o crédito vira uma nota de crédito e o total continua bruto, por isso as faturas pagas com crédito já geravam nota, em duplicidade com a nota da adição de fundos. O valor da nota continua sendo o dos itens elegíveis: o crédito aplicado não é abatido.
+
+### Melhorias
+- A emissão manual ("Emitir Nota Fiscal") e a reemissão avisam "Fatura #número sem item elegível para NFS-e" quando a fatura não tem item que gere nota, em vez de informar que a nota entrou na fila.
+- O Log de Módulo registra (`nf_queue_skipped_items`) os itens descartados por não gerarem NFS-e.
+- A descrição da opção "Deduzir descontos da fatura na NF" passa a dizer que ela deduz só os itens de desconto (valor negativo) e que o crédito aplicado não é deduzido. A regra da opção não mudou.
+
+### Notas sobre Atualização e Migração
+- **WHMCS 8 ou anterior:** o saldo de crédito comprado antes da atualização já teve nota na adição de fundos. Quando esse crédito pagar uma fatura de serviço, sai outra nota. Confira os saldos de crédito dos clientes antes de atualizar e avalie com o seu contador as notas geradas sobre crédito antigo.
+- **WHMCS 8 ou anterior:** faturas pagas só com crédito passam a gerar nota. Espere um aumento no número de notas emitidas.
+- **WHMCS 9:** a dupla tributação já acontecia. A atualização corrige esse comportamento a partir dela.
+- **Limitação conhecida no WHMCS 9:** cancelar um item de uma fatura já publicada gera uma nota de crédito que o módulo ainda não lê, e a NFS-e sai com o valor do item cancelado.
+- Sem mudança no banco de dados. Para voltar atrás, reinstale a versão anterior; as notas já emitidas não mudam.
+
 ## v3.3.2
 Esta versão corrige uma falha de segurança no download de NFS-e (PDF/XML) pela área do cliente. Atualização recomendada para todas as instalações.
 
