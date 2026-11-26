@@ -212,14 +212,60 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      * @param  $clientId int ID do cliente WHMCS dono da nota
      * @return object|null dados da nota local ou null se não encontrada para o cliente
      */
-    public function findByNfeIdForClient($nfeId, $clientId)
+    /**
+     * Busca nota pelo nfe_id (sem filtro de cliente). Uso restrito a admin.
+     *
+     * @param string $nfeId
+     * @return object|null
+     */
+    public function findByNfeId($nfeId)
     {
         return Capsule::table($this->tableName)
+            ->where('nfe_id', '=', $nfeId)
+            ->orderBy('id', 'desc')
+            ->first();
+    }
+
+    public function findByNfeIdForClient($nfeId, $clientId)
+    {
+        $row = Capsule::table($this->tableName)
             ->where('nfe_id', '=', $nfeId)
             // user_id é varchar; comparar como string evita conversão numérica implícita no MySQL
             ->where('user_id', '=', (string) $clientId)
             ->orderBy('id', 'desc')
             ->first();
+
+        if ($row) {
+            return $row;
+        }
+
+        // Fallback: dono da fatura (corrige user_id legado/vazio após reemissão)
+        $row = Capsule::table($this->tableName . ' as n')
+            ->join('tblinvoices as i', 'i.id', '=', 'n.invoice_id')
+            ->where('n.nfe_id', '=', $nfeId)
+            ->where('i.userid', '=', (int) $clientId)
+            ->orderBy('n.id', 'desc')
+            ->select('n.*')
+            ->first();
+
+        if ($row && (string) $row->user_id !== (string) $clientId) {
+            try {
+                Capsule::table($this->tableName)
+                    ->where('id', '=', $row->id)
+                    ->update(['user_id' => (string) $clientId]);
+                $row->user_id = (string) $clientId;
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'findByNfeIdForClient_userid_repaired',
+                    ['nfe_id' => $nfeId, 'client_id' => $clientId, 'row_id' => $row->id],
+                    'user_id alinhado ao dono da fatura'
+                );
+            } catch (\Exception $e) {
+                // download segue mesmo se o repair falhar
+            }
+        }
+
+        return $row;
     }
 
     public function hasInvoices($id)

@@ -2,6 +2,7 @@
 
 namespace NFEioServiceInvoices\Client;
 
+use NFEioServiceInvoices\Helpers\Auth;
 use NFEioServiceInvoices\Models\ServiceInvoices\Repository;
 use NFEioServiceInvoices\NFEio\Nfe;
 
@@ -36,18 +37,28 @@ class Controller
      */
     public function downloadNfPdf($vars)
     {
-        $currentUser = new \WHMCS\Authentication\CurrentUser();
-        $client = $currentUser->client();
-        if ($client) {
-            $serviceInvoice = $this->findClientServiceInvoice($client);
-            $nfeio = new Nfe();
-            $pdf = $nfeio->getPdf($serviceInvoice->nfe_id, $serviceInvoice->company_id);
-            header('Location:' . $pdf);
+        $serviceInvoice = $this->resolveServiceInvoiceForDownload();
+        $nfeio = new Nfe();
+        $pdf = $nfeio->getPdf($serviceInvoice->nfe_id, $serviceInvoice->company_id);
+
+        if (empty($pdf) || is_array($pdf) || !is_string($pdf)) {
+            $detail = is_array($pdf) && !empty($pdf['error']) ? $pdf['error'] : 'resposta vazia';
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'download_nf_pdf_error',
+                [
+                    'nfe_id' => $serviceInvoice->nfe_id,
+                    'company_id' => $serviceInvoice->company_id,
+                ],
+                $detail
+            );
+            http_response_code(502);
+            echo 'Não foi possível obter o PDF da nota fiscal na NFE.io.';
             exit;
-        } else {
-            http_response_code(401);
-            return 'Usuário não autorizado.';
         }
+
+        header('Location: ' . $pdf);
+        exit;
     }
 
     /**
@@ -61,49 +72,48 @@ class Controller
      */
     public function downloadNfXml($vars)
     {
-        $currentUser = new \WHMCS\Authentication\CurrentUser();
-        $client = $currentUser->client();
-        if ($client) {
-            $serviceInvoice = $this->findClientServiceInvoice($client);
-            $nfeio = new Nfe();
-            $xmlUrl = $nfeio->getXml($serviceInvoice->nfe_id, $serviceInvoice->company_id);
+        $serviceInvoice = $this->resolveServiceInvoiceForDownload();
+        $nfeio = new Nfe();
+        $xmlUrl = $nfeio->getXml($serviceInvoice->nfe_id, $serviceInvoice->company_id);
 
-            // Faz o download do conteúdo do XML
-            $xmlContent = file_get_contents($xmlUrl);
-
-            // Verifica se o conteúdo foi baixado corretamente
-            if ($xmlContent === false) {
-                http_response_code(500);
-                echo 'Erro: Não foi possível baixar o XML.';
-                exit;
-            }
-
-            // Força o download do XML
-            header('Content-Type: application/xml');
-            header('Content-Disposition: attachment; filename="' . $serviceInvoice->nfe_id . '.xml"');
-            header('Content-Length: ' . strlen($xmlContent));
-            echo $xmlContent;
+        if (empty($xmlUrl) || is_array($xmlUrl) || !is_string($xmlUrl)) {
+            $detail = is_array($xmlUrl) && !empty($xmlUrl['error']) ? $xmlUrl['error'] : 'resposta vazia';
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'download_nf_xml_error',
+                [
+                    'nfe_id' => $serviceInvoice->nfe_id,
+                    'company_id' => $serviceInvoice->company_id,
+                ],
+                $detail
+            );
+            http_response_code(502);
+            echo 'Não foi possível obter o XML da nota fiscal na NFE.io.';
             exit;
-        } else {
-            http_response_code(401);
-            return 'Usuário não autorizado.';
         }
+
+        $xmlContent = @file_get_contents($xmlUrl);
+
+        if ($xmlContent === false) {
+            http_response_code(500);
+            echo 'Erro: Não foi possível baixar o XML.';
+            exit;
+        }
+
+        header('Content-Type: application/xml');
+        header('Content-Disposition: attachment; filename="' . $serviceInvoice->nfe_id . '.xml"');
+        header('Content-Length: ' . strlen($xmlContent));
+        echo $xmlContent;
+        exit;
     }
 
     /**
-     * Busca a nota fiscal solicitada em $_GET['nfid'] garantindo que pertença ao cliente logado.
+     * Resolve a nota local para download: cliente dono (via user_id ou fatura)
+     * ou administrador autenticado (links nas Notas no painel admin).
      *
-     * A empresa emissora é obtida do registro local; o parâmetro $_GET['c'] é ignorado
-     * e mantido na URL apenas por compatibilidade com templates (GHSA-3pwc-wpfp-qmmj).
-     * Encerra a requisição com 400 se o ID for inválido ou 404 se a nota não existir
-     * para o cliente, sem consultar a API da NFE.io.
-     *
-     * Método privado para não ser exposto como action pelo ClientDispatcher.
-     *
-     * @param   $client \WHMCS\User\Client cliente logado
-     * @return  object registro local da nota fiscal pertencente ao cliente
+     * @return object
      */
-    private function findClientServiceInvoice($client)
+    private function resolveServiceInvoiceForDownload()
     {
         $nfId = isset($_GET['nfid']) ? $_GET['nfid'] : '';
 
@@ -114,15 +124,57 @@ class Controller
         }
 
         $serviceInvoicesRepo = new Repository();
-        $serviceInvoice = $serviceInvoicesRepo->findByNfeIdForClient($nfId, $client->id);
+        $client = Auth::client();
 
-        // o nfe_id do registro é revalidado pois é usado em headers da resposta
-        if (!$serviceInvoice || !preg_match(self::NFE_ID_PATTERN, (string) $serviceInvoice->nfe_id)) {
-            http_response_code(404);
-            echo 'Nota fiscal não encontrada.';
+        if ($client && !empty($client->id)) {
+            $serviceInvoice = $serviceInvoicesRepo->findByNfeIdForClient($nfId, $client->id);
+            if ($serviceInvoice && preg_match(self::NFE_ID_PATTERN, (string) $serviceInvoice->nfe_id)) {
+                return $serviceInvoice;
+            }
+        }
+
+        // Admin logado: permite baixar pelos links gravados em tblinvoices.notes
+        if ($this->isAdminLoggedIn()) {
+            $serviceInvoice = $serviceInvoicesRepo->findByNfeId($nfId);
+            if ($serviceInvoice && preg_match(self::NFE_ID_PATTERN, (string) $serviceInvoice->nfe_id)) {
+                return $serviceInvoice;
+            }
+        }
+
+        if (!$client || empty($client->id)) {
+            http_response_code(401);
+            echo 'Usuário não autorizado.';
             exit;
         }
 
-        return $serviceInvoice;
+        http_response_code(404);
+        echo 'Nota fiscal não encontrada.';
+        exit;
+    }
+
+    /**
+     * @return bool
+     */
+    private function isAdminLoggedIn()
+    {
+        if (!empty($_SESSION['adminid'])) {
+            return true;
+        }
+
+        if (class_exists('\\WHMCS\\Authentication\\CurrentUser')) {
+            try {
+                $currentUser = new \WHMCS\Authentication\CurrentUser();
+                if (method_exists($currentUser, 'isAuthenticatedAdmin') && $currentUser->isAuthenticatedAdmin()) {
+                    return true;
+                }
+                if (method_exists($currentUser, 'admin') && $currentUser->admin()) {
+                    return true;
+                }
+            } catch (\Throwable $e) {
+                // ignora e considera não-admin
+            }
+        }
+
+        return false;
     }
 }
