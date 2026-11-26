@@ -2,6 +2,7 @@
 
 namespace NFEioServiceInvoices\Hooks;
 
+use NFEioServiceInvoices\Helpers\Auth;
 use WHMCS\Database\Capsule;
 
 class ClientAreaPageViewInvoice
@@ -69,8 +70,7 @@ class ClientAreaPageViewInvoice
      */
     private function isInvoiceOwnedByCurrentClient()
     {
-        $currentUser = new \WHMCS\Authentication\CurrentUser();
-        $client = $currentUser->client();
+        $client = Auth::client();
 
         if (!$client || empty($this->invoiceId)) {
             return false;
