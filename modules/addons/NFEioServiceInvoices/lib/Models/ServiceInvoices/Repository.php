@@ -16,6 +16,24 @@ use NFEioServiceInvoices\Helpers\Timestamp;
 class Repository extends \WHMCSExpert\mtLibs\models\Repository
 {
     public $tableName = 'mod_nfeio_si_serviceinvoices';
+
+    /**
+     * Status de NFS-e aceitos no banco local.
+     * Nunca gravar códigos HTTP (ex.: 500) ou valores numéricos.
+     */
+    const ALLOWED_NF_STATUSES = [
+        'Waiting',
+        'Created',
+        'Issued',
+        'Cancelled',
+        'Error',
+        'Error_cep',
+        'Doc_Error',
+        'CancelFailed',
+        'IssueFailed',
+        'None',
+    ];
+
     public $fieldDeclaration = array(
         'invoice_id',
         'user_id',
@@ -296,6 +314,32 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
     }
 
     /**
+     * Normaliza e valida o status da NFS-e.
+     * Retorna null se for código HTTP, número ou valor desconhecido.
+     *
+     * @param mixed $status
+     * @return string|null
+     */
+    public static function normalizeNfStatus($status)
+    {
+        if ($status === null || $status === '') {
+            return null;
+        }
+
+        // Bloqueia 500, 400, etc. (int ou string numérica)
+        if (is_int($status) || is_float($status) || (is_string($status) && ctype_digit(trim($status)))) {
+            return null;
+        }
+
+        $status = trim((string) $status);
+        if (!in_array($status, self::ALLOWED_NF_STATUSES, true)) {
+            return null;
+        }
+
+        return $status;
+    }
+
+    /**
      * Atualiza o status e flow status de uma NF (Nota Fiscal) pelo seu external id
      *
      * @param string $externalId ID externo da Nf
@@ -310,8 +354,19 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             throw new \InvalidArgumentException('Invalid argument values.');
         }
 
+        $normalized = self::normalizeNfStatus($status);
+        if ($normalized === null) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'updateNfStatusByExternalId_invalid_status',
+                ['external_id' => $externalId, 'status' => $status],
+                'Status rejeitado'
+            );
+            return false;
+        }
+
         $data = [
-            'status' => $status,
+            'status' => $normalized,
         ];
 
         if ($flowStatus) {
@@ -354,8 +409,19 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
             throw new \InvalidArgumentException('Invalid argument values.');
         }
 
+        $normalized = self::normalizeNfStatus($status);
+        if ($normalized === null) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'updateNfStatusByNfeId_invalid_status',
+                ['nfe_id' => $nfeId, 'status' => $status],
+                'Status rejeitado'
+            );
+            return false;
+        }
+
         $data = [
-            'status' => $status,
+            'status' => $normalized,
         ];
 
         if ($flowStatus) {
@@ -400,14 +466,41 @@ class Repository extends \WHMCSExpert\mtLibs\models\Repository
      */
     public function updateServiceInvoice($externalId, $nfData)
     {
+        if (empty($nfData->id) || !is_string($nfData->id) || !preg_match('/^[a-f0-9]{24}$/i', $nfData->id)) {
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'updateServiceInvoice_invalid_id',
+                ['external_id' => $externalId, 'nfe_id' => isset($nfData->id) ? $nfData->id : null],
+                'ID da NF inválido'
+            );
+            return false;
+        }
+
+        // Se a API devolver código HTTP (ex.: 500) no campo status mas com id válido,
+        // assume Created (nota enfileirada) em vez de gravar o 500.
+        $status = self::normalizeNfStatus(isset($nfData->status) ? $nfData->status : null);
+        if ($status === null) {
+            $status = 'Created';
+            logModuleCall(
+                'nfeio_serviceinvoices',
+                'updateServiceInvoice_status_fallback',
+                [
+                    'external_id' => $externalId,
+                    'nfe_id' => $nfData->id,
+                    'raw_status' => isset($nfData->status) ? $nfData->status : null,
+                ],
+                'Status inválido substituído por Created'
+            );
+        }
+
         $data = [
             'nfe_id' => $nfData->id,
-            'status' => $nfData->status,
-            'services_amount' => $nfData->servicesAmount,
-            'environment' => $nfData->environment,
-            'flow_status' => $nfData->flowStatus,
-            'rpsSerialNumber' => $nfData->rpsSerialNumber,
-            'rpsNumber' => $nfData->rpsNumber,
+            'status' => $status,
+            'services_amount' => isset($nfData->servicesAmount) ? $nfData->servicesAmount : null,
+            'environment' => isset($nfData->environment) ? $nfData->environment : null,
+            'flow_status' => isset($nfData->flowStatus) ? $nfData->flowStatus : null,
+            'rpsSerialNumber' => isset($nfData->rpsSerialNumber) ? $nfData->rpsSerialNumber : null,
+            'rpsNumber' => isset($nfData->rpsNumber) ? $nfData->rpsNumber : null,
         ];
 
         try {

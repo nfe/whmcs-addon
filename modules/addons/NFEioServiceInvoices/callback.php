@@ -56,17 +56,37 @@ if (!is_array($payload) || !isset($payload['id'], $payload['status'], $payload['
     exit();
 }
 
-$environment = $module['NFEioEnvironment'];
+$environment = isset($module['NFEioEnvironment']) ? $module['NFEioEnvironment'] : '';
 $nf_id = $payload['id'];
-$nf_status = $payload['status'];
+$nf_status = \NFEioServiceInvoices\Models\ServiceInvoices\Repository::normalizeNfStatus($payload['status']);
 $nf_flow_status = $payload['flowStatus'];
-$nf_flow_message = $payload['flowMessage'] ?? '';
+$nf_flow_message = isset($payload['flowMessage']) ? $payload['flowMessage'] : '';
 $nf_environment = $payload['environment'];
-$nf_rps_number = $payload['rpsNumber'];
-$nf_rps_serial = $payload['rpsSerialNumber'] ?? 'IO';
+$nf_rps_number = isset($payload['rpsNumber']) ? $payload['rpsNumber'] : null;
+$nf_rps_serial = isset($payload['rpsSerialNumber']) ? $payload['rpsSerialNumber'] : 'IO';
+
+if ($nf_status === null) {
+    logModuleCall(
+        'nfeio_serviceinvoices',
+        'callback_error',
+        'Status inválido no webhook (possível código HTTP)',
+        ['status' => $payload['status'], 'nfe_id' => $nf_id]
+    );
+    http_response_code(400);
+    exit();
+}
 
 if (($environment === 'on' && $nf_environment === 'Production') || ($environment === '' && $nf_environment === 'Development')) {
-    logModuleCall('nfeio_serviceinvoices', 'callback_error_environment', 'Ambiente incompatível', $payload);
+    logModuleCall(
+        'nfeio_serviceinvoices',
+        'callback_error_environment',
+        'Ambiente incompatível: desmarque "Ambiente de Desenvolvimento" em Opções → Módulos Addon se emitir em Produção.',
+        [
+            'module_NFEioEnvironment' => $environment,
+            'payload_environment' => $nf_environment,
+            'nfe_id' => $nf_id,
+        ]
+    );
     http_response_code(400);
     exit();
 }

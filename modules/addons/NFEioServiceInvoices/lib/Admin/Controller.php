@@ -1116,14 +1116,22 @@ class Controller
         $invoice = $nfe->fetchNf($nfeId, $companyId);
 
         // verifica se houve erro na busca da nota fiscal
-        if ($invoice['error']) {
+        if (is_array($invoice) && !empty($invoice['error'])) {
             $msg->error("Erro ao buscar NF na API: {$invoice['error']}", $moduleLink);
+            return;
         }
 
         // recebe os dados da nota fiscal
         $invoiceId = $invoice->id;
-        $invoiceStatus = $invoice->status;
-        $invoiceFlowStatus = $invoice->flowStatus;
+        $invoiceStatus = \NFEioServiceInvoices\Models\ServiceInvoices\Repository::normalizeNfStatus(
+            isset($invoice->status) ? $invoice->status : null
+        );
+        $invoiceFlowStatus = isset($invoice->flowStatus) ? $invoice->flowStatus : null;
+
+        if ($invoiceStatus === null) {
+            $msg->error('Status remoto inválido ao atualizar nota fiscal.', $moduleLink);
+            return;
+        }
 
         // atualiza o status da nota fiscal no banco de dados
         $result = $nfe->updateLocalNfeStatus($invoiceId, $invoiceStatus, $invoiceFlowStatus);

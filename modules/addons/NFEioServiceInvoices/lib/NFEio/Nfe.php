@@ -797,7 +797,13 @@ class Nfe
 
         $nfeResponse = $this->legacyFunctions->gnfe_issue_nfe($postData, $companyId);
 
-        if (!$nfeResponse->message) {
+        $hasValidId = is_object($nfeResponse)
+            && !empty($nfeResponse->id)
+            && is_string($nfeResponse->id)
+            && preg_match('/^[a-f0-9]{24}$/i', $nfeResponse->id);
+
+        // Com id válido, updateServiceInvoice normaliza status (nunca grava 500 etc.).
+        if ($hasValidId) {
             $this->serviceInvoicesRepo->updateServiceInvoice($externalId, $nfeResponse);
             logModuleCall('nfeio_serviceinvoices', 'nf_emit', $postData, $nfeResponse);
         } else {
