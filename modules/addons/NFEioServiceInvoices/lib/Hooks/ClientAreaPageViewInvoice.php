@@ -55,6 +55,13 @@ class ClientAreaPageViewInvoice
 
         $vars['nfeIoTaxBills'] = $taxBills;
 
+        // Mantém o campo "Notas" da fatura com link PDF/XML das NFS-e emitidas.
+        \NFEioServiceInvoices\Helpers\Invoices::syncNfNotesToInvoice($this->invoiceId);
+        $currentNotes = Capsule::table('tblinvoices')->where('id', '=', $this->invoiceId)->value('notes');
+        $vars['notes'] = \NFEioServiceInvoices\Helpers\Invoices::mergeNfNotesForDisplay(
+            (string) $currentNotes,
+            $this->invoiceId
+        );
 
         return $vars;
     }
