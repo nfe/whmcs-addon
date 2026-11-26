@@ -98,14 +98,29 @@ if ($nfe->nfe_id === $nf_id && $nfe->status !== $nf_status) {
     try {
         Capsule::table('mod_nfeio_si_serviceinvoices')->where('nfe_id', $nf_id)->update($new_nfe);
         logModuleCall('nfeio_serviceinvoices', 'callback_success', $payload, $new_nfe);
+
+        $invoiceId = isset($nfe->invoice_id) ? $nfe->invoice_id : null;
+        if (!empty($invoiceId)) {
+            \NFEioServiceInvoices\Helpers\Invoices::syncNfNotesToInvoice($invoiceId);
+        }
+
         http_response_code(202);
+        echo 'accepted';
+        exit();
     } catch (\Exception $e) {
         logModuleCall('nfeio_serviceinvoices', 'callback_error', 'Erro ao atualizar a nota no banco de dados', $e->getMessage());
         http_response_code(500);
         exit();
     }
-} else {
-    logModuleCall('nfeio_serviceinvoices', 'callback', 'Nenhuma informação foi alterada', ['nfe' => $nfe, 'payload' => $payload]);
-    http_response_code(200);
-    exit();
 }
+
+// Mesmo status: ainda sincroniza Notas (ex.: NF já Issued sem link na fatura).
+$invoiceId = isset($nfe->invoice_id) ? $nfe->invoice_id : null;
+if (!empty($invoiceId) && ($nf_status === 'Issued' || $nf_status === 'Cancelled')) {
+    \NFEioServiceInvoices\Helpers\Invoices::syncNfNotesToInvoice($invoiceId);
+}
+
+logModuleCall('nfeio_serviceinvoices', 'callback', 'Nenhuma informação foi alterada', ['nfe' => $nfe, 'payload' => $payload]);
+http_response_code(200);
+echo 'ok';
+exit();

@@ -825,6 +825,13 @@ class Nfe
                 ['nfe_id' => $nfRemoteId, 'status' => $status, 'flow_status' => $flowStatus],
                 $result
             );
+
+            $nfRow = Capsule::table($this->serviceInvoicesTable)
+                ->where('nfe_id', '=', $nfRemoteId)
+                ->first();
+            if ($nfRow && !empty($nfRow->invoice_id)) {
+                \NFEioServiceInvoices\Helpers\Invoices::syncNfNotesToInvoice($nfRow->invoice_id);
+            }
         }
 
         return $result;

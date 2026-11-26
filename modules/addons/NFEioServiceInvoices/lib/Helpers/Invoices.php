@@ -111,4 +111,157 @@ class Invoices
             return false;
         }
     }
+
+    /**
+     * Marcadores do bloco de links NFS-e gravado em tblinvoices.notes.
+     * Permite substituir só o trecho gerado pelo módulo sem apagar notas manuais.
+     */
+    const NF_NOTES_BEGIN = '=== NFS-e ===';
+    const NF_NOTES_END = '=== Fim NFS-e ===';
+
+    /**
+     * Monta a URL do download de PDF/XML na área do cliente.
+     *
+     * @param string $action downloadNfPdf|downloadNfXml
+     * @param string $nfeId
+     * @param string $companyId
+     * @return string
+     */
+    public static function getClientNfDownloadUrl($action, $nfeId, $companyId)
+    {
+        $systemUrl = rtrim((string) \WHMCS\Config\Setting::getValue('SystemURL'), '/');
+        $query = http_build_query([
+            'm' => 'NFEioServiceInvoices',
+            'action' => $action,
+            'nfid' => $nfeId,
+            'c' => $companyId,
+        ]);
+
+        return $systemUrl . '/index.php?' . $query;
+    }
+
+    /**
+     * Monta o bloco HTML/texto com links PDF (e XML) das NFS-e emitidas da fatura.
+     *
+     * @param int $invoiceId
+     * @return string bloco completo com marcadores, ou string vazia se não houver NF emitida
+     */
+    public static function buildNfNotesBlock($invoiceId)
+    {
+        $tableName = (new \NFEioServiceInvoices\Models\ServiceInvoices\Repository())->tableName();
+        $issued = Capsule::table($tableName)
+            ->where('invoice_id', '=', $invoiceId)
+            ->where('status', '=', 'Issued')
+            ->where('nfe_id', '!=', 'waiting')
+            ->where('nfe_id', '!=', '')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        if (is_object($issued) && method_exists($issued, 'all')) {
+            $issued = $issued->all();
+        } elseif ($issued instanceof \Traversable) {
+            $issued = iterator_to_array($issued);
+        } elseif (!is_array($issued)) {
+            $issued = $issued ? array($issued) : array();
+        }
+
+        if (count($issued) === 0) {
+            return '';
+        }
+
+        $lines = array(self::NF_NOTES_BEGIN);
+        $lines[] = 'Nota Fiscal de Serviços (NFS-e) disponível para download:';
+
+        $index = 1;
+        $total = count($issued);
+        foreach ($issued as $nf) {
+            $nfeId = is_array($nf) ? $nf['nfe_id'] : $nf->nfe_id;
+            $companyId = is_array($nf) ? $nf['company_id'] : $nf->company_id;
+            $pdfUrl = self::getClientNfDownloadUrl('downloadNfPdf', $nfeId, $companyId);
+            $xmlUrl = self::getClientNfDownloadUrl('downloadNfXml', $nfeId, $companyId);
+            $prefix = $total > 1 ? ($index . ') ') : '';
+            $lines[] = $prefix
+                . '<a href="' . htmlspecialchars($pdfUrl, ENT_QUOTES, 'UTF-8') . '" target="_blank">Baixar PDF</a>'
+                . ' | '
+                . '<a href="' . htmlspecialchars($xmlUrl, ENT_QUOTES, 'UTF-8') . '" target="_blank">Baixar XML</a>';
+            $index++;
+        }
+
+        $lines[] = self::NF_NOTES_END;
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Insere/atualiza/remove o bloco NFS-e em tblinvoices.notes sem apagar notas manuais.
+     *
+     * @param int $invoiceId
+     * @return bool true se o campo notes foi alterado
+     */
+    public static function syncNfNotesToInvoice($invoiceId)
+    {
+        $invoiceId = (int) $invoiceId;
+        if ($invoiceId <= 0 || !self::hasInvoice($invoiceId)) {
+            return false;
+        }
+
+        $currentNotes = (string) Capsule::table('tblinvoices')->where('id', '=', $invoiceId)->value('notes');
+        $block = self::buildNfNotesBlock($invoiceId);
+        $newNotes = self::replaceNfNotesBlock($currentNotes, $block);
+
+        if ($newNotes === $currentNotes) {
+            return false;
+        }
+
+        Capsule::table('tblinvoices')->where('id', '=', $invoiceId)->update(array('notes' => $newNotes));
+
+        logModuleCall(
+            'nfeio_serviceinvoices',
+            'sync_nf_notes_to_invoice',
+            array('invoice_id' => $invoiceId),
+            array('notes' => $newNotes)
+        );
+
+        return true;
+    }
+
+    /**
+     * Substitui (ou remove) o bloco marcado do módulo dentro do texto de notas.
+     *
+     * @param string $currentNotes
+     * @param string $block bloco novo completo, ou vazio para remover
+     * @return string
+     */
+    public static function replaceNfNotesBlock($currentNotes, $block)
+    {
+        $currentNotes = (string) $currentNotes;
+        $begin = preg_quote(self::NF_NOTES_BEGIN, '/');
+        $end = preg_quote(self::NF_NOTES_END, '/');
+        $pattern = '/(?:\r\n|\n|\r)*' . $begin . '.*?' . $end . '(?:\r\n|\n|\r)*/s';
+
+        $withoutBlock = trim(preg_replace($pattern, '', $currentNotes));
+
+        if ($block === '') {
+            return $withoutBlock;
+        }
+
+        if ($withoutBlock === '') {
+            return $block;
+        }
+
+        return rtrim($withoutBlock) . "\n\n" . $block;
+    }
+
+    /**
+     * Garante o bloco NFS-e nas notas exibidas na área do cliente (sem depender só do DB).
+     *
+     * @param string $currentNotes
+     * @param int $invoiceId
+     * @return string
+     */
+    public static function mergeNfNotesForDisplay($currentNotes, $invoiceId)
+    {
+        $block = self::buildNfNotesBlock($invoiceId);
+        return self::replaceNfNotesBlock((string) $currentNotes, $block);
+    }
 }
