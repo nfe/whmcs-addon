@@ -188,19 +188,114 @@ class Functions
         curl_setopt($curl, CURLOPT_POST, 1);
         curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($postfields));
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        $response = curl_exec($curl);
+        curl_setopt($curl, CURLOPT_HEADER, 1);
+        $raw = curl_exec($curl);
         $error = curl_error($curl);
         $info = curl_getinfo($curl);
         curl_close($curl);
 
+        $httpCode = isset($info['http_code']) ? (int) $info['http_code'] : 0;
+        $headerSize = isset($info['header_size']) ? (int) $info['header_size'] : 0;
+        $rawHeaders = ($headerSize > 0 && is_string($raw)) ? substr($raw, 0, $headerSize) : '';
+        $response = ($headerSize > 0 && is_string($raw)) ? substr($raw, $headerSize) : $raw;
 
         if ($error) {
             logModuleCall('nfeio_serviceinvoices', 'nf_issue_curl_error', $postfields, ['error' => $error, 'response' => $response, 'info' => $info], '', '');
             return (object)['message' => $error, 'info' => $info];
-        } else {
-            logModuleCall('nfeio_serviceinvoices', 'nf_issue_curl_success', $postfields, $response, json_decode($response, true), '');
-            return json_decode(json_encode(json_decode($response)));
         }
+
+        // HTTP 202 costuma devolver só Location: .../serviceinvoices/{id}
+        $locationId = null;
+        if (is_string($rawHeaders) && preg_match('/^Location:\s*.*\/serviceinvoices\/([a-f0-9]{24})/mi', $rawHeaders, $m)) {
+            $locationId = $m[1];
+        }
+
+        $decoded = json_decode($response);
+        if (is_object($decoded)) {
+            if (isset($decoded->serviceInvoice) && is_object($decoded->serviceInvoice)) {
+                $decoded = $decoded->serviceInvoice;
+            } elseif (isset($decoded->serviceInvoices) && is_object($decoded->serviceInvoices)) {
+                $decoded = $decoded->serviceInvoices;
+            }
+        }
+
+        $nfId = null;
+        if (is_object($decoded) && !empty($decoded->id) && is_string($decoded->id)
+            && preg_match('/^[a-f0-9]{24}$/i', $decoded->id)
+        ) {
+            $nfId = $decoded->id;
+        } elseif ($locationId) {
+            $nfId = $locationId;
+            if (!is_object($decoded)) {
+                $decoded = new \stdClass();
+            }
+            $decoded->id = $nfId;
+        }
+
+        // Nota criada: nunca devolver/gravar código HTTP (ex.: {"status":500}) como status da NFS-e.
+        if ($nfId) {
+            if (!is_object($decoded)) {
+                $decoded = new \stdClass();
+            }
+            $decoded->id = $nfId;
+
+            $rawStatus = isset($decoded->status) ? $decoded->status : null;
+            $normalized = \NFEioServiceInvoices\Models\ServiceInvoices\Repository::normalizeNfStatus($rawStatus);
+            if ($normalized === null) {
+                $decoded->status = 'Created';
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'nf_issue_status_forced_created',
+                    $postfields,
+                    [
+                        'http_code' => $httpCode,
+                        'nfe_id' => $nfId,
+                        'raw_status' => $rawStatus,
+                        'response' => $response,
+                    ],
+                    '',
+                    ''
+                );
+            } else {
+                $decoded->status = $normalized;
+            }
+
+            if ($httpCode < 200 || $httpCode >= 300) {
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'nf_issue_http_error_with_id',
+                    $postfields,
+                    ['http_code' => $httpCode, 'nfe_id' => $nfId, 'response' => $response, 'info' => $info],
+                    '',
+                    ''
+                );
+            } else {
+                logModuleCall(
+                    'nfeio_serviceinvoices',
+                    'nf_issue_curl_success',
+                    $postfields,
+                    $response,
+                    json_decode($response, true),
+                    ''
+                );
+            }
+
+            return $decoded;
+        }
+
+        logModuleCall(
+            'nfeio_serviceinvoices',
+            'nf_issue_http_error',
+            $postfields,
+            ['http_code' => $httpCode, 'response' => $response, 'info' => $info],
+            '',
+            ''
+        );
+        return (object)[
+            'message' => 'HTTP ' . $httpCode . ' ao emitir NFS-e',
+            'info' => $info,
+            'response' => $response,
+        ];
     }
 
 
