@@ -16,10 +16,11 @@ use WHMCS\Database\Capsule;
 class Nfe
 {
     /**
-     * Tipos de item da fatura que não representam prestação de serviço e não geram NFS-e:
-     * juros/mora automática (LateFee), pagamento em massa (Invoice) e adição de fundos (AddFunds).
+     * Tipos de item que não geram NFS-e própria:
+     * pagamento em massa (Invoice) e adição de fundos (AddFunds).
+     * Juros/mora (LateFee) entram na mesma NFS-e da fatura (valor = total da fatura).
      */
-    const NON_BILLABLE_ITEM_TYPES = ['LateFee', 'Invoice', 'AddFunds'];
+    const NON_BILLABLE_ITEM_TYPES = ['Invoice', 'AddFunds'];
 
     /**
      * @var \NFEioServiceInvoices\Models\ServiceInvoices\Repository
@@ -484,9 +485,28 @@ class Nfe
 
         $defaultCompany = $companyRepository->getDefaultCompany();
         $invoiceItems = $invoiceData->items()->get();
-        $clientData = $invoiceData->client()->get();
 
-        $clientId = $clientData[0]['id'];
+        // userid da fatura é a fonte de verdade (evita user_id vazio/errado)
+        $clientId = null;
+        if (isset($invoiceData->userid) && (int) $invoiceData->userid > 0) {
+            $clientId = (int) $invoiceData->userid;
+        }
+        if (!$clientId) {
+            $clientId = (int) Capsule::table('tblinvoices')->where('id', '=', $invoiceId)->value('userid');
+        }
+        if (!$clientId) {
+            try {
+                $clientData = $invoiceData->client()->get();
+                if ($clientData && isset($clientData[0])) {
+                    $firstClient = $clientData[0];
+                    $clientId = (int) (is_array($firstClient)
+                        ? $firstClient['id']
+                        : $firstClient->id);
+                }
+            } catch (\Exception $e) {
+                $clientId = 0;
+            }
+        }
         $clientCompanyId = $clientCompanyRepository->getCompanyByClientId($clientId);
 
         // se cliente possuir empresa associada, utiliza a empresa associada, senao usa a empresa padrão
@@ -519,64 +539,75 @@ class Nfe
             $defaultTaxationType = $defaultCompany->taxation_type ?? null;
         }
 
-        // $defaultServiceCode = $this->storage->get('service_code');
-        // agrupa os itens pela tupla fiscal completa; cada grupo é auto-contido (#200)
-        $fiscalGroups = [];
-        // tipos de item descartados por não gerarem NFS-e, registrados no log ao final
+        // Uma NFS-e por fatura: códigos fiscais do primeiro produto com código
+        // personalizado (senão o padrão da empresa); valor = total da fatura
+        // (subtotal + impostos WHMCS). Juros/mora entram na mesma nota.
+        $serviceCode = $defaultServiceCode;
+        $nbsCode = $defaultNbsCode;
+        $operationIndicator = $defaultOperationIndicator;
+        $classCode = $defaultClassCode;
+        $fiscalFromProduct = false;
+        $descriptionParts = [];
         $skippedItemTypes = [];
+        $hasEligibleItem = false;
 
-        // percorre cada item da fatura para preparar as agregações por grupo fiscal
         foreach ($invoiceItems as $item) {
-            // essencial que código do serviço receba o valor padrão
-            // para cada passada do laco
-            $serviceCode = $defaultServiceCode;
-            $nbsCode = $defaultNbsCode;
-            $operationIndicator = $defaultOperationIndicator;
-            $classCode = $defaultClassCode;
-
-            // juros/mora, pagamento em massa e adição de fundos não são serviço e não entram na nota:
-            // as faturas quitadas pelo Mass Pay e as pagas com crédito geram as próprias notas
+            // Mass Pay e adição de fundos não geram NFS-e nesta fatura
             if (in_array($item->type, self::NON_BILLABLE_ITEM_TYPES, true)) {
                 $skippedItemTypes[] = $item->type;
                 continue;
             }
 
-            // se o item tiver um 'relid' e seu tipo for uns dos permitidos verifica se tem código personalizado
-            if ($item->relid != 0 and $this->allowedItemType($item->type)) {
+            if (!$fiscalFromProduct && $item->relid != 0 && $this->allowedItemType($item->type)) {
                 $customServiceCode = $this->productCodeRepo->getServiceCodeByRelId($item->relid, $companyId);
                 if ($customServiceCode) {
                     $serviceCode = $customServiceCode;
                     $nbsCode = $this->productCodeRepo->getNbsCodeByRelId($item->relid, $companyId);
                     $operationIndicator = $this->productCodeRepo->getOperationCodeByRelId($item->relid, $companyId);
                     $classCode = $this->productCodeRepo->getClassCodeByRelId($item->relid, $companyId);
+                    $fiscalFromProduct = true;
                 }
             }
 
-            // chave de agrupamento = tupla fiscal completa: uma NFS-e comporta apenas
-            // um conjunto de atributos fiscais (#200)
-            $fiscalKey = $this->fiscalGroupKey($serviceCode, $nbsCode, $operationIndicator, $classCode);
-
-            // inicializa o grupo (atributos + itens) na primeira ocorrência da tupla
-            if (!isset($fiscalGroups[$fiscalKey])) {
-                $fiscalGroups[$fiscalKey] = [
-                    'attributes' => [
-                        'service_code' => $serviceCode,
-                        'nbs_code' => $nbsCode,
-                        'operation_indicator' => $operationIndicator,
-                        'class_code' => $classCode,
-                    ],
-                    'items' => [],
-                ];
+            $prepared = $this->prepareItemsToTransmit($clientId, $invoiceId, $serviceCode, $item);
+            if (!empty($prepared)) {
+                $descriptionParts[] = $prepared['itemDescription'];
+                $hasEligibleItem = true;
             }
+        }
 
-            // prepara o item e o adiciona ao grupo fiscal correspondente
-            // phpcs:ignore Generic.Files.LineLength.TooLong
-            $fiscalGroups[$fiscalKey]['items'][] = $this->prepareItemsToTransmit(
-                $clientId,
-                $invoiceId,
+        // total da fatura com imposto WHMCS; fallback se crédito zerou o total (WHMCS <= 8)
+        $invoiceTotal = round(
+            (float) $invoiceData->subtotal + (float) $invoiceData->tax + (float) $invoiceData->tax2,
+            2
+        );
+        if ($invoiceTotal <= 0) {
+            $invoiceTotal = round((float) $invoiceData->total, 2);
+        }
+
+        $fiscalGroups = [];
+        if ($hasEligibleItem && $invoiceTotal > 0) {
+            $attributes = [
+                'service_code' => $serviceCode,
+                'nbs_code' => $nbsCode,
+                'operation_indicator' => $operationIndicator,
+                'class_code' => $classCode,
+            ];
+            $fiscalKey = $this->fiscalGroupKey(
                 $serviceCode,
-                $item
+                $nbsCode,
+                $operationIndicator,
+                $classCode
             );
+            $fiscalGroups[$fiscalKey] = [
+                'attributes' => $attributes,
+                'items' => [
+                    [
+                        'itemDescription' => implode("\n", $descriptionParts),
+                        'itemAmount' => $invoiceTotal,
+                    ],
+                ],
+            ];
         }
 
         // phpcs:ignore Generic.Files.LineLength.TooLong
